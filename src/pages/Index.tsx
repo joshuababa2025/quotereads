@@ -9,8 +9,21 @@ import { Footer } from "@/components/Footer";
 import { SignUpSidebar } from "@/components/SignUpSidebar";
 import { QuoteOfTheDay } from "@/components/QuoteOfTheDay";
 import { LatestBlogPosts } from "@/components/LatestBlogPosts";
+import { useState, useEffect } from "react";
 
 const Index = () => {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  // Listen for popup state changes from Navigation component
+  useEffect(() => {
+    const handlePopupChange = (event: CustomEvent) => {
+      setIsPopupOpen(event.detail.isOpen);
+    };
+
+    window.addEventListener('popupStateChange', handlePopupChange as EventListener);
+    return () => window.removeEventListener('popupStateChange', handlePopupChange as EventListener);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Announcement Banner */}
@@ -43,7 +56,9 @@ const Index = () => {
 
         {/* Sidebar */}
         <aside className="lg:w-80 space-y-6">
-          <SignUpSidebar />
+          <div className={`transition-opacity duration-300 ${isPopupOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <SignUpSidebar />
+          </div>
           <QuoteOfTheDay />
           <LatestBlogPosts />
         </aside>

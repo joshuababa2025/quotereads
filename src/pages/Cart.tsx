@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart, Plus, Minus, Trash2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { PaymentButton } from "@/components/PaymentButton";
 import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
@@ -149,14 +150,7 @@ const Cart = () => {
                   </div>
                 </div>
                 
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  disabled={state.items.length === 0}
-                  onClick={proceedToCheckout}
-                >
-                  Proceed to Checkout
-                </Button>
+                <PaymentButton className="w-full" size="lg" />
               </CardContent>
             </Card>
 

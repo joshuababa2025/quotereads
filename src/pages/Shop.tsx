@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { ShopFilters } from "@/components/ShopFilters";
+import { MobileShopFilters } from "@/components/MobileShopFilters";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useMemo } from "react";
 
 const Shop = () => {

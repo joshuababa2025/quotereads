@@ -310,102 +310,81 @@ const Giveaway = () => {
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="featured" className="mt-6">
-                  <div className="space-y-6">
-                    {campaigns.map((campaign) => (
-                      <Card key={campaign.id} className="overflow-hidden">
-                        <div className="flex">
-                          <div className="w-32 h-24 bg-muted flex-shrink-0">
-                            <img 
-                              src={campaign.image} 
-                              alt={campaign.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="flex-1 p-6">
-                            <div className="flex justify-between items-start mb-4">
-                              <div>
-                                <h3 className="text-lg font-semibold text-foreground mb-1">
-                                  {campaign.title}
-                                </h3>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  by {campaign.organization}
-                                </p>
-                                <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-3">
-                                  <span className="flex items-center">
-                                    <Calendar className="w-3 h-3 mr-1" />
-                                    {campaign.timeLeft}
-                                  </span>
-                                  <span className="flex items-center">
-                                    <Users className="w-3 h-3 mr-1" />
-                                    {campaign.supporters} supporters
-                                  </span>
-                                  <span className="flex items-center">
-                                    <MapPin className="w-3 h-3 mr-1" />
-                                    {campaign.location}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-lg font-semibold text-foreground">
-                                  Raised: ${campaign.raised}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  Goal: ${campaign.goal}
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="mb-4">
-                              <Progress 
-                                value={(campaign.raised / campaign.goal) * 100} 
-                                className="h-2 mb-2"
-                              />
-                            </div>
-                            
-                            <p className="text-sm text-muted-foreground mb-4">
-                              {campaign.description}
+              <TabsContent value="featured" className="mt-6">
+                <div className="space-y-6">
+                  <Card className="overflow-hidden">
+                    <div className="flex flex-col md:flex-row">
+                      <div className="w-full md:w-32 h-24 bg-muted flex-shrink-0">
+                        <img 
+                          src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
+                          alt="Featured Book Giveaway"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 p-4 md:p-6">
+                        <div className="flex flex-col md:flex-row justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-foreground mb-1">
+                              Signed First Edition Collection
+                            </h3>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              by Rare Books Society
                             </p>
-                            
-                            <div className="flex items-center justify-between">
-                              <div className="flex space-x-2">
-                                {campaign.tags.map((tag) => (
-                                  <Badge key={tag} variant="secondary" className="text-xs">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                              
-                              <div className="flex space-x-2">
-                                {user ? (
-                                  <>
-                                    <Button 
-                                      onClick={() => handleSupport(campaign.title)}
-                                      className="bg-primary hover:bg-primary/90"
-                                    >
-                                      Support Now
-                                    </Button>
-                                    <Button variant="outline">Become a Giver</Button>
-                                  </>
-                                ) : (
-                                  <Link to="/auth">
-                                    <Button variant="outline">
-                                      Sign In to Support
-                                    </Button>
-                                  </Link>
-                                )}
-                              </div>
+                            <div className="flex flex-wrap items-center text-xs text-muted-foreground space-x-4 mb-3">
+                              <span className="flex items-center">
+                                <Calendar className="w-3 h-3 mr-1" />
+                                Ends Jan 30, 2025
+                              </span>
+                              <span className="flex items-center">
+                                <Users className="w-3 h-3 mr-1" />
+                                2,834 entries
+                              </span>
+                              <span className="flex items-center">
+                                <MapPin className="w-3 h-3 mr-1" />
+                                Worldwide
+                              </span>
                             </div>
-                            
-                            <Button variant="link" className="p-0 h-auto mt-2 text-xs text-muted-foreground">
-                              Show More
-                            </Button>
+                          </div>
+                          <Badge variant="default" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100">
+                            Featured
+                          </Badge>
+                        </div>
+                        
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Win 10 signed first edition books from bestselling authors including Stephen King, Margaret Atwood, and Neil Gaiman. Valued at over $2,000!
+                        </p>
+                        
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="secondary" className="text-xs">Rare Books</Badge>
+                            <Badge variant="secondary" className="text-xs">Signed Editions</Badge>
+                          </div>
+                          
+                          <div className="flex space-x-2">
+                            {user ? (
+                              <Button className="bg-green-600 hover:bg-green-700">
+                                Enter Giveaway
+                              </Button>
+                            ) : (
+                              <Link to="/auth">
+                                <Button variant="outline">
+                                  Sign In to Enter
+                                </Button>
+                              </Link>
+                            )}
                           </div>
                         </div>
-                      </Card>
-                    ))}
+                      </div>
+                    </div>
+                  </Card>
+                  
+                  <div className="text-center">
+                    <Button variant="outline" className="mt-4">
+                      Load More Featured
+                    </Button>
                   </div>
-                </TabsContent>
+                </div>
+              </TabsContent>
                 
                 <TabsContent value="ending" className="mt-6">
                   <div className="space-y-6">

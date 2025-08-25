@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Search, Bell, Mail, User, ChevronDown, ShoppingCart } from "lucide-react";
+import { Search, Bell, Mail, User, ChevronDown, ShoppingCart, Menu, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
@@ -8,19 +8,71 @@ import { useState } from "react";
 import { NotificationPopup } from "@/components/NotificationPopup";
 import { MessagesPopup } from "@/components/MessagesPopup";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export const Navigation = () => {
   const { user, signOut } = useAuth();
   const { state } = useCart();
+  const isMobile = useIsMobile();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Emit popup state change events
+  const handlePopupStateChange = (isOpen: boolean) => {
+    window.dispatchEvent(
+      new CustomEvent('popupStateChange', { detail: { isOpen } })
+    );
+  };
+
+  const toggleNotifications = () => {
+    const newState = !showNotifications;
+    setShowNotifications(newState);
+    if (newState) {
+      setShowMessages(false);
+      setShowProfile(false);
+    }
+    handlePopupStateChange(newState || showMessages || showProfile);
+  };
+
+  const toggleMessages = () => {
+    const newState = !showMessages;
+    setShowMessages(newState);
+    if (newState) {
+      setShowNotifications(false);
+      setShowProfile(false);
+    }
+    handlePopupStateChange(showNotifications || newState || showProfile);
+  };
+
+  const toggleProfile = () => {
+    const newState = !showProfile;
+    setShowProfile(newState);
+    if (newState) {
+      setShowNotifications(false);
+      setShowMessages(false);
+    }
+    handlePopupStateChange(showNotifications || showMessages || newState);
+  };
+
+  const closeAllPopups = () => {
+    setShowNotifications(false);
+    setShowMessages(false);
+    setShowProfile(false);
+    handlePopupStateChange(false);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -36,7 +88,7 @@ export const Navigation = () => {
             </Link>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links - Desktop */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-foreground hover:text-primary transition-colors font-medium">Home</Link>
             <DropdownMenu>
@@ -75,6 +127,92 @@ export const Navigation = () => {
             <Link to="/shop" className="text-foreground hover:text-primary transition-colors font-medium">Shop</Link>
           </nav>
 
+          {/* Mobile Menu */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="sm" className="p-2">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80">
+              <div className="flex flex-col space-y-4 mt-8">
+                <Link 
+                  to="/" 
+                  className="text-foreground hover:text-primary transition-colors font-medium py-2 px-4 rounded-md hover:bg-muted"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Home
+                </Link>
+                
+                <div className="space-y-2">
+                  <div className="text-foreground font-medium py-2 px-4">My Quotes</div>
+                  <Link 
+                    to="/my-quotes" 
+                    className="text-muted-foreground hover:text-primary transition-colors py-2 px-8 rounded-md hover:bg-muted block"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    My Quotes
+                  </Link>
+                  <Link 
+                    to="/chapters-preview" 
+                    className="text-muted-foreground hover:text-primary transition-colors py-2 px-8 rounded-md hover:bg-muted block"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Chapters Preview
+                  </Link>
+                  <Link 
+                    to="/quote-of-the-day" 
+                    className="text-muted-foreground hover:text-primary transition-colors py-2 px-8 rounded-md hover:bg-muted block"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Quote of the Day
+                  </Link>
+                </div>
+                
+                <Link 
+                  to="/giveaway" 
+                  className="text-foreground hover:text-primary transition-colors font-medium py-2 px-4 rounded-md hover:bg-muted"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Giveaway
+                </Link>
+                
+                <div className="space-y-2">
+                  <div className="text-foreground font-medium py-2 px-4">Community</div>
+                  <Link 
+                    to="/groups" 
+                    className="text-muted-foreground hover:text-primary transition-colors py-2 px-8 rounded-md hover:bg-muted block"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Groups
+                  </Link>
+                  <Link 
+                    to="/community-quotes" 
+                    className="text-muted-foreground hover:text-primary transition-colors py-2 px-8 rounded-md hover:bg-muted block"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Community Quotes
+                  </Link>
+                  <Link 
+                    to="/blog" 
+                    className="text-muted-foreground hover:text-primary transition-colors py-2 px-8 rounded-md hover:bg-muted block"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Blog
+                  </Link>
+                </div>
+                
+                <Link 
+                  to="/shop" 
+                  className="text-foreground hover:text-primary transition-colors font-medium py-2 px-4 rounded-md hover:bg-muted"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Shop
+                </Link>
+              </div>
+            </SheetContent>
+          </Sheet>
+
           {/* Search and Actions */}
           <div className="flex items-center space-x-4">
             <div className="relative hidden sm:block">
@@ -91,7 +229,7 @@ export const Navigation = () => {
                 variant="ghost" 
                 size="sm" 
                 className="p-2 relative"
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={toggleNotifications}
               >
                 <Bell className="h-4 w-4" />
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
@@ -102,7 +240,7 @@ export const Navigation = () => {
                 variant="ghost" 
                 size="sm" 
                 className="p-2 relative"
-                onClick={() => setShowMessages(!showMessages)}
+                onClick={toggleMessages}
               >
                 <Mail className="h-4 w-4" />
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
@@ -123,7 +261,7 @@ export const Navigation = () => {
                 variant="ghost" 
                 size="sm" 
                 className="p-2"
-                onClick={() => setShowProfile(!showProfile)}
+                onClick={toggleProfile}
               >
                 <User className="h-4 w-4" />
               </Button>
@@ -146,17 +284,17 @@ export const Navigation = () => {
       
       <NotificationPopup 
         isOpen={showNotifications} 
-        onClose={() => setShowNotifications(false)} 
+        onClose={closeAllPopups} 
       />
       
       <MessagesPopup 
         isOpen={showMessages} 
-        onClose={() => setShowMessages(false)} 
+        onClose={closeAllPopups} 
       />
       
       <ProfileDropdown 
         isOpen={showProfile} 
-        onClose={() => setShowProfile(false)} 
+        onClose={closeAllPopups} 
       />
     </header>
   );
