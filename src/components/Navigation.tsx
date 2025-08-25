@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Search, Bell, Mail, User } from "lucide-react";
+import { Search, Bell, Mail, User, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Navigation = () => {
   const { user, signOut } = useAuth();
@@ -24,10 +30,21 @@ export const Navigation = () => {
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-foreground hover:text-primary transition-colors font-medium">Home</Link>
-            <Link to="/quotes" className="text-foreground hover:text-primary transition-colors font-medium">Quotes</Link>
             <Link to="/my-quotes" className="text-foreground hover:text-primary transition-colors font-medium">My Quotes</Link>
             <Link to="/giveaway" className="text-foreground hover:text-primary transition-colors font-medium">Giveaway</Link>
-            <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Community</a>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center text-foreground hover:text-primary transition-colors font-medium">
+                Community <ChevronDown className="ml-1 h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-background border-border">
+                <DropdownMenuItem asChild>
+                  <Link to="/groups" className="w-full">Groups</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/community-quotes" className="w-full">Community Quotes</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Shop</a>
           </nav>
 

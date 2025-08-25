@@ -6,7 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Quotes from "./pages/Quotes";
+import Groups from "./pages/Groups";
+import CommunityQuotes from "./pages/CommunityQuotes";
 import Giveaway from "./pages/Giveaway";
 import MyQuotes from "./pages/MyQuotes";
 import NotFound from "./pages/NotFound";
@@ -23,7 +24,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/quotes" element={<Quotes />} />
+            <Route path="/groups" element={<Groups />} />
+            <Route path="/community-quotes" element={<CommunityQuotes />} />
             <Route path="/giveaway" element={<Giveaway />} />
             <Route path="/my-quotes" element={<MyQuotes />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
