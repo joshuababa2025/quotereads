@@ -33,6 +33,7 @@ const DailyMotivation = lazy(() => import("./pages/DailyMotivation"));
 const CategoryQuotes = lazy(() => import("./pages/CategoryQuotes"));
 const QuoteThemes = lazy(() => import("./pages/QuoteThemes"));
 const QuoteDetails = lazy(() => import("./pages/QuoteDetails"));
+const BookDetails = lazy(() => import("./pages/BookDetails"));
 const Search = lazy(() => import("./pages/Search"));
 
 // Simple inline 404 component to avoid import issues
@@ -93,6 +94,7 @@ const App = () => (
                         <Route path="/category/:category" element={<CategoryQuotes />} />
                         <Route path="/quote-themes" element={<QuoteThemes />} />
                         <Route path="/quote/:quoteId" element={<QuoteDetails />} />
+                        <Route path="/book/:bookId" element={<BookDetails />} />
                         <Route path="/search" element={<Search />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>

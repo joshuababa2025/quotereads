@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Calendar, User, BookOpen } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ChaptersPreview = () => {
+  const navigate = useNavigate();
   const chapters = [
     {
       id: 1,
@@ -40,18 +42,18 @@ const ChaptersPreview = () => {
   ];
 
   const topics = [
-    { name: "Self-Inspiration", color: "bg-orange-100 text-orange-800" },
-    { name: "Author Highlights", color: "bg-blue-100 text-blue-800" },
-    { name: "Writing Tips", color: "bg-green-100 text-green-800" },
-    { name: "Faith & Spirituality", color: "bg-purple-100 text-purple-800" },
-    { name: "Love & Relationships", color: "bg-pink-100 text-pink-800" },
-    { name: "Personal Growth", color: "bg-yellow-100 text-yellow-800" }
+    { name: "Self-Inspiration", color: "bg-orange-100 text-orange-800", path: "/category/inspiration" },
+    { name: "Author Highlights", color: "bg-blue-100 text-blue-800", path: "/category/wisdom" },
+    { name: "Writing Tips", color: "bg-green-100 text-green-800", path: "/category/creativity" },
+    { name: "Faith & Spirituality", color: "bg-purple-100 text-purple-800", path: "/category/spirituality" },
+    { name: "Love & Relationships", color: "bg-pink-100 text-pink-800", path: "/category/love" },
+    { name: "Personal Growth", color: "bg-yellow-100 text-yellow-800", path: "/category/growth" }
   ];
 
   const mostRead = [
-    "5 Morning Quotes That Changed My Life",
-    "Finding Hope in Dark Times",
-    "The Art of Collecting Wisdom"
+    { id: 1, title: "5 Morning Quotes That Changed My Life", author: "Sarah Miles" },
+    { id: 2, title: "Finding Hope in Dark Times", author: "Sarah Miles" },
+    { id: 3, title: "The Art of Collecting Wisdom", author: "Sarah Miles" }
   ];
 
   return (
@@ -85,13 +87,20 @@ const ChaptersPreview = () => {
                       By {chapter.author} • {chapter.date}
                     </span>
                   </div>
-                  <h2 className="text-2xl font-bold text-foreground mb-3 hover:text-primary transition-colors cursor-pointer">
+                  <h2 
+                    className="text-2xl font-bold text-foreground mb-3 hover:text-primary transition-colors cursor-pointer"
+                    onClick={() => navigate(`/book/${chapter.id}`)}
+                  >
                     {chapter.title}
                   </h2>
                   <p className="text-muted-foreground mb-4 leading-relaxed">
                     {chapter.description}
                   </p>
-                  <Button variant="ghost" className="text-primary hover:text-primary/80 p-0">
+                  <Button 
+                    variant="ghost" 
+                    className="text-primary hover:text-primary/80 p-0"
+                    onClick={() => navigate(`/book/${chapter.id}`)}
+                  >
                     {chapter.readMore}
                   </Button>
                 </CardContent>
@@ -119,6 +128,7 @@ const ChaptersPreview = () => {
                     <Badge 
                       key={topic.name} 
                       className={`${topic.color} cursor-pointer hover:opacity-80 transition-opacity`}
+                      onClick={() => navigate(topic.path)}
                     >
                       {topic.name}
                     </Badge>
@@ -132,10 +142,14 @@ const ChaptersPreview = () => {
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-4">Most Read This Week</h3>
                 <div className="space-y-3">
-                  {mostRead.map((title, index) => (
-                    <div key={index} className="text-sm hover:text-primary cursor-pointer transition-colors">
-                      <span className="text-muted-foreground">by Sarah Miles</span>
-                      <p className="font-medium">{title}</p>
+                  {mostRead.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className="text-sm hover:text-primary cursor-pointer transition-colors"
+                      onClick={() => navigate(`/book/${item.id}`)}
+                    >
+                      <span className="text-muted-foreground">by {item.author}</span>
+                      <p className="font-medium">{item.title}</p>
                     </div>
                   ))}
                 </div>
