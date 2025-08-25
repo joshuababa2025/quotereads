@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { NotificationPopup } from "@/components/NotificationPopup";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +16,7 @@ import {
 export const Navigation = () => {
   const { user, signOut } = useAuth();
   const { state } = useCart();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -65,8 +68,16 @@ export const Navigation = () => {
             </div>
             
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm" className="p-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-2 relative"
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
                 <Bell className="h-4 w-4" />
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  2
+                </span>
               </Button>
               <Button variant="ghost" size="sm" className="p-2">
                 <Mail className="h-4 w-4" />
@@ -100,6 +111,11 @@ export const Navigation = () => {
           </div>
         </div>
       </div>
+      
+      <NotificationPopup 
+        isOpen={showNotifications} 
+        onClose={() => setShowNotifications(false)} 
+      />
     </header>
   );
 };

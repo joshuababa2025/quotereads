@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { useQuotes } from '@/contexts/QuotesContext';
 import { Link } from 'react-router-dom';
 import { Grid3X3, List, Plus, Settings, BarChart3, Printer, Rss } from 'lucide-react';
 import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MyQuotes = () => {
   const { user } = useAuth();
+  const { state } = useQuotes();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   if (!user) {
@@ -36,25 +39,29 @@ const MyQuotes = () => {
       text: "The only way to do great work is to love what you do.",
       author: "Steve Jobs",
       category: "Motivational",
-      variant: "purple" as const
+      variant: "purple" as const,
+      quote: "The only way to do great work is to love what you do."
     },
     {
       text: "Life is what happens to you while you're busy making other plans.",
-      author: "John Lennon",
+      author: "John Lennon", 
       category: "Life",
-      variant: "green" as const
+      variant: "green" as const,
+      quote: "Life is what happens to you while you're busy making other plans."
     },
     {
       text: "Be yourself; everyone else is already taken.",
       author: "Oscar Wilde",
       category: "Wisdom",
-      variant: "orange" as const
+      variant: "orange" as const,
+      quote: "Be yourself; everyone else is already taken."
     },
     {
       text: "In the middle of difficulty lies opportunity.",
       author: "Albert Einstein",
-      category: "Inspiration",
-      variant: "pink" as const
+      category: "Inspiration", 
+      variant: "pink" as const,
+      quote: "In the middle of difficulty lies opportunity."
     }
   ];
 
@@ -200,19 +207,75 @@ const MyQuotes = () => {
                 </div>
               </div>
 
-              {/* Quotes Grid */}
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                {savedQuotes.map((quote, index) => (
-                  <QuoteCard
-                    key={index}
-                    quote={quote.text}
-                    author={quote.author}
-                    category={quote.category}
-                    variant={quote.variant}
-                    className="h-full"
-                  />
-                ))}
-              </div>
+              {/* Quotes Tabs */}
+              <Tabs defaultValue="all" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 mb-6">
+                  <TabsTrigger value="all">All Quotes ({savedQuotes.length})</TabsTrigger>
+                  <TabsTrigger value="favorites">Favorites ({state.favorites.length})</TabsTrigger>
+                  <TabsTrigger value="loved">Loved ({state.lovedQuotes.length})</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="all" className="mt-6">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                    {savedQuotes.map((quote, index) => (
+                      <QuoteCard
+                        key={index}
+                        quote={quote.quote}
+                        author={quote.author}
+                        category={quote.category}
+                        variant={quote.variant}
+                        className="h-full"
+                      />
+                    ))}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="favorites" className="mt-6">
+                  {state.favorites.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <p>No favorite quotes yet</p>
+                      <p className="text-sm mt-2">Bookmark quotes to save them here</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                      {state.favorites.map((quote) => (
+                        <QuoteCard
+                          key={quote.id}
+                          id={quote.id}
+                          quote={quote.quote}
+                          author={quote.author}
+                          category={quote.category}
+                          variant={quote.variant}
+                          className="h-full"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="loved" className="mt-6">
+                  {state.lovedQuotes.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <p>No loved quotes yet</p>
+                      <p className="text-sm mt-2">Heart quotes to save them here</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                      {state.lovedQuotes.map((quote) => (
+                        <QuoteCard
+                          key={quote.id}
+                          id={quote.id}
+                          quote={quote.quote}
+                          author={quote.author}
+                          category={quote.category}
+                          variant={quote.variant}
+                          className="h-full"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
 
               {/* Sort Controls */}
               <div className="flex items-center justify-between text-sm">

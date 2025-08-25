@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const blogPosts = [
   {
@@ -37,10 +38,12 @@ export const LatestBlogPosts = () => {
         ))}
       </div>
       
-      <Button variant="ghost" className="w-full mt-4 justify-between hover:bg-muted/50">
-        View all posts
-        <ArrowRight className="h-4 w-4" />
-      </Button>
+        <Link to="/blog">
+          <Button variant="ghost" className="w-full mt-4 justify-between hover:bg-muted/50">
+            View all posts
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </Link>
     </div>
   );
 };

@@ -6,29 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useCart } from "@/contexts/CartContext";
+import { Link } from "react-router-dom";
 
 const Checkout = () => {
-  const orderItems = [
-    {
-      id: 1,
-      title: "The Great Gatsby",
-      author: "F. Scott Fitzgerald",
-      price: 12.99,
-      quantity: 1,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png"
-    },
-    {
-      id: 2,
-      title: "Goodreads Bookmark Set",
-      author: "Goodreads",
-      price: 8.99,
-      quantity: 1,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png"
-    }
-  ];
-
-  const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 4.99;
+  const { state } = useCart();
+  
+  const subtotal = state.total;
+  const shipping = state.items.length > 0 ? 4.99 : 0;
   const total = subtotal + shipping;
 
   return (
@@ -45,28 +30,34 @@ const Checkout = () => {
               <CardTitle>Your Order</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {orderItems.map((item) => (
-                <div key={item.id} className="flex gap-4 py-4 border-b last:border-b-0">
-                  <div className="w-16 h-20 bg-muted rounded overflow-hidden flex-shrink-0">
-                    <img 
-                      src={item.image} 
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-foreground">{item.title}</h4>
-                    <p className="text-sm text-muted-foreground">{item.author}</p>
-                    <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="font-semibold text-primary">${item.price}</span>
-                      <Button variant="link" size="sm" className="text-destructive p-0 h-auto">
-                        Remove
-                      </Button>
+              {state.items.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Your cart is empty</p>
+                  <Link to="/shop">
+                    <Button className="mt-4">Continue Shopping</Button>
+                  </Link>
+                </div>
+              ) : (
+                state.items.map((item) => (
+                  <div key={item.id} className="flex gap-4 py-4 border-b last:border-b-0">
+                    <div className="w-16 h-20 bg-muted rounded overflow-hidden flex-shrink-0">
+                      <img 
+                        src={item.image} 
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-foreground">{item.title}</h4>
+                      <p className="text-sm text-muted-foreground">{item.author}</p>
+                      <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="font-semibold text-primary">${(item.price * item.quantity).toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
               
               <div className="space-y-2 pt-4">
                 <div className="flex justify-between">
@@ -198,12 +189,14 @@ const Checkout = () => {
 
               {/* Action Buttons */}
               <div className="space-y-3 pt-4">
-                <Button className="w-full" size="lg">
+                <Button className="w-full" size="lg" disabled={state.items.length === 0}>
                   Place Order
                 </Button>
-                <Button variant="outline" className="w-full">
-                  Return to Cart
-                </Button>
+                <Link to="/cart">
+                  <Button variant="outline" className="w-full">
+                    Return to Cart
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

@@ -16,7 +16,7 @@ export const SignUpSidebar = () => {
           You're signed in as {user.email}
         </p>
         <div className="space-y-3">
-          <Link to="/quotes">
+          <Link to="/community-quotes">
             <Button className="w-full">
               Browse Quotes
             </Button>

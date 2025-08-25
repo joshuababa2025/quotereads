@@ -1,6 +1,8 @@
 import { Heart, Share2, BookmarkPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useQuotes } from "@/contexts/QuotesContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface QuoteCardProps {
   quote: string;
@@ -9,6 +11,7 @@ interface QuoteCardProps {
   variant: "purple" | "green" | "orange" | "pink" | "blue";
   likes?: number;
   className?: string;
+  id?: string;
 }
 
 const variantStyles = {
@@ -25,8 +28,65 @@ export const QuoteCard = ({
   category, 
   variant, 
   likes = 0, 
-  className 
+  className,
+  id = `${quote.slice(0, 20)}-${author}` 
 }: QuoteCardProps) => {
+  const { dispatch } = useQuotes();
+  const { toast } = useToast();
+
+  const handleAddToFavorites = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    dispatch({ 
+      type: 'ADD_TO_FAVORITES', 
+      quote: { id, quote, author, category, variant } 
+    });
+    toast({
+      title: "Added to favorites",
+      description: "Quote saved to your favorites collection"
+    });
+  };
+
+  const handleAddToLoved = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    dispatch({ 
+      type: 'ADD_TO_LOVED', 
+      quote: { id, quote, author, category, variant } 
+    });
+    toast({
+      title: "Added to loved quotes",
+      description: "Quote saved to your loved collection"
+    });
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareText = `"${quote}" - ${author}`;
+    const shareUrl = window.location.href;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Quote by ${author}`,
+          text: shareText,
+          url: shareUrl
+        });
+      } catch (err) {
+        // Fallback to copy to clipboard
+        navigator.clipboard.writeText(`${shareText}\n\nShared from LibVerse Nest: ${shareUrl}`);
+        toast({
+          title: "Link copied!",
+          description: "Quote link copied to clipboard"
+        });
+      }
+    } else {
+      // Fallback for browsers without native sharing
+      navigator.clipboard.writeText(`${shareText}\n\nShared from LibVerse Nest: ${shareUrl}`);
+      toast({
+        title: "Link copied!",
+        description: "Quote link copied to clipboard"
+      });
+    }
+  };
   return (
     <div className={cn(
       "rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative group",
@@ -51,14 +111,32 @@ export const QuoteCard = ({
         </div>
         
         {/* Actions */}
-        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button variant="ghost" size="sm" className="p-2 hover:bg-white/20 text-white">
+        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-2 hover:bg-white/20 text-white"
+            onClick={handleAddToLoved}
+            title="Add to loved quotes"
+          >
             <Heart className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="p-2 hover:bg-white/20 text-white">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-2 hover:bg-white/20 text-white"
+            onClick={handleAddToFavorites}
+            title="Add to favorites"
+          >
             <BookmarkPlus className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="p-2 hover:bg-white/20 text-white">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-2 hover:bg-white/20 text-white"
+            onClick={handleShare}
+            title="Share quote"
+          >
             <Share2 className="h-4 w-4" />
           </Button>
         </div>
