@@ -35,6 +35,7 @@ const QuoteThemes = lazy(() => import("./pages/QuoteThemes"));
 const QuoteDetails = lazy(() => import("./pages/QuoteDetails"));
 const BookDetails = lazy(() => import("./pages/BookDetails"));
 const Search = lazy(() => import("./pages/Search"));
+const QuoteOfTheDay = lazy(() => import("./pages/QuoteOfTheDay"));
 
 // Simple inline 404 component to avoid import issues
 const NotFound = () => (
@@ -96,6 +97,7 @@ const App = () => (
                         <Route path="/quote/:quoteId" element={<QuoteDetails />} />
                         <Route path="/book/:bookId" element={<BookDetails />} />
                         <Route path="/search" element={<Search />} />
+                        <Route path="/quote-of-the-day" element={<QuoteOfTheDay />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </Suspense>
