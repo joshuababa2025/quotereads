@@ -6,62 +6,71 @@ import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
-import { Gift, Clock, Users, Trophy, Star, BookOpen } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Heart, Users, Calendar, MapPin, ChevronDown, Search } from 'lucide-react';
 
 const Giveaway = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleParticipate = () => {
+  const handleSupport = (campaignTitle: string) => {
     if (!user) {
       toast({
         title: "Sign in required",
-        description: "Please sign in to participate in giveaways.",
+        description: "Please sign in to support campaigns.",
         variant: "destructive",
       });
       return;
     }
     
     toast({
-      title: "Entered successfully!",
-      description: "You're now entered in the giveaway. Good luck!",
+      title: "Support added!",
+      description: `Thank you for supporting ${campaignTitle}!`,
     });
   };
 
-  const giveaways = [
+  const campaigns = [
     {
       id: 1,
-      title: "Classic Literature Collection",
-      description: "Win a curated collection of 50 classic literature books, featuring works from Shakespeare, Dickens, Austen, and more.",
-      prize: "$500 Book Collection",
-      participants: 1247,
-      maxParticipants: 2000,
-      daysLeft: 12,
-      status: "active",
-      image: "📚",
+      title: "Support Through Tough Times",
+      organization: "Community Care",
+      description: "Help someone through tough times with this campaign...",
+      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
+      goal: 500,
+      raised: 200,
+      supporters: 12,
+      timeLeft: "June 19 - June 30",
+      location: "Worldwide",
+      tags: ["Support", "Motivation"]
     },
     {
       id: 2,
-      title: "Premium E-Reader Bundle",
-      description: "Get the latest e-reader with 1000 pre-loaded books and a premium subscription.",
-      prize: "Kindle Oasis + Books",
-      participants: 856,
-      maxParticipants: 1500,
-      daysLeft: 8,
-      status: "active",
-      image: "📖",
+      title: "Daily Encouragement Fund",
+      organization: "Hope Network",
+      description: "Spreading daily encouragement to those who need it most...",
+      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
+      goal: 300,
+      raised: 150,
+      supporters: 8,
+      timeLeft: "June 20 - July 5",
+      location: "Worldwide",
+      tags: ["Encouragement", "Hope"]
     },
     {
       id: 3,
-      title: "Author Meet & Greet",
-      description: "Exclusive dinner with bestselling author Sarah Johnson and signed copies of her entire series.",
-      prize: "VIP Experience",
-      participants: 342,
-      maxParticipants: 100,
-      daysLeft: 25,
-      status: "exclusive",
-      image: "✍️",
-    },
+      title: "Crisis Relief Aid",
+      organization: "Unity Team",
+      description: "Immediate crisis relief for those facing unexpected challenges...",
+      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
+      goal: 700,
+      raised: 350,
+      supporters: 15,
+      timeLeft: "June 25 - July 15",
+      location: "Worldwide",
+      tags: ["Crisis", "Relief"]
+    }
   ];
 
   return (
@@ -69,154 +78,203 @@ const Giveaway = () => {
       <Navigation />
       
       <main className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-gradient-primary rounded-full">
-              <Gift className="h-8 w-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            Literary Giveaways
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Enter our exclusive giveaways to win amazing literary prizes, from rare book collections to meet-and-greets with your favorite authors.
-          </p>
-        </div>
+        <div className="flex gap-8">
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-foreground mb-4">Giveaways</h1>
+              <p className="text-muted-foreground mb-6">
+                Join to support and receive life support initiatives, where you can give or receive help.
+              </p>
+              
+              {/* Search Bar */}
+              <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input 
+                  type="search" 
+                  placeholder="Search quotes" 
+                  className="pl-10 bg-background border-border"
+                />
+              </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Trophy className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground">47</div>
-              <p className="text-sm text-muted-foreground">Total Giveaways</p>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground">12.4K</div>
-              <p className="text-sm text-muted-foreground">Total Participants</p>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Star className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground">284</div>
-              <p className="text-sm text-muted-foreground">Winners This Year</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Active Giveaways */}
-        <div className="space-y-8">
-          <h2 className="text-2xl font-bold text-foreground">Active Giveaways</h2>
-          
-          <div className="grid gap-8">
-            {giveaways.map((giveaway) => (
-              <Card key={giveaway.id} className="overflow-hidden">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-4xl">{giveaway.image}</div>
-                      <div>
-                        <CardTitle className="text-xl mb-2">{giveaway.title}</CardTitle>
-                        <div className="flex items-center space-x-3">
-                          <Badge variant={giveaway.status === 'exclusive' ? 'default' : 'secondary'}>
-                            {giveaway.status === 'exclusive' ? 'Exclusive' : 'Open'}
-                          </Badge>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4 mr-1" />
-                            {giveaway.daysLeft} days left
+              {/* Filter Tabs */}
+              <Tabs defaultValue="featured" className="mb-6">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="featured">Featured</TabsTrigger>
+                  <TabsTrigger value="ending">Ending</TabsTrigger>
+                  <TabsTrigger value="recent">Recent</TabsTrigger>
+                  <TabsTrigger value="popular">
+                    <div className="flex items-center">
+                      Popular
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    </div>
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="featured" className="mt-6">
+                  <div className="space-y-6">
+                    {campaigns.map((campaign) => (
+                      <Card key={campaign.id} className="overflow-hidden">
+                        <div className="flex">
+                          <div className="w-32 h-24 bg-muted flex-shrink-0">
+                            <img 
+                              src={campaign.image} 
+                              alt={campaign.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="text-lg font-semibold text-foreground mb-1">
+                                  {campaign.title}
+                                </h3>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  by {campaign.organization}
+                                </p>
+                                <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-3">
+                                  <span className="flex items-center">
+                                    <Calendar className="w-3 h-3 mr-1" />
+                                    {campaign.timeLeft}
+                                  </span>
+                                  <span className="flex items-center">
+                                    <Users className="w-3 h-3 mr-1" />
+                                    {campaign.supporters} supporters
+                                  </span>
+                                  <span className="flex items-center">
+                                    <MapPin className="w-3 h-3 mr-1" />
+                                    {campaign.location}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-semibold text-foreground">
+                                  Raised: ${campaign.raised}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  Goal: ${campaign.goal}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="mb-4">
+                              <Progress 
+                                value={(campaign.raised / campaign.goal) * 100} 
+                                className="h-2 mb-2"
+                              />
+                            </div>
+                            
+                            <p className="text-sm text-muted-foreground mb-4">
+                              {campaign.description}
+                            </p>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex space-x-2">
+                                {campaign.tags.map((tag) => (
+                                  <Badge key={tag} variant="secondary" className="text-xs">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                              
+                              <div className="flex space-x-2">
+                                {user ? (
+                                  <>
+                                    <Button 
+                                      onClick={() => handleSupport(campaign.title)}
+                                      className="bg-primary hover:bg-primary/90"
+                                    >
+                                      Support Now
+                                    </Button>
+                                    <Button variant="outline">Become a Giver</Button>
+                                  </>
+                                ) : (
+                                  <Link to="/auth">
+                                    <Button variant="outline">
+                                      Sign In to Support
+                                    </Button>
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <Button variant="link" className="p-0 h-auto mt-2 text-xs text-muted-foreground">
+                              Show More
+                            </Button>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-semibold text-primary">
-                        {giveaway.prize}
-                      </div>
-                    </div>
+                      </Card>
+                    ))}
                   </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-6">
-                  <p className="text-muted-foreground">{giveaway.description}</p>
-                  
-                  {/* Progress */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {giveaway.participants.toLocaleString()} participants
-                      </span>
-                      <span className="text-muted-foreground">
-                        {giveaway.maxParticipants.toLocaleString()} max
-                      </span>
-                    </div>
-                    <Progress 
-                      value={(giveaway.participants / giveaway.maxParticipants) * 100} 
-                      className="h-2"
-                    />
-                  </div>
-                  
-                  {/* Action Button */}
-                  <div className="flex items-center justify-between pt-4">
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Users className="h-4 w-4 mr-1" />
-                      {giveaway.participants.toLocaleString()} entered
-                    </div>
-                    
-                    {user ? (
-                      <Button onClick={handleParticipate} className="ml-auto">
-                        <Gift className="h-4 w-4 mr-2" />
-                        Enter Giveaway
-                      </Button>
-                    ) : (
-                      <Link to="/auth">
-                        <Button variant="outline">
-                          Sign In to Enter
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+                </TabsContent>
+              </Tabs>
 
-        {/* How it Works */}
-        <div className="mt-16 text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-8">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="space-y-4">
-              <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto">
-                <BookOpen className="h-6 w-6 text-primary" />
+              {/* Load More */}
+              <div className="text-center mt-8">
+                <Button variant="outline">Load More</Button>
               </div>
-              <h3 className="font-semibold text-foreground">Browse Giveaways</h3>
-              <p className="text-sm text-muted-foreground">
-                Discover amazing literary prizes and exclusive experiences.
-              </p>
             </div>
-            <div className="space-y-4">
-              <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground">Enter to Win</h3>
-              <p className="text-sm text-muted-foreground">
-                Sign in and click enter - it's that simple! No purchase necessary.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto">
-                <Trophy className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground">Win Prizes</h3>
-              <p className="text-sm text-muted-foreground">
-                Winners are selected randomly and notified via email.
-              </p>
-            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="w-80 space-y-6">
+            {/* Giveaways Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Giveaways you've entered</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-4">
+                  <div className="text-2xl mb-2">—</div>
+                  <p className="text-sm text-muted-foreground">No entries yet</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* For Supporters */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">For Supporters and Donors</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Reach more people and support life initiatives the easiest way to promote your help or donate.
+                </p>
+                <Button className="w-full bg-primary hover:bg-primary/90">
+                  Donate or Support
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Share Problem */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base">Share Your Problem</CardTitle>
+                <ChevronDown className="h-4 w-4" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  All submissions verified by our team
+                </p>
+                <div className="space-y-3">
+                  <Input placeholder="Problem Description" />
+                  <Input placeholder="Contact Info (Optional)" />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Your information is confidential and protected.
+                </p>
+                <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                  Submit
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Submissions are reviewed by our team before posting for support.
+                </p>
+                <Button variant="link" className="text-xs p-0 h-auto">
+                  📊 View Reports - Transparency Reports Available
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>

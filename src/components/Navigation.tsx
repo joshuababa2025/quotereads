@@ -25,6 +25,7 @@ export const Navigation = () => {
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-foreground hover:text-primary transition-colors font-medium">Home</Link>
             <Link to="/quotes" className="text-foreground hover:text-primary transition-colors font-medium">Quotes</Link>
+            <Link to="/my-quotes" className="text-foreground hover:text-primary transition-colors font-medium">My Quotes</Link>
             <Link to="/giveaway" className="text-foreground hover:text-primary transition-colors font-medium">Giveaway</Link>
             <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Community</a>
             <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Shop</a>
