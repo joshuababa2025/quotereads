@@ -26,7 +26,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					soft: 'hsl(var(--primary-soft))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -52,16 +53,24 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+				footer: {
+					DEFAULT: 'hsl(var(--footer-background))',
+					foreground: 'hsl(var(--footer-foreground))'
+				},
+				quote: {
+					purple: 'hsl(var(--quote-purple))',
+					green: 'hsl(var(--quote-green))',
+					orange: 'hsl(var(--quote-orange))',
+					pink: 'hsl(var(--quote-pink))',
+					blue: 'hsl(var(--quote-blue))'
 				}
+			},
+			backgroundImage: {
+				'gradient-hero': 'var(--gradient-hero)',
+				'gradient-quote-purple': 'var(--gradient-quote-purple)',
+				'gradient-quote-green': 'var(--gradient-quote-green)',
+				'gradient-quote-orange': 'var(--gradient-quote-orange)',
+				'gradient-quote-pink': 'var(--gradient-quote-pink)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
