@@ -68,10 +68,13 @@ function quotesReducer(state: QuotesState, action: QuotesAction): QuotesState {
 }
 
 export function QuotesProvider({ children }: { children: ReactNode }) {
+  console.log('QuotesProvider rendering...');
   const [state, dispatch] = useReducer(quotesReducer, { 
     favorites: [], 
     lovedQuotes: []
   });
+
+  console.log('QuotesProvider state:', state);
 
   return (
     <QuotesContext.Provider value={{ state, dispatch }}>
@@ -83,6 +86,7 @@ export function QuotesProvider({ children }: { children: ReactNode }) {
 export function useQuotes() {
   const context = useContext(QuotesContext);
   if (!context) {
+    console.error('useQuotes called outside of QuotesProvider. Context:', context);
     throw new Error('useQuotes must be used within a QuotesProvider');
   }
   return context;

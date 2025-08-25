@@ -11,8 +11,21 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MyQuotes = () => {
+  console.log('MyQuotes component rendering...');
   const { user } = useAuth();
-  const { state } = useQuotes();
+  console.log('User from useAuth:', user);
+  
+  // Add error handling for useQuotes
+  let quotesState;
+  try {
+    const { state } = useQuotes();
+    quotesState = state;
+    console.log('Quotes state:', quotesState);
+  } catch (error) {
+    console.error('Error accessing quotes context:', error);
+    quotesState = { favorites: [], lovedQuotes: [] };
+  }
+  
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   if (!user) {
@@ -211,8 +224,8 @@ const MyQuotes = () => {
               <Tabs defaultValue="all" className="w-full">
                 <TabsList className="grid w-full grid-cols-3 mb-6">
                   <TabsTrigger value="all">All Quotes ({savedQuotes.length})</TabsTrigger>
-                  <TabsTrigger value="favorites">Favorites ({state.favorites.length})</TabsTrigger>
-                  <TabsTrigger value="loved">Loved ({state.lovedQuotes.length})</TabsTrigger>
+                  <TabsTrigger value="favorites">Favorites ({quotesState.favorites.length})</TabsTrigger>
+                  <TabsTrigger value="loved">Loved ({quotesState.lovedQuotes.length})</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="all" className="mt-6">
@@ -231,14 +244,14 @@ const MyQuotes = () => {
                 </TabsContent>
                 
                 <TabsContent value="favorites" className="mt-6">
-                  {state.favorites.length === 0 ? (
+                  {quotesState.favorites.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
                       <p>No favorite quotes yet</p>
                       <p className="text-sm mt-2">Bookmark quotes to save them here</p>
                     </div>
                   ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                      {state.favorites.map((quote) => (
+                      {quotesState.favorites.map((quote) => (
                         <QuoteCard
                           key={quote.id}
                           id={quote.id}
@@ -254,14 +267,14 @@ const MyQuotes = () => {
                 </TabsContent>
                 
                 <TabsContent value="loved" className="mt-6">
-                  {state.lovedQuotes.length === 0 ? (
+                  {quotesState.lovedQuotes.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
                       <p>No loved quotes yet</p>
                       <p className="text-sm mt-2">Heart quotes to save them here</p>
                     </div>
                   ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                      {state.lovedQuotes.map((quote) => (
+                      {quotesState.lovedQuotes.map((quote) => (
                         <QuoteCard
                           key={quote.id}
                           id={quote.id}
