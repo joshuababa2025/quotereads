@@ -7,6 +7,7 @@ import { useComments } from "@/contexts/CommentsContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
 import { QuoteOptionsMenu } from "./QuoteOptionsMenu";
+import { startTransition } from 'react';
 
 interface QuoteCardProps {
   quote: string;
@@ -112,7 +113,11 @@ export const QuoteCard = ({
         variantStyles[variant],
         className
       )}
-      onClick={() => navigate(`/quote/${id}`)}
+      onClick={() => {
+        startTransition(() => {
+          navigate(`/quote/${id}`);
+        });
+      }}
     >
       {/* Quote Icon */}
       <div className="text-6xl font-serif mb-4 opacity-20">"</div>
@@ -166,7 +171,9 @@ export const QuoteCard = ({
             className="p-2 hover:bg-white/20 text-white relative"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/quote/${id}`);
+              startTransition(() => {
+                navigate(`/quote/${id}`);
+              });
             }}
             title="View comments"
           >

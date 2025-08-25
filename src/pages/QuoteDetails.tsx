@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Download } from 'lucide-react';
 import { getQuotesByCategory, findQuoteById } from '@/data/quotes';
 import { useToast } from '@/hooks/use-toast';
+import { startTransition } from 'react';
 
 export default function QuoteDetails() {
   const { quoteId } = useParams<{ quoteId: string }>();
@@ -221,7 +222,11 @@ export default function QuoteDetails() {
                 <div className="text-center mt-8">
                   <Button 
                     variant="outline" 
-                    onClick={() => navigate(`/category/${quote.category}`)}
+                    onClick={() => {
+                      startTransition(() => {
+                        navigate(`/category/${quote.category}`);
+                      });
+                    }}
                   >
                     View All {quote.category} Quotes
                   </Button>
