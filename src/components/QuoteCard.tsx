@@ -104,12 +104,16 @@ export const QuoteCard = ({
       });
     }
   };
+
   return (
-    <div className={cn(
-      "rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative group",
-      variantStyles[variant],
-      className
-    )}>
+    <div 
+      className={cn(
+        "rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative group",
+        variantStyles[variant],
+        className
+      )}
+      onClick={() => navigate(`/quote/${id}`)}
+    >
       {/* Quote Icon */}
       <div className="text-6xl font-serif mb-4 opacity-20">"</div>
       
