@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/contexts/CartContext";
 import { QuotesProvider } from "@/contexts/QuotesContext";
+import { QuoteInteractionProvider } from "@/contexts/QuoteInteractionContext";
+import { SearchProvider } from "@/contexts/SearchContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Groups from "./pages/Groups";
@@ -47,7 +49,9 @@ const App = () => (
     <AuthProvider>
       <CartProvider>
         <QuotesProvider>
-          <TooltipProvider>
+          <QuoteInteractionProvider>
+            <SearchProvider>
+              <TooltipProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -66,11 +70,19 @@ const App = () => (
                 <Route path="/soccer-club" element={<SoccerClub />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:id" element={<BlogPost />} />
+                <Route path="/collections" element={<Collections />} />
+                <Route path="/topics" element={<Topics />} />
+                <Route path="/newsletter" element={<Newsletter />} />
+                <Route path="/wisdom-of-ages" element={<WisdomOfAges />} />
+                <Route path="/daily-motivation" element={<DailyMotivation />} />
+                <Route path="/category/:category" element={<CategoryQuotes />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+              </BrowserRouter>
+              </TooltipProvider>
+            </SearchProvider>
+          </QuoteInteractionProvider>
         </QuotesProvider>
       </CartProvider>
     </AuthProvider>

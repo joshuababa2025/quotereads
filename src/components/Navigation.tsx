@@ -3,6 +3,7 @@ import { Search, Bell, Mail, User, ChevronDown, ShoppingCart, Menu, X } from "lu
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
+import { useSearch } from "@/contexts/SearchContext";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { NotificationPopup } from "@/components/NotificationPopup";
@@ -24,6 +25,7 @@ import {
 export const Navigation = () => {
   const { user, signOut } = useAuth();
   const { state } = useCart();
+  const { searchQuery, setSearchQuery } = useSearch();
   const isMobile = useIsMobile();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
@@ -84,7 +86,7 @@ export const Navigation = () => {
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <Link to="/">
-              <h1 className="text-2xl font-bold text-foreground hover:text-primary transition-colors">LibVerse Nest</h1>
+              <h1 className="text-2xl font-bold text-foreground hover:text-primary transition-colors">QuoteReads</h1>
             </Link>
           </div>
 
@@ -221,6 +223,8 @@ export const Navigation = () => {
                 type="search" 
                 placeholder="Search quotes, authors..." 
                 className="pl-10 w-64 bg-muted/50 border-border"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             
