@@ -6,6 +6,8 @@ import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { NotificationPopup } from "@/components/NotificationPopup";
+import { MessagesPopup } from "@/components/MessagesPopup";
+import { ProfileDropdown } from "@/components/ProfileDropdown";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,8 @@ export const Navigation = () => {
   const { user, signOut } = useAuth();
   const { state } = useCart();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -79,8 +83,16 @@ export const Navigation = () => {
                   2
                 </span>
               </Button>
-              <Button variant="ghost" size="sm" className="p-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-2 relative"
+                onClick={() => setShowMessages(!showMessages)}
+              >
                 <Mail className="h-4 w-4" />
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  3
+                </span>
               </Button>
               <Button variant="ghost" size="sm" className="p-2 relative" asChild>
                 <Link to="/cart">
@@ -92,7 +104,12 @@ export const Navigation = () => {
                   )}
                 </Link>
               </Button>
-              <Button variant="ghost" size="sm" className="p-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-2"
+                onClick={() => setShowProfile(!showProfile)}
+              >
                 <User className="h-4 w-4" />
               </Button>
             </div>
@@ -115,6 +132,16 @@ export const Navigation = () => {
       <NotificationPopup 
         isOpen={showNotifications} 
         onClose={() => setShowNotifications(false)} 
+      />
+      
+      <MessagesPopup 
+        isOpen={showMessages} 
+        onClose={() => setShowMessages(false)} 
+      />
+      
+      <ProfileDropdown 
+        isOpen={showProfile} 
+        onClose={() => setShowProfile(false)} 
       />
     </header>
   );

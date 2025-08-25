@@ -1,6 +1,5 @@
 import { Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 
 const mockNotifications = [
@@ -46,40 +45,31 @@ export const NotificationPopup = ({ isOpen, onClose }: NotificationPopupProps) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20">
-      <div className="fixed inset-0 bg-black/20" onClick={onClose} />
-      
-      <Card className="w-full max-w-md mx-4 z-10 max-h-96">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Notifications
-            {unreadCount > 0 && (
-              <span className="bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {unreadCount}
-              </span>
-            )}
-          </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50" onClick={onClose}>
+      <div className="absolute top-16 right-4 w-80 bg-background border border-border rounded-lg shadow-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h3 className="font-semibold text-foreground flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Notifications ({unreadCount})
+          </h3>
+          <Button variant="ghost" size="sm" onClick={onClose} className="p-1">
             <X className="h-4 w-4" />
           </Button>
-        </CardHeader>
+        </div>
         
-        <CardContent className="max-h-80 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto">
           {notifications.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <div className="p-6 text-center text-muted-foreground">
+              <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>No new notifications</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="p-2">
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                    notification.read 
-                      ? 'bg-background border-border' 
-                      : 'bg-primary/5 border-primary/20'
+                  className={`p-3 rounded-lg mb-2 cursor-pointer hover:bg-muted/50 transition-colors ${
+                    !notification.read ? 'bg-primary/5 border-l-2 border-l-primary' : ''
                   }`}
                   onClick={() => markAsRead(notification.id)}
                 >
@@ -87,22 +77,25 @@ export const NotificationPopup = ({ isOpen, onClose }: NotificationPopupProps) =
                     <h4 className="font-medium text-sm text-foreground">
                       {notification.title}
                     </h4>
-                    {!notification.read && (
-                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1" />
-                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {notification.time}
+                    </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">
+                  <p className="text-sm text-muted-foreground">
                     {notification.message}
                   </p>
-                  <span className="text-xs text-muted-foreground">
-                    {notification.time}
-                  </span>
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+        
+        <div className="p-4 border-t border-border">
+          <Button variant="outline" className="w-full" size="sm">
+            View All Notifications
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
