@@ -27,6 +27,8 @@ const Blog = lazy(() => import("./pages/Blog"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const ChaptersPreview = lazy(() => import("./pages/ChaptersPreview"));
 const SoccerClub = lazy(() => import("./pages/SoccerClub"));
+const BookClub = lazy(() => import("./pages/BookClub"));
+const TechMeetup = lazy(() => import("./pages/TechMeetup"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Collections = lazy(() => import("./pages/Collections"));
 const Topics = lazy(() => import("./pages/Topics"));
@@ -90,7 +92,9 @@ const App = () => (
                         <Route path="/checkout" element={<Checkout />} />
                         <Route path="/payment-success" element={<PaymentSuccess />} />
                         <Route path="/chapters-preview" element={<ChaptersPreview />} />
-                        <Route path="/soccer-club" element={<SoccerClub />} />
+            <Route path="/soccer-club" element={<SoccerClub />} />
+            <Route path="/book-club" element={<BookClub />} />
+            <Route path="/tech-meetup" element={<TechMeetup />} />
                         <Route path="/blog" element={<Blog />} />
                         <Route path="/blog/:id" element={<BlogPost />} />
                         <Route path="/collections" element={<Collections />} />

@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import { CreateCampaignDialog } from '@/components/CreateCampaignDialog';
+import { CreateCampaignDialog } from '@/components/CreateCampaignDialog';
 import { Heart, Users, Calendar, MapPin, DollarSign, TrendingUp, Clock } from 'lucide-react';
 
 const Donations = () => {
@@ -294,9 +294,7 @@ const Donations = () => {
             <p className="text-muted-foreground mb-6">
               Have a cause you're passionate about? Create your own fundraising campaign and get the support you need.
             </p>
-            <Button className="bg-primary hover:bg-primary/90" size="lg">
-              Create Campaign
-            </Button>
+            <CreateCampaignDialog onCampaignCreated={handleCampaignCreated} />
           </CardContent>
         </Card>
       </main>

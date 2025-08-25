@@ -8,8 +8,52 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Users, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { CreateGroupDialog } from "@/components/CreateGroupDialog";
+import { useState } from "react";
 
 const Groups = () => {
+  const [groups, setGroups] = useState([
+    {
+      id: 1,
+      name: "Soccer Club - Lagos",
+      members: 45,
+      lastActivity: "2 hours ago",
+      description: "A community for physical meetings, sports, and social activities. Join us for weekly matches, training sessions, and social events. All skill levels welcome.",
+      link: "/soccer-club",
+      avatar: "SC",
+      color: "from-green-500 to-green-600"
+    },
+    {
+      id: 2,
+      name: "Book Club - Fantasy Readers",
+      members: 127,
+      lastActivity: "5 minutes ago",
+      description: "A community for fantasy book lovers. We explore magical worlds, discuss epic adventures, and share our favorite fantasy books. Monthly book discussions and reading challenges.",
+      link: "/book-club",
+      avatar: "BC",
+      color: "from-purple-500 to-purple-600"
+    },
+    {
+      id: 3,
+      name: "Tech Meetup - JavaScript Developers",
+      members: 89,
+      lastActivity: "10 minutes ago",
+      description: "A community of passionate JavaScript developers sharing knowledge, discussing latest trends, and building amazing projects together. All experience levels welcome!",
+      link: "/tech-meetup",
+      avatar: "TM",
+      color: "from-blue-500 to-blue-600"
+    }
+  ]);
+
+  const handleGroupCreated = (newGroup: any) => {
+    const groupWithDefaults = {
+      ...newGroup,
+      avatar: newGroup.name.split(' ').map((word: string) => word[0]).join('').substring(0, 2).toUpperCase(),
+      color: "from-indigo-500 to-indigo-600",
+      link: `/group/${newGroup.id}`
+    };
+    setGroups(prev => [groupWithDefaults, ...prev]);
+  };
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -63,75 +107,30 @@ const Groups = () => {
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">Popular groups</h2>
               
-              <Card className="mb-4 cursor-pointer hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
-                    <div className="w-16 h-16 rounded bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">SC</span>
+              {groups.map((group) => (
+                <Card key={group.id} className="mb-4 cursor-pointer hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex gap-4">
+                      <div className={`w-16 h-16 rounded bg-gradient-to-br ${group.color} flex items-center justify-center`}>
+                        <span className="text-white font-bold text-lg">{group.avatar}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg mb-1">
+                          <Link to={group.link} className="hover:text-primary transition-colors">
+                            {group.name}
+                          </Link>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {group.members} members • Active {group.lastActivity}
+                        </p>
+                        <p className="text-sm">
+                          {group.description}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1">
-                        <Link to="/soccer-club" className="hover:text-primary transition-colors">
-                          Soccer Club - Lagos
-                        </Link>
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        45 members • Active 2 hours ago
-                      </p>
-                      <p className="text-sm">
-                        A community for physical meetings, sports, and social activities. Join us for weekly matches, 
-                        training sessions, and social events. All skill levels welcome.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="mb-4">
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
-                    <img 
-                      src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
-                      alt="Group avatar" 
-                      className="w-16 h-16 rounded object-cover"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1">Goodreads Librarians Group</h3>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        48324 members • Active a few seconds ago
-                      </p>
-                      <p className="text-sm">
-                        Goodreads Librarians are volunteers who help ensure the accuracy of information about 
-                        books and authors in the Goodreads' catalog. The Goodreads Librarians Group is the 
-                        official group for requesting...
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="mb-4">
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
-                    <img 
-                      src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
-                      alt="Group avatar" 
-                      className="w-16 h-16 rounded object-cover"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1">Reese's Book Club x Hello Sunshine</h3>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        184198 members • Active 51 minutes ago
-                      </p>
-                      <p className="text-sm">
-                        Hey Y'all! We've been reading together for a while and we don't know about you, but 
-                        we're ready to hear your thoughts and opinions. This group is a place where we can 
-                        discuss Reese's Picks. After...
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
             </section>
           </div>
 
@@ -217,7 +216,7 @@ const Groups = () => {
 
                 <Textarea placeholder="Upload or paste helpful self-guides for members" rows={2} />
 
-                <Button className="w-full">Create</Button>
+                <CreateGroupDialog onGroupCreated={handleGroupCreated} />
               </CardContent>
             </Card>
 
