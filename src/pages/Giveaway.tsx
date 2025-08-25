@@ -39,7 +39,7 @@ const Giveaway = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredGiveaways, setFilteredGiveaways] = useState([]);
-  const [enteredGiveaways, setEnteredGiveaways] = useState(new Set());
+  const [enteredGiveaways, setEnteredGiveaways] = useState<Set<number>>(new Set());
   const [showEntryForm, setShowEntryForm] = useState(false);
   const [selectedGiveaway, setSelectedGiveaway] = useState(null);
 
@@ -506,44 +506,43 @@ const Giveaway = () => {
                 
                 <TabsContent value="popular" className="mt-6">
                   <div className="space-y-6">
-                    {campaigns.sort((a, b) => b.supporters - a.supporters).map((campaign) => (
-                      <Card key={campaign.id} className="overflow-hidden">
+                    {giveaways.sort((a, b) => b.entries - a.entries).map((giveaway) => (
+                      <Card key={giveaway.id} className="overflow-hidden border-l-4 border-l-purple-500">
                         <div className="flex">
                           <div className="w-32 h-24 bg-muted flex-shrink-0">
                             <img 
-                              src={campaign.image} 
-                              alt={campaign.title}
+                              src={giveaway.image} 
+                              alt={giveaway.title}
                               className="w-full h-full object-cover"
                             />
                           </div>
                           <div className="flex-1 p-6">
                             <Badge variant="outline" className="mb-2">
                               <Heart className="w-3 h-3 mr-1" />
-                              {campaign.supporters} supporters
+                              {giveaway.entries} entries
                             </Badge>
                             <div className="flex justify-between items-start mb-4">
                               <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-1">
-                                  {campaign.title}
+                                  {giveaway.title}
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-2">
-                                  by {campaign.organization}
+                                  by {giveaway.organization}
                                 </p>
                               </div>
                               <div className="text-right">
                                 <div className="text-lg font-semibold text-foreground">
-                                  Raised: ${campaign.raised}
+                                  {giveaway.entries} entries
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  Goal: ${campaign.goal}
+                                  {giveaway.timeLeft}
                                 </div>
                               </div>
                             </div>
-                            <Progress value={(campaign.raised / campaign.goal) * 100} className="h-2 mb-4" />
-                            <p className="text-sm text-muted-foreground mb-4">{campaign.description}</p>
+                            <p className="text-sm text-muted-foreground mb-4">{giveaway.description}</p>
                             <div className="flex items-center justify-between">
                               <div className="flex space-x-2">
-                                {campaign.tags.map((tag) => (
+                                {giveaway.tags.map((tag) => (
                                   <Badge key={tag} variant="secondary" className="text-xs">
                                     {tag}
                                   </Badge>
@@ -551,12 +550,12 @@ const Giveaway = () => {
                               </div>
                               <div className="flex space-x-2">
                                 {user ? (
-                                  <Button onClick={() => handleSupport(campaign.title)} className="bg-primary hover:bg-primary/90">
-                                    Support Now
+                                  <Button onClick={() => handleEnterGiveaway(giveaway)} className="bg-green-600 hover:bg-green-700">
+                                    Enter Giveaway
                                   </Button>
                                 ) : (
                                   <Link to="/auth">
-                                    <Button variant="outline">Sign In to Support</Button>
+                                    <Button variant="outline">Sign In to Enter</Button>
                                   </Link>
                                 )}
                               </div>
@@ -589,8 +588,8 @@ const Giveaway = () => {
               <CardContent>
                 {enteredGiveaways.size > 0 ? (
                   <div className="space-y-2">
-                    {Array.from(enteredGiveaways).map((giveawayId) => {
-                      const giveaway = giveaways.find(g => g.id === Number(giveawayId));
+                    {Array.from(enteredGiveaways).map((giveawayId: number) => {
+                      const giveaway = giveaways.find(g => g.id === giveawayId);
                       return (
                         <div key={giveawayId} className="p-2 bg-green-50 dark:bg-green-900/20 rounded">
                           <p className="text-sm font-medium">{giveaway?.title}</p>
