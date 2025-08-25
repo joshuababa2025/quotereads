@@ -45,7 +45,7 @@ export const Navigation = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Shop</a>
+            <Link to="/shop" className="text-foreground hover:text-primary transition-colors font-medium">Shop</Link>
           </nav>
 
           {/* Search and Actions */}

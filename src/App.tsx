@@ -10,6 +10,9 @@ import Groups from "./pages/Groups";
 import CommunityQuotes from "./pages/CommunityQuotes";
 import Giveaway from "./pages/Giveaway";
 import MyQuotes from "./pages/MyQuotes";
+import Shop from "./pages/Shop";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +31,9 @@ const App = () => (
             <Route path="/community-quotes" element={<CommunityQuotes />} />
             <Route path="/giveaway" element={<Giveaway />} />
             <Route path="/my-quotes" element={<MyQuotes />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
