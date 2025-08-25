@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-reading-illustration.jpg";
 
 export const HeroSection = () => {
@@ -14,12 +15,14 @@ export const HeroSection = () => {
             <p className="text-lg text-muted-foreground mb-8 max-w-md mx-auto lg:mx-0">
               Discover wisdom, inspiration, and beauty in words that have shaped minds and hearts across generations.
             </p>
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
-            >
-              Read More
-            </Button>
+            <Link to="/community-quotes">
+              <Button 
+                size="lg" 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+              >
+                Read More
+              </Button>
+            </Link>
           </div>
 
           {/* Right Image */}
