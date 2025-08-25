@@ -162,10 +162,46 @@ export const allQuotes: Quote[] = [
     id: "qotd-1",
     quote: "The only impossible journey is the one you never begin.",
     author: "Tony Robbins",
-    category: "Motivation",
+    category: "Quote of the Day",
     variant: "purple",
     likes: 756,
     tags: ["motivation", "journey", "beginning", "impossible"]
+  },
+  {
+    id: "qotd-2",
+    quote: "Yesterday is history, tomorrow is a mystery, today is a gift of God, which is why we call it the present.",
+    author: "Eleanor Roosevelt",
+    category: "Quote of the Day",
+    variant: "blue",
+    likes: 892,
+    tags: ["present", "mindfulness", "time", "gift"]
+  },
+  {
+    id: "qotd-3",
+    quote: "The future belongs to those who believe in the beauty of their dreams.",
+    author: "Eleanor Roosevelt",
+    category: "Quote of the Day",
+    variant: "green",
+    likes: 634,
+    tags: ["dreams", "future", "belief", "beauty"]
+  },
+  {
+    id: "qotd-4",
+    quote: "It is during our darkest moments that we must focus to see the light.",
+    author: "Aristotle",
+    category: "Quote of the Day",
+    variant: "orange",
+    likes: 445,
+    tags: ["hope", "perseverance", "darkness", "light"]
+  },
+  {
+    id: "qotd-5",
+    quote: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+    author: "Winston Churchill",
+    category: "Quote of the Day",
+    variant: "pink",
+    likes: 721,
+    tags: ["success", "failure", "courage", "perseverance"]
   }
 ];
 
