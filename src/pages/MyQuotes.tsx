@@ -5,28 +5,39 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuotes } from '@/contexts/QuotesContext';
-import { Link } from 'react-router-dom';
-import { Grid3X3, List, Plus, Settings, BarChart3, Printer, Rss } from 'lucide-react';
+import { CreateShelfDialog } from '@/components/CreateShelfDialog';
+import { Link, useNavigate } from 'react-router-dom';
+import { Grid3X3, List, Plus, Settings, BarChart3, Printer, Rss, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MyQuotes = () => {
   console.log('MyQuotes component rendering...');
   const { user } = useAuth();
+  const navigate = useNavigate();
   console.log('User from useAuth:', user);
   
   // Add error handling for useQuotes
-  let quotesState;
+  let quotesState, quotesDispatch;
   try {
-    const { state } = useQuotes();
+    const { state, dispatch } = useQuotes();
     quotesState = state;
+    quotesDispatch = dispatch;
     console.log('Quotes state:', quotesState);
   } catch (error) {
     console.error('Error accessing quotes context:', error);
-    quotesState = { favorites: [], lovedQuotes: [] };
+    quotesState = { 
+      favorites: [], 
+      lovedQuotes: [], 
+      customShelves: [], 
+      quoteThemes: [], 
+      shelfQuotes: {}, 
+      themedQuotes: {} 
+    };
   }
   
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
 
   if (!user) {
     return (
@@ -78,20 +89,33 @@ const MyQuotes = () => {
     }
   ];
 
-  const shelves = [
-    { name: "All", count: 4 },
-    { name: "Saved for Later", count: 1 },
-    { name: "Currently Reflecting", count: 0 },
-    { name: "Loved Quotes", count: 3 }
+  const defaultShelves = [
+    { id: "all", name: "All", count: savedQuotes.length + quotesState.favorites.length + quotesState.lovedQuotes.length },
+    { id: "favorites", name: "Saved for Later", count: quotesState.favorites.length },
+    { id: "loved", name: "Loved Quotes", count: quotesState.lovedQuotes.length }
   ];
 
   const quoteActivity = [
-    "Wishes",
-    "Greetings", 
-    "Prayer",
-    "Affirmations",
-    "Quote Themes (Image Gallery)"
+    { name: "Wishes", link: "/category/wishes" },
+    { name: "Greetings", link: "/category/greetings" }, 
+    { name: "Prayer", link: "/category/prayer" },
+    { name: "Affirmations", link: "/category/affirmations" },
+    { name: "Quote Themes (Image Gallery)", link: "/quote-themes" }
   ];
+
+  const handleDeleteShelf = (shelfId: string) => {
+    if (quotesDispatch) {
+      quotesDispatch({ type: 'DELETE_SHELF', id: shelfId });
+    }
+  };
+
+  const handleShelfClick = (shelfId: string) => {
+    setSelectedShelf(shelfId === selectedShelf ? null : shelfId);
+  };
+
+  const getShelfQuotes = (shelfId: string) => {
+    return quotesState.shelfQuotes[shelfId] || [];
+  };
 
   const tools = [
     "Find Duplicates",
@@ -113,9 +137,16 @@ const MyQuotes = () => {
                 <CardTitle className="text-base font-semibold">Shelves</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {shelves.map((shelf) => (
-                  <div key={shelf.name} className="flex items-center justify-between py-1">
-                    <span className="text-sm text-foreground cursor-pointer hover:text-primary">
+                {/* Default Shelves */}
+                {defaultShelves.map((shelf) => (
+                  <div 
+                    key={shelf.id} 
+                    className={`flex items-center justify-between py-1 cursor-pointer hover:bg-muted/50 rounded px-2 -mx-2 ${
+                      selectedShelf === shelf.id ? 'bg-muted text-primary' : ''
+                    }`}
+                    onClick={() => handleShelfClick(shelf.id)}
+                  >
+                    <span className="text-sm text-foreground">
                       {shelf.name}
                     </span>
                     <span className="text-sm text-muted-foreground">
@@ -123,10 +154,41 @@ const MyQuotes = () => {
                     </span>
                   </div>
                 ))}
-                <Button variant="link" className="p-0 h-auto text-sm text-primary mt-4">
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add shelf
-                </Button>
+                
+                {/* Custom Shelves */}
+                {quotesState.customShelves.map((shelf) => (
+                  <div 
+                    key={shelf.id} 
+                    className={`flex items-center justify-between py-1 cursor-pointer hover:bg-muted/50 rounded px-2 -mx-2 group ${
+                      selectedShelf === shelf.id ? 'bg-muted text-primary' : ''
+                    }`}
+                    onClick={() => handleShelfClick(shelf.id)}
+                  >
+                    <span className="text-sm text-foreground">
+                      {shelf.name}
+                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-muted-foreground">
+                        ({shelf.quoteCount})
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="p-1 h-auto opacity-0 group-hover:opacity-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteShelf(shelf.id);
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                
+                <div className="mt-4">
+                  <CreateShelfDialog />
+                </div>
               </CardContent>
             </Card>
 
@@ -137,10 +199,13 @@ const MyQuotes = () => {
               </CardHeader>
               <CardContent className="space-y-2">
                 {quoteActivity.map((activity) => (
-                  <div key={activity} className="py-1">
-                    <span className="text-sm text-foreground cursor-pointer hover:text-primary">
-                      {activity}
-                    </span>
+                  <div key={activity.name} className="py-1">
+                    <Link 
+                      to={activity.link}
+                      className="text-sm text-foreground cursor-pointer hover:text-primary"
+                    >
+                      {activity.name}
+                    </Link>
                   </div>
                 ))}
               </CardContent>
@@ -220,28 +285,94 @@ const MyQuotes = () => {
                 </div>
               </div>
 
-              {/* Quotes Tabs */}
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-6">
-                  <TabsTrigger value="all">All Quotes ({savedQuotes.length})</TabsTrigger>
-                  <TabsTrigger value="favorites">Favorites ({quotesState.favorites.length})</TabsTrigger>
-                  <TabsTrigger value="loved">Loved ({quotesState.lovedQuotes.length})</TabsTrigger>
-                </TabsList>
+              {/* Quotes Display */}
+              {selectedShelf ? (
+                <div className="mb-8">
+                  <h2 className="text-xl font-bold mb-4">
+                    {defaultShelves.find(s => s.id === selectedShelf)?.name || 
+                     quotesState.customShelves.find(s => s.id === selectedShelf)?.name}
+                  </h2>
+                  {selectedShelf === 'all' ? (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                      {[...savedQuotes, ...quotesState.favorites, ...quotesState.lovedQuotes].map((quote, index) => (
+                        <QuoteCard
+                          key={quote.id || index}
+                          id={quote.id || `${quote.quote?.slice(0, 20)}-${quote.author}`}
+                          quote={quote.quote || quote.text}
+                          author={quote.author}
+                          category={quote.category}
+                          variant={quote.variant}
+                          className="h-full"
+                        />
+                      ))}
+                    </div>
+                  ) : selectedShelf === 'favorites' ? (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                      {quotesState.favorites.map((quote) => (
+                        <QuoteCard
+                          key={quote.id}
+                          id={quote.id}
+                          quote={quote.quote}
+                          author={quote.author}
+                          category={quote.category}
+                          variant={quote.variant}
+                          className="h-full"
+                        />
+                      ))}
+                    </div>
+                  ) : selectedShelf === 'loved' ? (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                      {quotesState.lovedQuotes.map((quote) => (
+                        <QuoteCard
+                          key={quote.id}
+                          id={quote.id}
+                          quote={quote.quote}
+                          author={quote.author}
+                          category={quote.category}
+                          variant={quote.variant}
+                          className="h-full"
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                      {getShelfQuotes(selectedShelf).map((quote) => (
+                        <QuoteCard
+                          key={quote.id}
+                          id={quote.id}
+                          quote={quote.quote}
+                          author={quote.author}
+                          category={quote.category}
+                          variant={quote.variant}
+                          className="h-full"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Tabs defaultValue="all" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 mb-6">
+                    <TabsTrigger value="all">All Quotes ({savedQuotes.length})</TabsTrigger>
+                    <TabsTrigger value="favorites">Favorites ({quotesState.favorites.length})</TabsTrigger>
+                    <TabsTrigger value="loved">Loved ({quotesState.lovedQuotes.length})</TabsTrigger>
+                  </TabsList>
                 
-                <TabsContent value="all" className="mt-6">
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                    {savedQuotes.map((quote, index) => (
-                      <QuoteCard
-                        key={index}
-                        quote={quote.quote}
-                        author={quote.author}
-                        category={quote.category}
-                        variant={quote.variant}
-                        className="h-full"
-                      />
-                    ))}
-                  </div>
-                </TabsContent>
+                  <TabsContent value="all" className="mt-6">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                      {savedQuotes.map((quote, index) => (
+                        <QuoteCard
+                          key={index}
+                          id={`saved-${index}`}
+                          quote={quote.quote}
+                          author={quote.author}
+                          category={quote.category}
+                          variant={quote.variant}
+                          className="h-full"
+                        />
+                      ))}
+                    </div>
+                  </TabsContent>
                 
                 <TabsContent value="favorites" className="mt-6">
                   {quotesState.favorites.length === 0 ? (
@@ -287,8 +418,9 @@ const MyQuotes = () => {
                       ))}
                     </div>
                   )}
-                </TabsContent>
-              </Tabs>
+                  </TabsContent>
+                </Tabs>
+              )}
 
               {/* Sort Controls */}
               <div className="flex items-center justify-between text-sm">

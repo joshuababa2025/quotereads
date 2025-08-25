@@ -28,6 +28,7 @@ import Newsletter from "./pages/Newsletter";
 import WisdomOfAges from "./pages/WisdomOfAges";
 import DailyMotivation from "./pages/DailyMotivation";
 import CategoryQuotes from "./pages/CategoryQuotes";
+import QuoteThemes from "./pages/QuoteThemes";
 import Search from "./pages/Search";
 
 // Simple inline 404 component to avoid import issues
@@ -77,6 +78,7 @@ const App = () => (
                 <Route path="/wisdom-of-ages" element={<WisdomOfAges />} />
                 <Route path="/daily-motivation" element={<DailyMotivation />} />
                 <Route path="/category/:category" element={<CategoryQuotes />} />
+                <Route path="/quote-themes" element={<QuoteThemes />} />
                 <Route path="/search" element={<Search />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

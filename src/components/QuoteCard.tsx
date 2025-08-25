@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useQuotes } from "@/contexts/QuotesContext";
 import { useQuoteInteraction } from "@/contexts/QuoteInteractionContext";
 import { useToast } from "@/hooks/use-toast";
+import { QuoteOptionsMenu } from "./QuoteOptionsMenu";
 
 interface QuoteCardProps {
   quote: string;
@@ -150,6 +151,13 @@ export const QuoteCard = ({
           >
             <Share2 className="h-4 w-4" />
           </Button>
+          <QuoteOptionsMenu
+            quoteId={id}
+            quote={quote}
+            author={author}
+            category={category}
+            variant={variant}
+          />
         </div>
       </div>
       
