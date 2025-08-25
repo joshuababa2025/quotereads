@@ -47,12 +47,14 @@ const featuredCollections = [
 
 const sampleQuotes = [
   {
+    id: "collection-1",
     quote: "The only way to do great work is to love what you do.",
     author: "Steve Jobs",
     category: "Motivation",
     variant: "purple" as const
   },
   {
+    id: "collection-2",
     quote: "Life is what happens to you while you're busy making other plans.",
     author: "John Lennon",
     category: "Life",
@@ -132,7 +134,8 @@ export default function Collections() {
               <div className="grid md:grid-cols-2 gap-6">
                 {sampleQuotes.map((quote, index) => (
                   <QuoteCard
-                    key={index}
+                    key={quote.id}
+                    id={quote.id}
                     quote={quote.quote}
                     author={quote.author}
                     category={quote.category}

@@ -205,17 +205,17 @@ export default function QuoteDetails() {
                 More {quote.category} Quotes
               </h2>
               <div className="grid md:grid-cols-2 gap-6">
-                {relatedQuotes.slice(0, 6).map((relatedQuote, index) => (
-                  <QuoteCard
-                    key={`${quote.category}-${index}`}
-                    id={`${quote.category}-${index}`}
-                    quote={relatedQuote.quote}
-                    author={relatedQuote.author}
-                    category={relatedQuote.category}
-                    variant={relatedQuote.variant}
-                    likes={relatedQuote.likes}
-                  />
-                ))}
+                 {relatedQuotes.slice(0, 6).map((relatedQuote, index) => (
+                   <QuoteCard
+                     key={relatedQuote.id}
+                     id={relatedQuote.id}
+                     quote={relatedQuote.quote}
+                     author={relatedQuote.author}
+                     category={relatedQuote.category}
+                     variant={relatedQuote.variant}
+                     likes={relatedQuote.likes}
+                   />
+                 ))}
               </div>
               
               {relatedQuotes.length > 6 && (
@@ -224,7 +224,7 @@ export default function QuoteDetails() {
                     variant="outline" 
                     onClick={() => {
                       startTransition(() => {
-                        navigate(`/category/${quote.category}`);
+                        navigate(`/category/${quote.category.toLowerCase()}`);
                       });
                     }}
                   >

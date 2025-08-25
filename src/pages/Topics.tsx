@@ -168,15 +168,16 @@ export default function Topics() {
                 {selectedTopic ? `Quotes about ${selectedTopic}` : "Featured Quotes"}
               </h2>
               <div className="grid md:grid-cols-2 gap-6">
-                {featuredQuotes.map((quote, index) => (
-                  <QuoteCard
-                    key={index}
-                    quote={quote.quote}
-                    author={quote.author}
-                    category={quote.category}
-                    variant={quote.variant}
-                  />
-                ))}
+                 {featuredQuotes.map((quote, index) => (
+                   <QuoteCard
+                     key={`featured-${index}`}
+                     id={`featured-${index}`}
+                     quote={quote.quote}
+                     author={quote.author}
+                     category={quote.category}
+                     variant={quote.variant}
+                   />
+                 ))}
               </div>
             </div>
           </main>

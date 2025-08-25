@@ -96,22 +96,23 @@ const Quotes = () => {
 
         {/* Quotes Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {quotes.map((quote, index) => {
-            const variants = ['purple', 'green', 'orange', 'pink', 'blue'] as const;
-            const variant = variants[index % variants.length];
-            
-            return (
-              <QuoteCard
-                key={index}
-                quote={quote.text}
-                author={quote.author}
-                category={quote.category}
-                variant={variant}
-                likes={quote.likes}
-                className="h-full"
-              />
-            );
-          })}
+           {quotes.map((quote, index) => {
+             const variants = ['purple', 'green', 'orange', 'pink', 'blue'] as const;
+             const variant = variants[index % variants.length];
+             
+             return (
+               <QuoteCard
+                 key={`quote-${index}`}
+                 id={`quote-${index}`}
+                 quote={quote.text}
+                 author={quote.author}
+                 category={quote.category}
+                 variant={variant}
+                 likes={quote.likes}
+                 className="h-full"
+               />
+             );
+           })}
         </div>
 
         {/* Load More Button */}

@@ -194,17 +194,17 @@ export default function CategoryQuotes() {
 
             {/* Quotes Grid */}
             <div className="grid md:grid-cols-2 gap-6 mb-8">
-              {filteredQuotes.slice(0, visibleQuotes).map((quote, index) => (
+               {filteredQuotes.slice(0, visibleQuotes).map((quote, index) => (
                  <QuoteCard
-                   key={index}
-                   id={`${actualCategory}-${index}`}
-                  quote={quote.quote}
-                  author={quote.author}
-                  category={quote.category}
-                  variant={quote.variant}
-                  likes={quote.likes}
-                />
-              ))}
+                   key={quote.id}
+                   id={quote.id}
+                   quote={quote.quote}
+                   author={quote.author}
+                   category={quote.category}
+                   variant={quote.variant}
+                   likes={quote.likes}
+                 />
+               ))}
             </div>
 
             {/* Load More */}

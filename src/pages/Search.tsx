@@ -93,17 +93,17 @@ export default function SearchPage() {
                 {results.length > 0 ? (
                   <>
                     <div className="grid md:grid-cols-2 gap-6 mb-8">
-                      {results.slice(0, visibleResults).map((quote) => (
-                        <QuoteCard
-                          key={quote.id}
-                          id={quote.id}
-                          quote={quote.quote}
-                          author={quote.author}
-                          category={quote.category}
-                          variant={quote.variant}
-                          likes={quote.likes}
-                        />
-                      ))}
+                       {results.slice(0, visibleResults).map((quote) => (
+                         <QuoteCard
+                           key={quote.id}
+                           id={quote.id}
+                           quote={quote.quote}
+                           author={quote.author}
+                           category={quote.category}
+                           variant={quote.variant}
+                           likes={quote.likes}
+                         />
+                       ))}
                     </div>
 
                     {/* Load More */}
