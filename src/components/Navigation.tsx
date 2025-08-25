@@ -39,7 +39,22 @@ export const Navigation = () => {
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-foreground hover:text-primary transition-colors font-medium">Home</Link>
-            <Link to="/my-quotes" className="text-foreground hover:text-primary transition-colors font-medium">My Quotes</Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center text-foreground hover:text-primary transition-colors font-medium">
+                My Quotes <ChevronDown className="ml-1 h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-background border-border">
+                <DropdownMenuItem asChild>
+                  <Link to="/my-quotes" className="w-full">My Quotes</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/chapters-preview" className="w-full">Chapters Preview</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/quote-of-the-day" className="w-full">Quote of the Day</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Link to="/giveaway" className="text-foreground hover:text-primary transition-colors font-medium">Giveaway</Link>
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center text-foreground hover:text-primary transition-colors font-medium">

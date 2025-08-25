@@ -100,18 +100,215 @@ const Giveaway = () => {
               </div>
 
               {/* Filter Tabs */}
-              <Tabs defaultValue="featured" className="mb-6">
+              <Tabs defaultValue="giveaways" className="mb-6">
                 <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="giveaways">Giveaways</TabsTrigger>
                   <TabsTrigger value="featured">Featured</TabsTrigger>
                   <TabsTrigger value="ending">Ending</TabsTrigger>
                   <TabsTrigger value="recent">Recent</TabsTrigger>
-                  <TabsTrigger value="popular">
-                    <div className="flex items-center">
-                      Popular
-                      <ChevronDown className="ml-1 h-4 w-4" />
-                    </div>
-                  </TabsTrigger>
                 </TabsList>
+                
+                <TabsContent value="giveaways" className="mt-6">
+                  <div className="space-y-6">
+                    <Card className="overflow-hidden">
+                      <div className="flex">
+                        <div className="w-32 h-24 bg-muted flex-shrink-0">
+                          <img 
+                            src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
+                            alt="Book Collection Giveaway"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-foreground mb-1">
+                                Complete Book Collection Giveaway
+                              </h3>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                by LibVerse Nest
+                              </p>
+                              <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-3">
+                                <span className="flex items-center">
+                                  <Calendar className="w-3 h-3 mr-1" />
+                                  Ends Dec 31, 2024
+                                </span>
+                                <span className="flex items-center">
+                                  <Users className="w-3 h-3 mr-1" />
+                                  1,247 entries
+                                </span>
+                                <span className="flex items-center">
+                                  <MapPin className="w-3 h-3 mr-1" />
+                                  Worldwide
+                                </span>
+                              </div>
+                            </div>
+                            <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                              Active
+                            </Badge>
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Win a complete collection of 50 classic books including works by Shakespeare, Dickens, and more. Perfect for any book lover's library!
+                          </p>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex space-x-2">
+                              <Badge variant="secondary" className="text-xs">Books</Badge>
+                              <Badge variant="secondary" className="text-xs">Classic Literature</Badge>
+                            </div>
+                            
+                            <div className="flex space-x-2">
+                              {user ? (
+                                <Button className="bg-green-600 hover:bg-green-700">
+                                  Enter Giveaway
+                                </Button>
+                              ) : (
+                                <Link to="/auth">
+                                  <Button variant="outline">
+                                    Sign In to Enter
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="overflow-hidden">
+                      <div className="flex">
+                        <div className="w-32 h-24 bg-muted flex-shrink-0">
+                          <img 
+                            src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
+                            alt="Quote Journal Giveaway"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-foreground mb-1">
+                                Luxury Quote Journal & Pen Set
+                              </h3>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                by Wisdom Writers Co.
+                              </p>
+                              <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-3">
+                                <span className="flex items-center">
+                                  <Calendar className="w-3 h-3 mr-1" />
+                                  Ends Jan 15, 2025
+                                </span>
+                                <span className="flex items-center">
+                                  <Users className="w-3 h-3 mr-1" />
+                                  823 entries
+                                </span>
+                                <span className="flex items-center">
+                                  <MapPin className="w-3 h-3 mr-1" />
+                                  US & Canada
+                                </span>
+                              </div>
+                            </div>
+                            <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                              Active
+                            </Badge>
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Beautiful leather-bound journal with 365 inspirational quotes, plus a premium fountain pen. Perfect for daily reflection and writing.
+                          </p>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex space-x-2">
+                              <Badge variant="secondary" className="text-xs">Journal</Badge>
+                              <Badge variant="secondary" className="text-xs">Writing</Badge>
+                            </div>
+                            
+                            <div className="flex space-x-2">
+                              {user ? (
+                                <Button className="bg-green-600 hover:bg-green-700">
+                                  Enter Giveaway
+                                </Button>
+                              ) : (
+                                <Link to="/auth">
+                                  <Button variant="outline">
+                                    Sign In to Enter
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="overflow-hidden">
+                      <div className="flex">
+                        <div className="w-32 h-24 bg-muted flex-shrink-0">
+                          <img 
+                            src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
+                            alt="Reading Accessories Giveaway"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-foreground mb-1">
+                                Ultimate Reading Bundle
+                              </h3>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                by BookLovers United
+                              </p>
+                              <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-3">
+                                <span className="flex items-center">
+                                  <Calendar className="w-3 h-3 mr-1" />
+                                  Ends Feb 1, 2025
+                                </span>
+                                <span className="flex items-center">
+                                  <Users className="w-3 h-3 mr-1" />
+                                  456 entries
+                                </span>
+                                <span className="flex items-center">
+                                  <MapPin className="w-3 h-3 mr-1" />
+                                  Worldwide
+                                </span>
+                              </div>
+                            </div>
+                            <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                              Active
+                            </Badge>
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Complete reading setup including reading lamp, bookmarks, book stand, cozy blanket, and tea set. Everything you need for perfect reading sessions!
+                          </p>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex space-x-2">
+                              <Badge variant="secondary" className="text-xs">Accessories</Badge>
+                              <Badge variant="secondary" className="text-xs">Reading</Badge>
+                            </div>
+                            
+                            <div className="flex space-x-2">
+                              {user ? (
+                                <Button className="bg-green-600 hover:bg-green-700">
+                                  Enter Giveaway
+                                </Button>
+                              ) : (
+                                <Link to="/auth">
+                                  <Button variant="outline">
+                                    Sign In to Enter
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                </TabsContent>
                 
                 <TabsContent value="featured" className="mt-6">
                   <div className="space-y-6">

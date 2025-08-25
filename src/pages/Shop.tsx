@@ -190,8 +190,19 @@ const Shop = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar - Desktop under recommended, Mobile first */}
+          {/* Filters Sidebar - Desktop filters first, Mobile first */}
           <div className="w-full lg:w-80 flex-shrink-0 space-y-6">
+            {/* Filters */}
+            <ShopFilters
+              priceRange={priceRange}
+              onPriceChange={setPriceRange}
+              selectedCategories={selectedCategories}
+              onCategoryChange={setSelectedCategories}
+              selectedRating={selectedRating}
+              onRatingChange={setSelectedRating}
+              onClearFilters={clearFilters}
+            />
+            
             {/* Recommended for You - Desktop */}
             <div className="hidden lg:block">
               <Card>
@@ -229,17 +240,6 @@ const Shop = () => {
                 </CardContent>
               </Card>
             </div>
-            
-            {/* Filters */}
-            <ShopFilters
-              priceRange={priceRange}
-              onPriceChange={setPriceRange}
-              selectedCategories={selectedCategories}
-              onCategoryChange={setSelectedCategories}
-              selectedRating={selectedRating}
-              onRatingChange={setSelectedRating}
-              onClearFilters={clearFilters}
-            />
           </div>
 
           {/* Main Content */}

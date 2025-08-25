@@ -29,7 +29,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Card className="group hover:shadow-lg transition-shadow">
       <CardContent className="p-4">
-        <div className="aspect-[3/4] bg-muted rounded-lg mb-4 overflow-hidden">
+        <div className="aspect-[4/5] bg-muted rounded-lg mb-4 overflow-hidden">
           <img 
             src={product.image} 
             alt={product.title}
