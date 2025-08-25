@@ -128,8 +128,8 @@ export const QuoteCard = ({
       </blockquote>
       
       {/* Author */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm opacity-90">— {author}</p>
           <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
             {category}
@@ -137,38 +137,38 @@ export const QuoteCard = ({
         </div>
         
         {/* Actions */}
-        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity shrink-0">
           <Button 
             variant="ghost" 
-            size="sm" 
-            className="p-2 hover:bg-white/20 text-white"
+            size="icon" 
+            className="h-8 w-8 hover:bg-white/20 text-white"
             onClick={handleAddToLoved}
             title="Add to loved quotes"
           >
-            <Heart className={`h-4 w-4 ${interaction.isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+            <Heart className={`h-3.5 w-3.5 ${interaction.isLiked ? 'fill-red-500 text-red-500' : ''}`} />
           </Button>
           <Button 
             variant="ghost" 
-            size="sm" 
-            className="p-2 hover:bg-white/20 text-white"
+            size="icon" 
+            className="h-8 w-8 hover:bg-white/20 text-white"
             onClick={handleAddToFavorites}
             title="Add to favorites"
           >
-            <BookmarkPlus className={`h-4 w-4 ${interaction.isFavorited ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+            <BookmarkPlus className={`h-3.5 w-3.5 ${interaction.isFavorited ? 'fill-yellow-500 text-yellow-500' : ''}`} />
           </Button>
           <Button 
             variant="ghost" 
-            size="sm" 
-            className="p-2 hover:bg-white/20 text-white"
+            size="icon" 
+            className="h-8 w-8 hover:bg-white/20 text-white"
             onClick={handleShare}
             title="Share quote"
           >
-            <Share2 className="h-4 w-4" />
+            <Share2 className="h-3.5 w-3.5" />
           </Button>
           <Button 
             variant="ghost" 
-            size="sm" 
-            className="p-2 hover:bg-white/20 text-white relative"
+            size="icon" 
+            className="h-8 w-8 hover:bg-white/20 text-white relative"
             onClick={(e) => {
               e.stopPropagation();
               startTransition(() => {
@@ -177,7 +177,7 @@ export const QuoteCard = ({
             }}
             title="View comments"
           >
-            <MessageCircle className="h-4 w-4" />
+            <MessageCircle className="h-3.5 w-3.5" />
             {commentCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                 {commentCount > 9 ? '9+' : commentCount}
