@@ -17,7 +17,19 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Blog from "./pages/Blog";
 import PaymentSuccess from "./pages/PaymentSuccess";
-import NotFound from "./pages/NotFound";
+
+// Simple inline 404 component to avoid import issues
+const NotFound = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="text-center space-y-4">
+      <h1 className="text-4xl font-bold text-foreground">404</h1>
+      <p className="text-xl text-muted-foreground">Oops! Page not found</p>
+      <a href="/" className="text-primary hover:text-primary/80 underline">
+        Return to Home
+      </a>
+    </div>
+  </div>
+);
 
 const queryClient = new QueryClient();
 
