@@ -2,6 +2,7 @@ import { Heart, Share2, BookmarkPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useQuotes } from "@/contexts/QuotesContext";
+import { useQuoteInteraction } from "@/contexts/QuoteInteractionContext";
 import { useToast } from "@/hooks/use-toast";
 
 interface QuoteCardProps {
@@ -32,30 +33,40 @@ export const QuoteCard = ({
   id = `${quote.slice(0, 20)}-${author}` 
 }: QuoteCardProps) => {
   const { dispatch } = useQuotes();
+  const { toggleLike, toggleFavorite, getInteraction } = useQuoteInteraction();
   const { toast } = useToast();
+  
+  const interaction = getInteraction(id);
+  const displayLikes = likes + interaction.likeCount;
 
   const handleAddToFavorites = (e: React.MouseEvent) => {
     e.stopPropagation();
-    dispatch({ 
-      type: 'ADD_TO_FAVORITES', 
-      quote: { id, quote, author, category, variant } 
-    });
-    toast({
-      title: "Added to favorites",
-      description: "Quote saved to your favorites collection"
-    });
+    toggleFavorite(id);
+    if (!interaction.isFavorited) {
+      dispatch({ 
+        type: 'ADD_TO_FAVORITES', 
+        quote: { id, quote, author, category, variant } 
+      });
+      toast({
+        title: "Added to favorites",
+        description: "Quote saved to your favorites collection"
+      });
+    }
   };
 
   const handleAddToLoved = (e: React.MouseEvent) => {
     e.stopPropagation();
-    dispatch({ 
-      type: 'ADD_TO_LOVED', 
-      quote: { id, quote, author, category, variant } 
-    });
-    toast({
-      title: "Added to loved quotes",
-      description: "Quote saved to your loved collection"
-    });
+    toggleLike(id);
+    if (!interaction.isLiked) {
+      dispatch({ 
+        type: 'ADD_TO_LOVED', 
+        quote: { id, quote, author, category, variant } 
+      });
+      toast({
+        title: "Added to loved quotes",
+        description: "Quote saved to your loved collection"
+      });
+    }
   };
 
   const handleShare = async (e: React.MouseEvent) => {
@@ -72,7 +83,7 @@ export const QuoteCard = ({
         });
       } catch (err) {
         // Fallback to copy to clipboard
-        navigator.clipboard.writeText(`${shareText}\n\nShared from LibVerse Nest: ${shareUrl}`);
+        navigator.clipboard.writeText(`${shareText}\n\nShared from QuoteReads: ${shareUrl}`);
         toast({
           title: "Link copied!",
           description: "Quote link copied to clipboard"
@@ -80,7 +91,7 @@ export const QuoteCard = ({
       }
     } else {
       // Fallback for browsers without native sharing
-      navigator.clipboard.writeText(`${shareText}\n\nShared from LibVerse Nest: ${shareUrl}`);
+      navigator.clipboard.writeText(`${shareText}\n\nShared from QuoteReads: ${shareUrl}`);
       toast({
         title: "Link copied!",
         description: "Quote link copied to clipboard"
@@ -119,7 +130,7 @@ export const QuoteCard = ({
             onClick={handleAddToLoved}
             title="Add to loved quotes"
           >
-            <Heart className="h-4 w-4" />
+            <Heart className={`h-4 w-4 ${interaction.isLiked ? 'fill-red-500 text-red-500' : ''}`} />
           </Button>
           <Button 
             variant="ghost" 
@@ -128,7 +139,7 @@ export const QuoteCard = ({
             onClick={handleAddToFavorites}
             title="Add to favorites"
           >
-            <BookmarkPlus className="h-4 w-4" />
+            <BookmarkPlus className={`h-4 w-4 ${interaction.isFavorited ? 'fill-yellow-500 text-yellow-500' : ''}`} />
           </Button>
           <Button 
             variant="ghost" 
@@ -142,10 +153,10 @@ export const QuoteCard = ({
         </div>
       </div>
       
-      {likes > 0 && (
+      {displayLikes > 0 && (
         <div className="absolute top-4 right-4 flex items-center space-x-1 bg-white/20 rounded-full px-2 py-1 text-xs">
           <Heart className="h-3 w-3 fill-current" />
-          <span>{likes}</span>
+          <span>{displayLikes}</span>
         </div>
       )}
     </div>

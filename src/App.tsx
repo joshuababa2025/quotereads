@@ -20,6 +20,12 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import ChaptersPreview from "./pages/ChaptersPreview";
 import SoccerClub from "./pages/SoccerClub";
 import BlogPost from "./pages/BlogPost";
+import Collections from "./pages/Collections";
+import Topics from "./pages/Topics";
+import Newsletter from "./pages/Newsletter";
+import WisdomOfAges from "./pages/WisdomOfAges";
+import DailyMotivation from "./pages/DailyMotivation";
+import CategoryQuotes from "./pages/CategoryQuotes";
 
 // Simple inline 404 component to avoid import issues
 const NotFound = () => (

@@ -20,10 +20,9 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Explore</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Browse Quotes</a></li>
-              <li><a href="#" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Authors</a></li>
-              <li><a href="#" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Collections</a></li>
-              <li><a href="#" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Topics</a></li>
+              <li><a href="/community-quotes" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Browse Quotes</a></li>
+              <li><a href="/collections" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Collections</a></li>
+              <li><a href="/topics" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Topics</a></li>
             </ul>
           </div>
 
@@ -31,10 +30,9 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Community</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Blog</a></li>
-              <li><a href="#" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Book Club</a></li>
-              <li><a href="#" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Forums</a></li>
-              <li><a href="#" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Newsletter</a></li>
+              <li><a href="/blog" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Blog</a></li>
+              <li><a href="/groups" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Forums</a></li>
+              <li><a href="/newsletter" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Newsletter</a></li>
             </ul>
           </div>
 

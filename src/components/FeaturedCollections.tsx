@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const collections = [
   {
@@ -7,18 +8,21 @@ const collections = [
     description: "Ancient philosophers and modern thinkers share their greatest insights",
     quotes: "396 quotes",
     color: "bg-gradient-to-br from-purple-100 to-purple-200",
-    textColor: "text-purple-900"
+    textColor: "text-purple-900",
+    path: "/wisdom-of-ages"
   },
   {
     title: "Daily Motivation",
     description: "Start your day with powerful quotes that inspire action",
     quotes: "89 quotes",
     color: "bg-gradient-to-br from-green-100 to-green-200", 
-    textColor: "text-green-900"
+    textColor: "text-green-900",
+    path: "/daily-motivation"
   }
 ];
 
 export const FeaturedCollections = () => {
+  const navigate = useNavigate();
   return (
     <section className="py-12 bg-muted/20">
       <div className="container mx-auto px-4">
@@ -31,6 +35,7 @@ export const FeaturedCollections = () => {
             <div 
               key={index}
               className={`${collection.color} rounded-xl p-6 hover:shadow-lg transition-all duration-300 group cursor-pointer`}
+              onClick={() => navigate(collection.path)}
             >
               <h3 className={`text-xl font-bold ${collection.textColor} mb-2`}>
                 {collection.title}
