@@ -131,7 +131,16 @@ export const QuoteCard = ({
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm opacity-90">— {author}</p>
-          <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
+          <span 
+            className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors" 
+            onClick={(e) => {
+              e.stopPropagation();
+              startTransition(() => {
+                navigate(`/category/${category.toLowerCase()}`);
+              });
+            }}
+            title={`View all ${category} quotes`}
+          >
             {category}
           </span>
         </div>

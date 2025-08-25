@@ -58,8 +58,15 @@ export const SearchSuggestions = ({ searchQuery, isVisible, onClose }: SearchSug
                 </div>
               </div>
               <div className="max-h-64 overflow-y-auto">
-                {results.slice(0, 3).map((quote) => (
-                  <div key={quote.id} className="p-3 hover:bg-muted cursor-pointer border-b border-border last:border-b-0">
+                 {results.slice(0, 3).map((quote) => (
+                   <div 
+                     key={quote.id} 
+                     className="p-3 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
+                     onClick={() => {
+                       window.location.href = `/quote/${quote.id}`;
+                       onClose();
+                     }}
+                   >
                     <div className="flex items-start space-x-3">
                       <Search className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -69,7 +76,14 @@ export const SearchSuggestions = ({ searchQuery, isVisible, onClose }: SearchSug
                         <div className="flex items-center text-xs text-muted-foreground">
                           <span>— {quote.author}</span>
                           <span className="mx-2">•</span>
-                          <span className="bg-primary/10 text-primary px-2 py-0.5 rounded">
+                          <span 
+                            className="bg-primary/10 text-primary px-2 py-0.5 rounded cursor-pointer hover:bg-primary/20 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `/category/${quote.category.toLowerCase()}`;
+                            }}
+                            title={`View all ${quote.category} quotes`}
+                          >
                             {quote.category}
                           </span>
                           {quote.likes && (
