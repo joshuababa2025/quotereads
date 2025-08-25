@@ -62,11 +62,11 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
         
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-4">
           <span className="text-lg font-bold text-primary">
             ${product.price}
           </span>
-          <Button size="sm" className="gap-2" onClick={handleAddToCart}>
+          <Button size="sm" className="gap-2 ml-3" onClick={handleAddToCart}>
             <ShoppingCart className="w-4 h-4" />
             Add to Cart
           </Button>

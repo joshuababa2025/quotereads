@@ -15,14 +15,14 @@ interface ShopFiltersProps {
 }
 
 const categories = [
-  'Fiction',
-  'Non-Fiction', 
-  'Mystery',
-  'Romance',
-  'Science Fiction',
-  'Biography',
-  'Self-Help',
-  'Poetry'
+  'Electronics',
+  'Clothing & Fashion', 
+  'Home & Garden',
+  'Books & Media',
+  'Sports & Fitness',
+  'Health & Beauty',
+  'Toys & Games',
+  'Office Supplies'
 ];
 
 export function ShopFilters({
@@ -44,13 +44,13 @@ export function ShopFilters({
 
   return (
     <Card className="h-fit">
-      <CardHeader>
-        <CardTitle className="text-lg">Filters</CardTitle>
+      <CardHeader className="pb-3 lg:pb-6">
+        <CardTitle className="text-base lg:text-lg">Filters</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 lg:space-y-6 p-3 lg:p-6 pt-0">
         {/* Price Range */}
         <div>
-          <h4 className="font-medium text-foreground mb-3">Price Range</h4>
+          <h4 className="font-medium text-foreground mb-2 lg:mb-3 text-sm lg:text-base">Price Range</h4>
           <div className="px-2">
             <Slider
               value={priceRange}
@@ -60,7 +60,7 @@ export function ShopFilters({
               step={1}
               className="mb-2"
             />
-            <div className="flex justify-between text-sm text-muted-foreground">
+            <div className="flex justify-between text-xs lg:text-sm text-muted-foreground">
               <span>${priceRange[0]}</span>
               <span>${priceRange[1]}</span>
             </div>
@@ -69,8 +69,8 @@ export function ShopFilters({
 
         {/* Categories */}
         <div>
-          <h4 className="font-medium text-foreground mb-3">Categories</h4>
-          <div className="space-y-2">
+          <h4 className="font-medium text-foreground mb-2 lg:mb-3 text-sm lg:text-base">Categories</h4>
+          <div className="space-y-1 lg:space-y-2 max-h-32 lg:max-h-none overflow-y-auto lg:overflow-visible">
             {categories.map((category) => (
               <div key={category} className="flex items-center space-x-2">
                 <Checkbox
@@ -80,7 +80,7 @@ export function ShopFilters({
                 />
                 <label
                   htmlFor={category}
-                  className="text-sm text-foreground cursor-pointer"
+                  className="text-xs lg:text-sm text-foreground cursor-pointer"
                 >
                   {category}
                 </label>
@@ -91,8 +91,8 @@ export function ShopFilters({
 
         {/* Rating */}
         <div>
-          <h4 className="font-medium text-foreground mb-3">Rating</h4>
-          <div className="space-y-2">
+          <h4 className="font-medium text-foreground mb-2 lg:mb-3 text-sm lg:text-base">Rating</h4>
+          <div className="space-y-1 lg:space-y-2">
             {[5, 4, 3, 2, 1].map((rating) => (
               <div key={rating} className="flex items-center space-x-2">
                 <Checkbox
@@ -107,14 +107,14 @@ export function ShopFilters({
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-3 h-3 ${
+                      className={`w-2 h-2 lg:w-3 lg:h-3 ${
                         i < rating 
                           ? 'text-quote-orange fill-current' 
                           : 'text-muted-foreground'
                       }`}
                     />
                   ))}
-                  <span className="text-sm text-foreground ml-1">& up</span>
+                  <span className="text-xs lg:text-sm text-foreground ml-1">& up</span>
                 </label>
               </div>
             ))}

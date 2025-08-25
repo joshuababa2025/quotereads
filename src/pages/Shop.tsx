@@ -2,6 +2,7 @@ import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { ShopFilters } from "@/components/ShopFilters";
@@ -91,29 +92,47 @@ const Shop = () => {
   const recommendedProducts = [
     {
       id: 101,
-      title: "Atomic Habits",
-      author: "James Clear",
-      price: 18.99,
+      title: "Inspirational Collection",
+      author: "Various Authors",
+      price: 24.99,
+      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
+      category: "Inspiration",
+      rating: 5
+    },
+    {
+      id: 102,
+      title: "Wisdom Quotes Book",
+      author: "Ancient Wisdom",
+      price: 19.99,
+      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
+      category: "Wisdom",
+      rating: 4
+    },
+    {
+      id: 103,
+      title: "Motivational Journal",
+      author: "Daily Inspiration",
+      price: 15.99,
       image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
       category: "Self-Help",
       rating: 5
     },
     {
-      id: 102,
-      title: "Educated",
-      author: "Tara Westover",
-      price: 17.99,
+      id: 104,
+      title: "Life Planner 2025",
+      author: "Goal Setter Co",
+      price: 29.99,
       image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Biography",
-      rating: 5
+      category: "Productivity",
+      rating: 4
     },
     {
-      id: 103,
-      title: "Becoming",
-      author: "Michelle Obama",
-      price: 19.99,
+      id: 105,
+      title: "Quote Calendar",
+      author: "Daily Wisdom",
+      price: 12.99,
       image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Biography",
+      category: "Calendar",
       rating: 5
     }
   ];
@@ -170,9 +189,48 @@ const Shop = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Filters Sidebar - Desktop under recommended, Mobile first */}
+          <div className="w-full lg:w-80 flex-shrink-0 space-y-6">
+            {/* Recommended for You - Desktop */}
+            <div className="hidden lg:block">
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-foreground mb-4">Recommended for You</h3>
+                  <div className="space-y-4">
+                    {recommendedProducts.map((product) => (
+                      <div key={product.id} className="flex gap-3 pb-4 border-b border-border last:border-b-0 last:pb-0">
+                        <div className="w-16 h-16 bg-muted rounded flex-shrink-0">
+                          <img 
+                            src={product.image} 
+                            alt={product.title}
+                            className="w-full h-full object-cover rounded"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm text-foreground truncate">
+                            {product.title}
+                          </h4>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {product.author}
+                          </p>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-sm font-semibold text-foreground">
+                              ${product.price}
+                            </span>
+                            <Button size="sm" variant="outline" className="text-xs h-6 px-2">
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Filters */}
             <ShopFilters
               priceRange={priceRange}
               onPriceChange={setPriceRange}
@@ -184,52 +242,65 @@ const Shop = () => {
             />
           </div>
 
-          {/* Products Grid - 3 columns on desktop */}
-          <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No products found matching your criteria.</p>
+                  <Button 
+                    onClick={clearFilters}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              )}
             </div>
             
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No products found matching your criteria.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Recommended Products Sidebar */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4">Recommended for You</h3>
-                <div className="space-y-4">
-                  {recommendedProducts.map((product) => (
-                    <div key={product.id} className="flex gap-3 group cursor-pointer">
-                      <div className="w-16 h-20 bg-muted rounded overflow-hidden flex-shrink-0">
-                        <img 
-                          src={product.image} 
-                          alt={product.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
+            {/* Recommended for You - Mobile */}
+            <div className="lg:hidden">
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-foreground mb-4">Recommended for You</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {recommendedProducts.map((product) => (
+                      <div key={product.id} className="flex gap-3 p-4 border border-border rounded-lg">
+                        <div className="w-16 h-16 bg-muted rounded flex-shrink-0">
+                          <img 
+                            src={product.image} 
+                            alt={product.title}
+                            className="w-full h-full object-cover rounded"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm text-foreground truncate">
+                            {product.title}
+                          </h4>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {product.author}
+                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-sm font-semibold text-foreground">
+                              ${product.price}
+                            </span>
+                            <Button size="sm" variant="outline" className="text-xs h-6 px-2">
+                              Add
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm text-foreground line-clamp-2 mb-1">
-                          {product.title}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {product.author}
-                        </p>
-                        <p className="text-sm font-bold text-primary">
-                          ${product.price}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>

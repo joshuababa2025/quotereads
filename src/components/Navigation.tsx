@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Search, Bell, Mail, User, ChevronDown } from "lucide-react";
+import { Search, Bell, Mail, User, ChevronDown, ShoppingCart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
 import {
   DropdownMenu,
@@ -12,6 +13,7 @@ import {
 
 export const Navigation = () => {
   const { user, signOut } = useAuth();
+  const { state } = useCart();
 
   const handleSignOut = async () => {
     await signOut();
@@ -36,12 +38,15 @@ export const Navigation = () => {
               <DropdownMenuTrigger className="flex items-center text-foreground hover:text-primary transition-colors font-medium">
                 Community <ChevronDown className="ml-1 h-4 w-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-background border-border">
+               <DropdownMenuContent className="bg-background border-border">
                 <DropdownMenuItem asChild>
                   <Link to="/groups" className="w-full">Groups</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/community-quotes" className="w-full">Community Quotes</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/blog" className="w-full">Blog</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -65,6 +70,16 @@ export const Navigation = () => {
               </Button>
               <Button variant="ghost" size="sm" className="p-2">
                 <Mail className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="p-2 relative" asChild>
+                <Link to="/cart">
+                  <ShoppingCart className="h-4 w-4" />
+                  {state.items.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {state.items.reduce((total, item) => total + item.quantity, 0)}
+                    </span>
+                  )}
+                </Link>
               </Button>
               <Button variant="ghost" size="sm" className="p-2">
                 <User className="h-4 w-4" />

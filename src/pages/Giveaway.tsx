@@ -1,4 +1,5 @@
 import { Navigation } from '@/components/Navigation';
+import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -208,6 +209,192 @@ const Giveaway = () => {
                     ))}
                   </div>
                 </TabsContent>
+                
+                <TabsContent value="ending" className="mt-6">
+                  <div className="space-y-6">
+                    {campaigns.filter(c => c.id <= 2).map((campaign) => (
+                      <Card key={campaign.id} className="overflow-hidden">
+                        <div className="flex">
+                          <div className="w-32 h-24 bg-muted flex-shrink-0">
+                            <img 
+                              src={campaign.image} 
+                              alt={campaign.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 p-6">
+                            <Badge variant="destructive" className="mb-2">Ending Soon</Badge>
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="text-lg font-semibold text-foreground mb-1">
+                                  {campaign.title}
+                                </h3>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  by {campaign.organization}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-semibold text-foreground">
+                                  Raised: ${campaign.raised}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  Goal: ${campaign.goal}
+                                </div>
+                              </div>
+                            </div>
+                            <Progress value={(campaign.raised / campaign.goal) * 100} className="h-2 mb-4" />
+                            <p className="text-sm text-muted-foreground mb-4">{campaign.description}</p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex space-x-2">
+                                {campaign.tags.map((tag) => (
+                                  <Badge key={tag} variant="secondary" className="text-xs">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                              <div className="flex space-x-2">
+                                {user ? (
+                                  <Button onClick={() => handleSupport(campaign.title)} className="bg-primary hover:bg-primary/90">
+                                    Support Now
+                                  </Button>
+                                ) : (
+                                  <Link to="/auth">
+                                    <Button variant="outline">Sign In to Support</Button>
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="recent" className="mt-6">
+                  <div className="space-y-6">
+                    {campaigns.reverse().map((campaign) => (
+                      <Card key={campaign.id} className="overflow-hidden">
+                        <div className="flex">
+                          <div className="w-32 h-24 bg-muted flex-shrink-0">
+                            <img 
+                              src={campaign.image} 
+                              alt={campaign.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 p-6">
+                            <Badge variant="default" className="mb-2">New</Badge>
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="text-lg font-semibold text-foreground mb-1">
+                                  {campaign.title}
+                                </h3>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  by {campaign.organization}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-semibold text-foreground">
+                                  Raised: ${campaign.raised}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  Goal: ${campaign.goal}
+                                </div>
+                              </div>
+                            </div>
+                            <Progress value={(campaign.raised / campaign.goal) * 100} className="h-2 mb-4" />
+                            <p className="text-sm text-muted-foreground mb-4">{campaign.description}</p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex space-x-2">
+                                {campaign.tags.map((tag) => (
+                                  <Badge key={tag} variant="secondary" className="text-xs">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                              <div className="flex space-x-2">
+                                {user ? (
+                                  <Button onClick={() => handleSupport(campaign.title)} className="bg-primary hover:bg-primary/90">
+                                    Support Now
+                                  </Button>
+                                ) : (
+                                  <Link to="/auth">
+                                    <Button variant="outline">Sign In to Support</Button>
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="popular" className="mt-6">
+                  <div className="space-y-6">
+                    {campaigns.sort((a, b) => b.supporters - a.supporters).map((campaign) => (
+                      <Card key={campaign.id} className="overflow-hidden">
+                        <div className="flex">
+                          <div className="w-32 h-24 bg-muted flex-shrink-0">
+                            <img 
+                              src={campaign.image} 
+                              alt={campaign.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 p-6">
+                            <Badge variant="outline" className="mb-2">
+                              <Heart className="w-3 h-3 mr-1" />
+                              {campaign.supporters} supporters
+                            </Badge>
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="text-lg font-semibold text-foreground mb-1">
+                                  {campaign.title}
+                                </h3>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  by {campaign.organization}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-semibold text-foreground">
+                                  Raised: ${campaign.raised}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  Goal: ${campaign.goal}
+                                </div>
+                              </div>
+                            </div>
+                            <Progress value={(campaign.raised / campaign.goal) * 100} className="h-2 mb-4" />
+                            <p className="text-sm text-muted-foreground mb-4">{campaign.description}</p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex space-x-2">
+                                {campaign.tags.map((tag) => (
+                                  <Badge key={tag} variant="secondary" className="text-xs">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                              <div className="flex space-x-2">
+                                {user ? (
+                                  <Button onClick={() => handleSupport(campaign.title)} className="bg-primary hover:bg-primary/90">
+                                    Support Now
+                                  </Button>
+                                ) : (
+                                  <Link to="/auth">
+                                    <Button variant="outline">Sign In to Support</Button>
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </TabsContent>
               </Tabs>
 
               {/* Load More */}
@@ -278,6 +465,8 @@ const Giveaway = () => {
           </div>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 };
