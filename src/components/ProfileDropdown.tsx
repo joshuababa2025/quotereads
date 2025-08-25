@@ -29,8 +29,8 @@ export const ProfileDropdown = ({ isOpen, onClose }: ProfileDropdownProps) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-[9999]" onClick={onClose}>
-      <div className="absolute top-16 right-4 w-56 bg-background border border-border rounded-lg shadow-lg py-2" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[9999] bg-black/20 backdrop-blur-sm" onClick={onClose}>
+      <div className="absolute top-16 right-4 w-56 bg-background/95 backdrop-blur-md border border-border rounded-lg shadow-2xl py-2" onClick={(e) => e.stopPropagation()}>
         {menuItems.map((item) => (
           <Link
             key={item.label}
