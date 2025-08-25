@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -8,13 +9,59 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Heart, Users, Calendar, MapPin, ChevronDown, Search } from 'lucide-react';
+import { Heart, Users, Calendar, MapPin, ChevronDown, Search, Gift, X } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+// Form validation schemas
+const giveawayEntrySchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().min(10, 'Please enter a valid phone number'),
+  reason: z.string().min(20, 'Please explain in at least 20 characters why this giveaway would help you')
+});
+
+const shareProblemsSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  problemDescription: z.string().min(20, 'Please describe your problem in at least 20 characters'),
+  contact: z.string().optional()
+});
 
 const Giveaway = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredGiveaways, setFilteredGiveaways] = useState([]);
+  const [enteredGiveaways, setEnteredGiveaways] = useState(new Set());
+  const [showEntryForm, setShowEntryForm] = useState(false);
+  const [selectedGiveaway, setSelectedGiveaway] = useState(null);
+
+  const giveawayForm = useForm({
+    resolver: zodResolver(giveawayEntrySchema),
+    defaultValues: {
+      name: '',
+      email: user?.email || '',
+      phone: '',
+      reason: ''
+    }
+  });
+
+  const shareProblemsForm = useForm({
+    resolver: zodResolver(shareProblemsSchema),
+    defaultValues: {
+      name: '',
+      email: user?.email || '',
+      problemDescription: '',
+      contact: ''
+    }
+  });
 
   const handleSupport = (campaignTitle: string) => {
     if (!user) {
@@ -32,47 +79,103 @@ const Giveaway = () => {
     });
   };
 
-  const campaigns = [
+  // Giveaway data
+  const giveaways = [
     {
       id: 1,
-      title: "Support Through Tough Times",
-      organization: "Community Care",
-      description: "Help someone through tough times with this campaign...",
+      title: "Complete Book Collection Giveaway",
+      organization: "LibVerse Nest",
+      description: "Win a complete collection of 50 classic books including works by Shakespeare, Dickens, and more. Perfect for any book lover's library!",
       image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      goal: 500,
-      raised: 200,
-      supporters: 12,
-      timeLeft: "June 19 - June 30",
+      entries: 1247,
+      timeLeft: "Ends Dec 31, 2024",
       location: "Worldwide",
-      tags: ["Support", "Motivation"]
+      tags: ["Books", "Classic Literature"],
+      status: "Active"
     },
     {
       id: 2,
-      title: "Daily Encouragement Fund",
-      organization: "Hope Network",
-      description: "Spreading daily encouragement to those who need it most...",
+      title: "Luxury Quote Journal & Pen Set",
+      organization: "Wisdom Writers Co.",
+      description: "Beautiful leather-bound journal with 365 inspirational quotes, plus a premium fountain pen. Perfect for daily reflection and writing.",
       image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      goal: 300,
-      raised: 150,
-      supporters: 8,
-      timeLeft: "June 20 - July 5",
-      location: "Worldwide",
-      tags: ["Encouragement", "Hope"]
+      entries: 823,
+      timeLeft: "Ends Jan 15, 2025",
+      location: "US & Canada",
+      tags: ["Journal", "Writing"],
+      status: "Active"
     },
     {
       id: 3,
-      title: "Crisis Relief Aid",
-      organization: "Unity Team",
-      description: "Immediate crisis relief for those facing unexpected challenges...",
+      title: "Ultimate Reading Bundle",
+      organization: "BookLovers United",
+      description: "Complete reading setup including reading lamp, bookmarks, book stand, cozy blanket, and tea set. Everything you need for perfect reading sessions!",
       image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      goal: 700,
-      raised: 350,
-      supporters: 15,
-      timeLeft: "June 25 - July 15",
+      entries: 456,
+      timeLeft: "Ends Feb 1, 2025",
       location: "Worldwide",
-      tags: ["Crisis", "Relief"]
+      tags: ["Accessories", "Reading"],
+      status: "Active"
+    },
+    {
+      id: 4,
+      title: "Signed First Edition Collection",
+      organization: "Rare Books Society",
+      description: "Win 10 signed first edition books from bestselling authors including Stephen King, Margaret Atwood, and Neil Gaiman. Valued at over $2,000!",
+      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
+      entries: 2834,
+      timeLeft: "Ends Jan 30, 2025",
+      location: "Worldwide",
+      tags: ["Rare Books", "Signed Editions"],
+      status: "Featured"
     }
   ];
+
+  // Real-time search functionality
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredGiveaways(giveaways);
+    } else {
+      const filtered = giveaways.filter(giveaway =>
+        giveaway.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        giveaway.organization.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        giveaway.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        giveaway.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      setFilteredGiveaways(filtered);
+    }
+  }, [searchQuery]);
+
+  const handleEnterGiveaway = (giveaway) => {
+    if (enteredGiveaways.has(giveaway.id)) {
+      toast({
+        title: "Already entered",
+        description: "You have already entered this giveaway.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setSelectedGiveaway(giveaway);
+    setShowEntryForm(true);
+  };
+
+  const onSubmitGiveawayEntry = (data) => {
+    setEnteredGiveaways(prev => new Set([...prev, selectedGiveaway.id]));
+    toast({
+      title: "Entry submitted!",
+      description: `You've successfully entered the ${selectedGiveaway.title} giveaway.`,
+    });
+    setShowEntryForm(false);
+    giveawayForm.reset();
+  };
+
+  const onSubmitShareProblem = (data) => {
+    toast({
+      title: "Problem shared successfully",
+      description: "Your submission has been sent for review by our team.",
+    });
+    shareProblemsForm.reset();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,9 +195,11 @@ const Giveaway = () => {
               {/* Search Bar */}
               <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input 
+                 <Input 
                   type="search" 
-                  placeholder="Search quotes" 
+                  placeholder="Search giveaways" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 bg-background border-border"
                 />
               </div>
@@ -110,203 +215,96 @@ const Giveaway = () => {
                 
                 <TabsContent value="giveaways" className="mt-6">
                   <div className="space-y-6">
-                    <Card className="overflow-hidden">
-                      <div className="flex">
-                        <div className="w-32 h-24 bg-muted flex-shrink-0">
-                          <img 
-                            src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
-                            alt="Book Collection Giveaway"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-foreground mb-1">
-                                Complete Book Collection Giveaway
-                              </h3>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                by LibVerse Nest
-                              </p>
-                              <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-3">
-                                <span className="flex items-center">
-                                  <Calendar className="w-3 h-3 mr-1" />
-                                  Ends Dec 31, 2024
-                                </span>
-                                <span className="flex items-center">
-                                  <Users className="w-3 h-3 mr-1" />
-                                  1,247 entries
-                                </span>
-                                <span className="flex items-center">
-                                  <MapPin className="w-3 h-3 mr-1" />
-                                  Worldwide
-                                </span>
-                              </div>
-                            </div>
-                            <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                              Active
-                            </Badge>
+                    {(searchQuery ? filteredGiveaways : giveaways).map((giveaway) => (
+                      <Card key={giveaway.id} className="overflow-hidden border-l-4 border-l-green-500">
+                        <div className="flex">
+                          <div className="w-32 h-24 bg-muted flex-shrink-0">
+                            <img 
+                              src={giveaway.image} 
+                              alt={giveaway.title}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                          
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Win a complete collection of 50 classic books including works by Shakespeare, Dickens, and more. Perfect for any book lover's library!
-                          </p>
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="flex space-x-2">
-                              <Badge variant="secondary" className="text-xs">Books</Badge>
-                              <Badge variant="secondary" className="text-xs">Classic Literature</Badge>
+                          <div className="flex-1 p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Gift className="w-4 h-4 text-green-600" />
+                                  <h3 className="text-lg font-semibold text-foreground">
+                                    {giveaway.title}
+                                  </h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  by {giveaway.organization}
+                                </p>
+                                <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-3">
+                                  <span className="flex items-center">
+                                    <Calendar className="w-3 h-3 mr-1" />
+                                    {giveaway.timeLeft}
+                                  </span>
+                                  <span className="flex items-center">
+                                    <Users className="w-3 h-3 mr-1" />
+                                    {giveaway.entries} entries
+                                  </span>
+                                  <span className="flex items-center">
+                                    <MapPin className="w-3 h-3 mr-1" />
+                                    {giveaway.location}
+                                  </span>
+                                </div>
+                              </div>
+                              <Badge 
+                                variant="default" 
+                                className={giveaway.status === 'Featured' 
+                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+                                  : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                                }
+                              >
+                                {giveaway.status}
+                              </Badge>
                             </div>
                             
-                            <div className="flex space-x-2">
-                              {user ? (
-                                <Button className="bg-green-600 hover:bg-green-700">
-                                  Enter Giveaway
-                                </Button>
-                              ) : (
-                                <Link to="/auth">
-                                  <Button variant="outline">
-                                    Sign In to Enter
+                            <p className="text-sm text-muted-foreground mb-4">
+                              {giveaway.description}
+                            </p>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex space-x-2">
+                                {giveaway.tags.map((tag) => (
+                                  <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                                ))}
+                              </div>
+                              
+                              <div className="flex space-x-2">
+                                {user ? (
+                                  <Button 
+                                    onClick={() => handleEnterGiveaway(giveaway)}
+                                    disabled={enteredGiveaways.has(giveaway.id)}
+                                    className={enteredGiveaways.has(giveaway.id) 
+                                      ? "bg-gray-400 hover:bg-gray-400 cursor-not-allowed" 
+                                      : "bg-green-600 hover:bg-green-700"
+                                    }
+                                  >
+                                    {enteredGiveaways.has(giveaway.id) ? "Already Entered" : "Enter Giveaway"}
                                   </Button>
-                                </Link>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-
-                    <Card className="overflow-hidden">
-                      <div className="flex">
-                        <div className="w-32 h-24 bg-muted flex-shrink-0">
-                          <img 
-                            src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
-                            alt="Quote Journal Giveaway"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-foreground mb-1">
-                                Luxury Quote Journal & Pen Set
-                              </h3>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                by Wisdom Writers Co.
-                              </p>
-                              <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-3">
-                                <span className="flex items-center">
-                                  <Calendar className="w-3 h-3 mr-1" />
-                                  Ends Jan 15, 2025
-                                </span>
-                                <span className="flex items-center">
-                                  <Users className="w-3 h-3 mr-1" />
-                                  823 entries
-                                </span>
-                                <span className="flex items-center">
-                                  <MapPin className="w-3 h-3 mr-1" />
-                                  US & Canada
-                                </span>
+                                ) : (
+                                  <Link to="/auth">
+                                    <Button variant="outline">
+                                      Sign In to Enter
+                                    </Button>
+                                  </Link>
+                                )}
                               </div>
                             </div>
-                            <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                              Active
-                            </Badge>
-                          </div>
-                          
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Beautiful leather-bound journal with 365 inspirational quotes, plus a premium fountain pen. Perfect for daily reflection and writing.
-                          </p>
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="flex space-x-2">
-                              <Badge variant="secondary" className="text-xs">Journal</Badge>
-                              <Badge variant="secondary" className="text-xs">Writing</Badge>
-                            </div>
-                            
-                            <div className="flex space-x-2">
-                              {user ? (
-                                <Button className="bg-green-600 hover:bg-green-700">
-                                  Enter Giveaway
-                                </Button>
-                              ) : (
-                                <Link to="/auth">
-                                  <Button variant="outline">
-                                    Sign In to Enter
-                                  </Button>
-                                </Link>
-                              )}
-                            </div>
                           </div>
                         </div>
+                      </Card>
+                    ))}
+                    
+                    {searchQuery && filteredGiveaways.length === 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">No giveaways found matching "{searchQuery}"</p>
                       </div>
-                    </Card>
-
-                    <Card className="overflow-hidden">
-                      <div className="flex">
-                        <div className="w-32 h-24 bg-muted flex-shrink-0">
-                          <img 
-                            src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
-                            alt="Reading Accessories Giveaway"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-foreground mb-1">
-                                Ultimate Reading Bundle
-                              </h3>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                by BookLovers United
-                              </p>
-                              <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-3">
-                                <span className="flex items-center">
-                                  <Calendar className="w-3 h-3 mr-1" />
-                                  Ends Feb 1, 2025
-                                </span>
-                                <span className="flex items-center">
-                                  <Users className="w-3 h-3 mr-1" />
-                                  456 entries
-                                </span>
-                                <span className="flex items-center">
-                                  <MapPin className="w-3 h-3 mr-1" />
-                                  Worldwide
-                                </span>
-                              </div>
-                            </div>
-                            <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                              Active
-                            </Badge>
-                          </div>
-                          
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Complete reading setup including reading lamp, bookmarks, book stand, cozy blanket, and tea set. Everything you need for perfect reading sessions!
-                          </p>
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="flex space-x-2">
-                              <Badge variant="secondary" className="text-xs">Accessories</Badge>
-                              <Badge variant="secondary" className="text-xs">Reading</Badge>
-                            </div>
-                            
-                            <div className="flex space-x-2">
-                              {user ? (
-                                <Button className="bg-green-600 hover:bg-green-700">
-                                  Enter Giveaway
-                                </Button>
-                              ) : (
-                                <Link to="/auth">
-                                  <Button variant="outline">
-                                    Sign In to Enter
-                                  </Button>
-                                </Link>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
+                    )}
                   </div>
                 </TabsContent>
                 
@@ -388,13 +386,13 @@ const Giveaway = () => {
                 
                 <TabsContent value="ending" className="mt-6">
                   <div className="space-y-6">
-                    {campaigns.filter(c => c.id <= 2).map((campaign) => (
-                      <Card key={campaign.id} className="overflow-hidden">
+                    {giveaways.filter(g => g.status === 'Active').slice(0, 2).map((giveaway) => (
+                      <Card key={giveaway.id} className="overflow-hidden border-l-4 border-l-red-500">
                         <div className="flex">
                           <div className="w-32 h-24 bg-muted flex-shrink-0">
                             <img 
-                              src={campaign.image} 
-                              alt={campaign.title}
+                              src={giveaway.image} 
+                              alt={giveaway.title}
                               className="w-full h-full object-cover"
                             />
                           </div>
@@ -403,26 +401,25 @@ const Giveaway = () => {
                             <div className="flex justify-between items-start mb-4">
                               <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-1">
-                                  {campaign.title}
+                                  {giveaway.title}
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-2">
-                                  by {campaign.organization}
+                                  by {giveaway.organization}
                                 </p>
                               </div>
                               <div className="text-right">
                                 <div className="text-lg font-semibold text-foreground">
-                                  Raised: ${campaign.raised}
+                                  {giveaway.entries} entries
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  Goal: ${campaign.goal}
+                                  {giveaway.timeLeft}
                                 </div>
                               </div>
                             </div>
-                            <Progress value={(campaign.raised / campaign.goal) * 100} className="h-2 mb-4" />
-                            <p className="text-sm text-muted-foreground mb-4">{campaign.description}</p>
+                            <p className="text-sm text-muted-foreground mb-4">{giveaway.description}</p>
                             <div className="flex items-center justify-between">
                               <div className="flex space-x-2">
-                                {campaign.tags.map((tag) => (
+                                {giveaway.tags.map((tag) => (
                                   <Badge key={tag} variant="secondary" className="text-xs">
                                     {tag}
                                   </Badge>
@@ -430,12 +427,12 @@ const Giveaway = () => {
                               </div>
                               <div className="flex space-x-2">
                                 {user ? (
-                                  <Button onClick={() => handleSupport(campaign.title)} className="bg-primary hover:bg-primary/90">
-                                    Support Now
+                                  <Button onClick={() => handleEnterGiveaway(giveaway)} className="bg-green-600 hover:bg-green-700">
+                                    Enter Giveaway
                                   </Button>
                                 ) : (
                                   <Link to="/auth">
-                                    <Button variant="outline">Sign In to Support</Button>
+                                    <Button variant="outline">Sign In to Enter</Button>
                                   </Link>
                                 )}
                               </div>
@@ -449,13 +446,13 @@ const Giveaway = () => {
                 
                 <TabsContent value="recent" className="mt-6">
                   <div className="space-y-6">
-                    {campaigns.reverse().map((campaign) => (
-                      <Card key={campaign.id} className="overflow-hidden">
+                    {giveaways.slice().reverse().map((giveaway) => (
+                      <Card key={giveaway.id} className="overflow-hidden border-l-4 border-l-blue-500">
                         <div className="flex">
                           <div className="w-32 h-24 bg-muted flex-shrink-0">
                             <img 
-                              src={campaign.image} 
-                              alt={campaign.title}
+                              src={giveaway.image} 
+                              alt={giveaway.title}
                               className="w-full h-full object-cover"
                             />
                           </div>
@@ -464,26 +461,25 @@ const Giveaway = () => {
                             <div className="flex justify-between items-start mb-4">
                               <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-1">
-                                  {campaign.title}
+                                  {giveaway.title}
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-2">
-                                  by {campaign.organization}
+                                  by {giveaway.organization}
                                 </p>
                               </div>
                               <div className="text-right">
                                 <div className="text-lg font-semibold text-foreground">
-                                  Raised: ${campaign.raised}
+                                  {giveaway.entries} entries
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  Goal: ${campaign.goal}
+                                  {giveaway.timeLeft}
                                 </div>
                               </div>
                             </div>
-                            <Progress value={(campaign.raised / campaign.goal) * 100} className="h-2 mb-4" />
-                            <p className="text-sm text-muted-foreground mb-4">{campaign.description}</p>
+                            <p className="text-sm text-muted-foreground mb-4">{giveaway.description}</p>
                             <div className="flex items-center justify-between">
                               <div className="flex space-x-2">
-                                {campaign.tags.map((tag) => (
+                                {giveaway.tags.map((tag) => (
                                   <Badge key={tag} variant="secondary" className="text-xs">
                                     {tag}
                                   </Badge>
@@ -491,12 +487,12 @@ const Giveaway = () => {
                               </div>
                               <div className="flex space-x-2">
                                 {user ? (
-                                  <Button onClick={() => handleSupport(campaign.title)} className="bg-primary hover:bg-primary/90">
-                                    Support Now
+                                  <Button onClick={() => handleEnterGiveaway(giveaway)} className="bg-green-600 hover:bg-green-700">
+                                    Enter Giveaway
                                   </Button>
                                 ) : (
                                   <Link to="/auth">
-                                    <Button variant="outline">Sign In to Support</Button>
+                                    <Button variant="outline">Sign In to Enter</Button>
                                   </Link>
                                 )}
                               </div>
@@ -583,35 +579,57 @@ const Giveaway = () => {
           {/* Sidebar */}
           <div className="w-80 space-y-6">
             {/* Giveaways Info */}
-            <Card>
+            <Card className="border-l-4 border-l-green-500">
               <CardHeader>
-                <CardTitle className="text-base">Giveaways you've entered</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Gift className="w-4 h-4 text-green-600" />
+                  Giveaways you've entered
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-4">
-                  <div className="text-2xl mb-2">—</div>
-                  <p className="text-sm text-muted-foreground">No entries yet</p>
-                </div>
+                {enteredGiveaways.size > 0 ? (
+                  <div className="space-y-2">
+                    {Array.from(enteredGiveaways).map((giveawayId) => {
+                      const giveaway = giveaways.find(g => g.id === Number(giveawayId));
+                      return (
+                        <div key={giveawayId} className="p-2 bg-green-50 dark:bg-green-900/20 rounded">
+                          <p className="text-sm font-medium">{giveaway?.title}</p>
+                          <p className="text-xs text-muted-foreground">Entered successfully</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="text-2xl mb-2">—</div>
+                    <p className="text-sm text-muted-foreground">No entries yet</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             {/* For Supporters */}
-            <Card>
+            <Card className="border-l-4 border-l-blue-500">
               <CardHeader>
-                <CardTitle className="text-base">For Supporters and Donors</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-blue-600" />
+                  For Supporters and Donors
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Reach more people and support life initiatives the easiest way to promote your help or donate.
+                  Support meaningful causes and help people in need. Your contribution makes a real difference.
                 </p>
-                <Button className="w-full bg-primary hover:bg-primary/90">
-                  Donate or Support
-                </Button>
+                <Link to="/donations">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    Donate or Support
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
             {/* Share Problem */}
-            <Card>
+            <Card className="border-l-4 border-l-orange-500">
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-base">Share Your Problem</CardTitle>
                 <ChevronDown className="h-4 w-4" />
@@ -620,16 +638,64 @@ const Giveaway = () => {
                 <p className="text-xs text-muted-foreground">
                   All submissions verified by our team
                 </p>
-                <div className="space-y-3">
-                  <Input placeholder="Problem Description" />
-                  <Input placeholder="Contact Info (Optional)" />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Your information is confidential and protected.
-                </p>
-                <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                  Submit
-                </Button>
+                <Form {...shareProblemsForm}>
+                  <form onSubmit={shareProblemsForm.handleSubmit(onSubmitShareProblem)} className="space-y-3">
+                    <FormField
+                      control={shareProblemsForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="Your Name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={shareProblemsForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="Your Email" type="email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={shareProblemsForm.control}
+                      name="problemDescription"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Textarea placeholder="Describe your problem in detail" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={shareProblemsForm.control}
+                      name="contact"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="Additional Contact Info (Optional)" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your information is confidential and protected.
+                    </p>
+                    <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700 text-white">
+                      Submit Problem
+                    </Button>
+                  </form>
+                </Form>
                 <p className="text-xs text-muted-foreground">
                   Submissions are reviewed by our team before posting for support.
                 </p>
@@ -641,6 +707,104 @@ const Giveaway = () => {
           </div>
         </div>
       </main>
+      
+      {/* Giveaway Entry Dialog */}
+      <Dialog open={showEntryForm} onOpenChange={setShowEntryForm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-green-600" />
+              Enter Giveaway
+            </DialogTitle>
+          </DialogHeader>
+          {selectedGiveaway && (
+            <div className="space-y-4">
+              <div className="bg-muted p-3 rounded">
+                <h4 className="font-medium">{selectedGiveaway.title}</h4>
+                <p className="text-sm text-muted-foreground">by {selectedGiveaway.organization}</p>
+              </div>
+              
+              <Form {...giveawayForm}>
+                <form onSubmit={giveawayForm.handleSubmit(onSubmitGiveawayEntry)} className="space-y-4">
+                  <FormField
+                    control={giveawayForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter your full name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={giveawayForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="Enter your email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={giveawayForm.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter your phone number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={giveawayForm.control}
+                    name="reason"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Why would this giveaway help you?</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Tell us why you think this giveaway would help or assist you..."
+                            className="min-h-[100px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowEntryForm(false)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700">
+                      Submit Entry
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       
       <Footer />
     </div>

@@ -11,6 +11,7 @@ import { CommentsProvider } from "@/contexts/CommentsContext";
 import { SearchProvider } from "@/contexts/SearchContext";
 import { lazy, Suspense } from "react";
 
+const Donations = lazy(() => import("./pages/Donations"));
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Groups = lazy(() => import("./pages/Groups"));
@@ -78,6 +79,7 @@ const App = () => (
                         <Route path="/groups" element={<Groups />} />
                         <Route path="/community-quotes" element={<CommunityQuotes />} />
                         <Route path="/giveaway" element={<Giveaway />} />
+                        <Route path="/donations" element={<Donations />} />
                         <Route path="/my-quotes" element={<MyQuotes />} />
                         <Route path="/shop" element={<Shop />} />
                         <Route path="/cart" element={<Cart />} />
