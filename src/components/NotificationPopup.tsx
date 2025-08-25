@@ -45,7 +45,7 @@ export const NotificationPopup = ({ isOpen, onClose }: NotificationPopupProps) =
   };
 
   return (
-    <div className="fixed inset-0 z-50" onClick={onClose}>
+    <div className="fixed inset-0 z-[9999]" onClick={onClose}>
       <div className="absolute top-16 right-4 w-80 bg-background border border-border rounded-lg shadow-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h3 className="font-semibold text-foreground flex items-center gap-2">
