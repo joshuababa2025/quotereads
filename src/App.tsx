@@ -17,6 +17,9 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Blog from "./pages/Blog";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import ChaptersPreview from "./pages/ChaptersPreview";
+import SoccerClub from "./pages/SoccerClub";
+import BlogPost from "./pages/BlogPost";
 
 // Simple inline 404 component to avoid import issues
 const NotFound = () => (
@@ -53,6 +56,10 @@ const App = () => (
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/chapters-preview" element={<ChaptersPreview />} />
+                <Route path="/soccer-club" element={<SoccerClub />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:id" element={<BlogPost />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

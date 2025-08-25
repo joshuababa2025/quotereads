@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Groups = () => {
   return (
@@ -61,6 +62,30 @@ const Groups = () => {
             {/* Popular Groups */}
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">Popular groups</h2>
+              
+              <Card className="mb-4 cursor-pointer hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex gap-4">
+                    <div className="w-16 h-16 rounded bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">SC</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg mb-1">
+                        <Link to="/soccer-club" className="hover:text-primary transition-colors">
+                          Soccer Club - Lagos
+                        </Link>
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        45 members • Active 2 hours ago
+                      </p>
+                      <p className="text-sm">
+                        A community for physical meetings, sports, and social activities. Join us for weekly matches, 
+                        training sessions, and social events. All skill levels welcome.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
               
               <Card className="mb-4">
                 <CardContent className="p-6">
