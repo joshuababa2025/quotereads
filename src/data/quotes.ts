@@ -214,3 +214,8 @@ export const getPopularCategories = (): string[] => {
     .sort(([,a], [,b]) => b - a)
     .map(([category]) => category);
 };
+
+// Find quote by ID
+export const findQuoteById = (id: string): Quote | null => {
+  return allQuotes.find(quote => quote.id === id) || null;
+};

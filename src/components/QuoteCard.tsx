@@ -1,9 +1,11 @@
-import { Heart, Share2, BookmarkPlus } from "lucide-react";
+import { Heart, Share2, BookmarkPlus, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useQuotes } from "@/contexts/QuotesContext";
 import { useQuoteInteraction } from "@/contexts/QuoteInteractionContext";
+import { useComments } from "@/contexts/CommentsContext";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from 'react-router-dom';
 import { QuoteOptionsMenu } from "./QuoteOptionsMenu";
 
 interface QuoteCardProps {
@@ -35,10 +37,13 @@ export const QuoteCard = ({
 }: QuoteCardProps) => {
   const { dispatch } = useQuotes();
   const { toggleLike, toggleFavorite, getInteraction } = useQuoteInteraction();
+  const { state: commentsState } = useComments();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const interaction = getInteraction(id);
   const displayLikes = likes + interaction.likeCount;
+  const commentCount = commentsState.commentCounts[id] || 0;
 
   const handleAddToFavorites = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -150,6 +155,23 @@ export const QuoteCard = ({
             title="Share quote"
           >
             <Share2 className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-2 hover:bg-white/20 text-white relative"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/quote/${id}`);
+            }}
+            title="View comments"
+          >
+            <MessageCircle className="h-4 w-4" />
+            {commentCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                {commentCount > 9 ? '9+' : commentCount}
+              </span>
+            )}
           </Button>
           <QuoteOptionsMenu
             quoteId={id}

@@ -7,29 +7,33 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/contexts/CartContext";
 import { QuotesProvider } from "@/contexts/QuotesContext";
 import { QuoteInteractionProvider } from "@/contexts/QuoteInteractionContext";
+import { CommentsProvider } from "@/contexts/CommentsContext";
 import { SearchProvider } from "@/contexts/SearchContext";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Groups from "./pages/Groups";
-import CommunityQuotes from "./pages/CommunityQuotes";
-import Giveaway from "./pages/Giveaway";
-import MyQuotes from "./pages/MyQuotes";
-import Shop from "./pages/Shop";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-import Blog from "./pages/Blog";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import ChaptersPreview from "./pages/ChaptersPreview";
-import SoccerClub from "./pages/SoccerClub";
-import BlogPost from "./pages/BlogPost";
-import Collections from "./pages/Collections";
-import Topics from "./pages/Topics";
-import Newsletter from "./pages/Newsletter";
-import WisdomOfAges from "./pages/WisdomOfAges";
-import DailyMotivation from "./pages/DailyMotivation";
-import CategoryQuotes from "./pages/CategoryQuotes";
-import QuoteThemes from "./pages/QuoteThemes";
-import Search from "./pages/Search";
+import { lazy } from "react";
+
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Groups = lazy(() => import("./pages/Groups"));
+const CommunityQuotes = lazy(() => import("./pages/CommunityQuotes"));
+const Giveaway = lazy(() => import("./pages/Giveaway"));
+const MyQuotes = lazy(() => import("./pages/MyQuotes"));
+const Shop = lazy(() => import("./pages/Shop"));
+const Cart = lazy(() => import("./pages/Cart"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const Blog = lazy(() => import("./pages/Blog"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const ChaptersPreview = lazy(() => import("./pages/ChaptersPreview"));
+const SoccerClub = lazy(() => import("./pages/SoccerClub"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const Collections = lazy(() => import("./pages/Collections"));
+const Topics = lazy(() => import("./pages/Topics"));
+const Newsletter = lazy(() => import("./pages/Newsletter"));
+const WisdomOfAges = lazy(() => import("./pages/WisdomOfAges"));
+const DailyMotivation = lazy(() => import("./pages/DailyMotivation"));
+const CategoryQuotes = lazy(() => import("./pages/CategoryQuotes"));
+const QuoteThemes = lazy(() => import("./pages/QuoteThemes"));
+const QuoteDetails = lazy(() => import("./pages/QuoteDetails"));
+const Search = lazy(() => import("./pages/Search"));
 
 // Simple inline 404 component to avoid import issues
 const NotFound = () => (
@@ -52,40 +56,42 @@ const App = () => (
       <CartProvider>
         <QuotesProvider>
           <QuoteInteractionProvider>
-            <SearchProvider>
-              <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/groups" element={<Groups />} />
-                <Route path="/community-quotes" element={<CommunityQuotes />} />
-                <Route path="/giveaway" element={<Giveaway />} />
-                <Route path="/my-quotes" element={<MyQuotes />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/payment-success" element={<PaymentSuccess />} />
-                <Route path="/chapters-preview" element={<ChaptersPreview />} />
-                <Route path="/soccer-club" element={<SoccerClub />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:id" element={<BlogPost />} />
-                <Route path="/collections" element={<Collections />} />
-                <Route path="/topics" element={<Topics />} />
-                <Route path="/newsletter" element={<Newsletter />} />
-                <Route path="/wisdom-of-ages" element={<WisdomOfAges />} />
-                <Route path="/daily-motivation" element={<DailyMotivation />} />
-                <Route path="/category/:category" element={<CategoryQuotes />} />
-                <Route path="/quote-themes" element={<QuoteThemes />} />
-                <Route path="/search" element={<Search />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              </BrowserRouter>
-              </TooltipProvider>
-            </SearchProvider>
+            <CommentsProvider>
+              <SearchProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/groups" element={<Groups />} />
+                      <Route path="/community-quotes" element={<CommunityQuotes />} />
+                      <Route path="/giveaway" element={<Giveaway />} />
+                      <Route path="/my-quotes" element={<MyQuotes />} />
+                      <Route path="/shop" element={<Shop />} />
+                      <Route path="/cart" element={<Cart />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/payment-success" element={<PaymentSuccess />} />
+                      <Route path="/chapters-preview" element={<ChaptersPreview />} />
+                      <Route path="/soccer-club" element={<SoccerClub />} />
+                      <Route path="/blog" element={<Blog />} />
+                      <Route path="/blog/:id" element={<BlogPost />} />
+                      <Route path="/collections" element={<Collections />} />
+                      <Route path="/topics" element={<Topics />} />
+                      <Route path="/newsletter" element={<Newsletter />} />
+                      <Route path="/wisdom-of-ages" element={<WisdomOfAges />} />
+                      <Route path="/daily-motivation" element={<DailyMotivation />} />
+                      <Route path="/category/:category" element={<CategoryQuotes />} />
+                      <Route path="/quote-themes" element={<QuoteThemes />} />
+                      <Route path="/quote/:quoteId" element={<QuoteDetails />} />
+                      <Route path="/search" element={<Search />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </SearchProvider>
+            </CommentsProvider>
           </QuoteInteractionProvider>
         </QuotesProvider>
       </CartProvider>
