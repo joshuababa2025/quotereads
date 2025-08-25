@@ -9,7 +9,7 @@ import { QuotesProvider } from "@/contexts/QuotesContext";
 import { QuoteInteractionProvider } from "@/contexts/QuoteInteractionContext";
 import { CommentsProvider } from "@/contexts/CommentsContext";
 import { SearchProvider } from "@/contexts/SearchContext";
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -62,32 +62,41 @@ const App = () => (
                   <Toaster />
                   <Sonner />
                   <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/groups" element={<Groups />} />
-                      <Route path="/community-quotes" element={<CommunityQuotes />} />
-                      <Route path="/giveaway" element={<Giveaway />} />
-                      <Route path="/my-quotes" element={<MyQuotes />} />
-                      <Route path="/shop" element={<Shop />} />
-                      <Route path="/cart" element={<Cart />} />
-                      <Route path="/checkout" element={<Checkout />} />
-                      <Route path="/payment-success" element={<PaymentSuccess />} />
-                      <Route path="/chapters-preview" element={<ChaptersPreview />} />
-                      <Route path="/soccer-club" element={<SoccerClub />} />
-                      <Route path="/blog" element={<Blog />} />
-                      <Route path="/blog/:id" element={<BlogPost />} />
-                      <Route path="/collections" element={<Collections />} />
-                      <Route path="/topics" element={<Topics />} />
-                      <Route path="/newsletter" element={<Newsletter />} />
-                      <Route path="/wisdom-of-ages" element={<WisdomOfAges />} />
-                      <Route path="/daily-motivation" element={<DailyMotivation />} />
-                      <Route path="/category/:category" element={<CategoryQuotes />} />
-                      <Route path="/quote-themes" element={<QuoteThemes />} />
-                      <Route path="/quote/:quoteId" element={<QuoteDetails />} />
-                      <Route path="/search" element={<Search />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+                    <Suspense fallback={
+                      <div className="min-h-screen flex items-center justify-center bg-background">
+                        <div className="text-center space-y-4">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                          <p className="text-muted-foreground">Loading...</p>
+                        </div>
+                      </div>
+                    }>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="/groups" element={<Groups />} />
+                        <Route path="/community-quotes" element={<CommunityQuotes />} />
+                        <Route path="/giveaway" element={<Giveaway />} />
+                        <Route path="/my-quotes" element={<MyQuotes />} />
+                        <Route path="/shop" element={<Shop />} />
+                        <Route path="/cart" element={<Cart />} />
+                        <Route path="/checkout" element={<Checkout />} />
+                        <Route path="/payment-success" element={<PaymentSuccess />} />
+                        <Route path="/chapters-preview" element={<ChaptersPreview />} />
+                        <Route path="/soccer-club" element={<SoccerClub />} />
+                        <Route path="/blog" element={<Blog />} />
+                        <Route path="/blog/:id" element={<BlogPost />} />
+                        <Route path="/collections" element={<Collections />} />
+                        <Route path="/topics" element={<Topics />} />
+                        <Route path="/newsletter" element={<Newsletter />} />
+                        <Route path="/wisdom-of-ages" element={<WisdomOfAges />} />
+                        <Route path="/daily-motivation" element={<DailyMotivation />} />
+                        <Route path="/category/:category" element={<CategoryQuotes />} />
+                        <Route path="/quote-themes" element={<QuoteThemes />} />
+                        <Route path="/quote/:quoteId" element={<QuoteDetails />} />
+                        <Route path="/search" element={<Search />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
                   </BrowserRouter>
                 </TooltipProvider>
               </SearchProvider>
