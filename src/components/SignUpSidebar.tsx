@@ -1,8 +1,36 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Chrome, Apple } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 export const SignUpSidebar = () => {
+  const { user } = useAuth();
+  if (user) {
+    return (
+      <div className="bg-card rounded-xl border shadow-lg p-6 sticky top-4">
+        <h3 className="text-xl font-bold text-foreground mb-2">
+          Welcome Back!
+        </h3>
+        <p className="text-muted-foreground mb-4">
+          You're signed in as {user.email}
+        </p>
+        <div className="space-y-3">
+          <Link to="/quotes">
+            <Button className="w-full">
+              Browse Quotes
+            </Button>
+          </Link>
+          <Link to="/giveaway">
+            <Button variant="outline" className="w-full">
+              View Giveaways
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-card rounded-xl border shadow-lg p-6 sticky top-4">
       <h3 className="text-xl font-bold text-foreground mb-2">
@@ -10,38 +38,15 @@ export const SignUpSidebar = () => {
       </h3>
       
       <div className="space-y-4">
-        {/* Google Sign Up */}
-        <Button 
-          variant="outline" 
-          className="w-full justify-center items-center space-x-2 bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:border-blue-700"
-        >
-          <Chrome className="h-4 w-4" />
-          <span>Continue with Google</span>
-        </Button>
-
-        {/* Apple Sign Up */}
-        <Button 
-          variant="outline" 
-          className="w-full justify-center items-center space-x-2 bg-black text-white border-black hover:bg-gray-900"
-        >
-          <Apple className="h-4 w-4" />
-          <span>Continue with Apple</span>
-        </Button>
-
-        {/* Email Sign Up */}
-        <div className="space-y-3">
-          <Input 
-            type="email" 
-            placeholder="Sign up with Email" 
-            className="border-muted"
-          />
-          <p className="text-sm text-muted-foreground text-center">
-            Already have an account?{" "}
-            <a href="#" className="text-primary hover:underline font-medium">
-              Sign In
-            </a>
-          </p>
-        </div>
+        <Link to="/auth">
+          <Button className="w-full">
+            Join Our Community
+          </Button>
+        </Link>
+        
+        <p className="text-sm text-muted-foreground text-center">
+          Sign up to participate in giveaways, save quotes, and connect with fellow book lovers.
+        </p>
       </div>
     </div>
   );

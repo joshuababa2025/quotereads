@@ -1,29 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { Search, Bell, Mail, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 export const Navigation = () => {
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <h1 className="text-2xl font-bold text-foreground">Quotes</h1>
+            <Link to="/">
+              <h1 className="text-2xl font-bold text-foreground hover:text-primary transition-colors">LibVerse Nest</h1>
+            </Link>
           </div>
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Home</a>
-            <div className="relative group">
-              <a href="#" className="text-foreground hover:text-primary transition-colors font-medium flex items-center">
-                My Quotes
-                <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </a>
-            </div>
-            <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Giveaway</a>
+            <Link to="/" className="text-foreground hover:text-primary transition-colors font-medium">Home</Link>
+            <Link to="/quotes" className="text-foreground hover:text-primary transition-colors font-medium">Quotes</Link>
+            <Link to="/giveaway" className="text-foreground hover:text-primary transition-colors font-medium">Giveaway</Link>
             <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Community</a>
             <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Shop</a>
           </nav>
@@ -51,9 +53,17 @@ export const Navigation = () => {
               </Button>
             </div>
 
-            <Button variant="outline" size="sm" className="hidden sm:inline-flex">
-              Sign In
-            </Button>
+            {user ? (
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden sm:inline-flex">
+                Sign Out
+              </Button>
+            ) : (
+              <Link to="/auth">
+                <Button variant="outline" size="sm" className="hidden sm:inline-flex">
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
