@@ -7,33 +7,18 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CreateCampaignDialog } from '@/components/CreateCampaignDialog';
 import { Heart, Users, Calendar, MapPin, DollarSign, TrendingUp, Clock } from 'lucide-react';
 
 const Donations = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-
-  const handleDonate = (campaignTitle: string, amount: number) => {
-    if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to donate to campaigns.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    toast({
-      title: "Thank you for your donation!",
-      description: `Your $${amount} donation to ${campaignTitle} is being processed.`,
-    });
-  };
-
-  const campaigns = [
+  const [campaigns, setCampaigns] = useState([
     {
       id: 1,
       title: "Support Through Tough Times",
@@ -94,7 +79,15 @@ const Donations = () => {
       category: "Health",
       urgency: "Medium"
     }
-  ];
+  ]);
+
+  const handleCampaignCreated = (newCampaign: any) => {
+    setCampaigns(prev => [newCampaign, ...prev]);
+  };
+
+  const handleCampaignClick = (campaignId: number) => {
+    navigate(`/campaign/${campaignId}`);
+  };
 
   const filteredCampaigns = campaigns.filter(campaign =>
     campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -134,38 +127,38 @@ const Donations = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card className="border-l-4 border-l-green-500">
-              <CardContent className="p-4">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Raised</p>
-                    <p className="text-2xl font-bold text-green-600">$71,750</p>
+                    <p className="text-sm font-medium text-muted-foreground">Total Raised</p>
+                    <p className="text-2xl font-bold text-foreground">$71,750</p>
                   </div>
-                  <TrendingUp className="w-8 h-8 text-green-500" />
+                  <TrendingUp className="w-8 h-8 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="border-l-4 border-l-blue-500">
-              <CardContent className="p-4">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Active Campaigns</p>
-                    <p className="text-2xl font-bold text-blue-600">4</p>
+                    <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
+                    <p className="text-2xl font-bold text-foreground">4</p>
                   </div>
-                  <Heart className="w-8 h-8 text-blue-500" />
+                  <Heart className="w-8 h-8 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="border-l-4 border-l-purple-500">
-              <CardContent className="p-4">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Supporters</p>
-                    <p className="text-2xl font-bold text-purple-600">986</p>
+                    <p className="text-sm font-medium text-muted-foreground">Total Supporters</p>
+                    <p className="text-2xl font-bold text-foreground">986</p>
                   </div>
-                  <Users className="w-8 h-8 text-purple-500" />
+                  <Users className="w-8 h-8 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
@@ -184,7 +177,11 @@ const Donations = () => {
             <TabsContent value="all" className="mt-6">
               <div className="space-y-6">
                 {filteredCampaigns.map((campaign) => (
-                  <Card key={campaign.id} className="overflow-hidden border-l-4 border-l-red-500">
+                  <Card 
+                    key={campaign.id} 
+                    className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => handleCampaignClick(campaign.id)}
+                  >
                     <div className="flex">
                       <div className="w-48 h-32 bg-muted flex-shrink-0">
                         <img 
@@ -250,20 +247,22 @@ const Donations = () => {
                           </div>
                           
                           <div className="flex items-center gap-2">
-                            {donationAmounts.slice(0, 3).map((amount) => (
-                              <Button
-                                key={amount}
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDonate(campaign.title, amount)}
-                                className="text-xs px-3"
-                              >
-                                ${amount}
-                              </Button>
-                            ))}
                             <Button 
-                              onClick={() => handleDonate(campaign.title, 100)}
-                              className="bg-red-600 hover:bg-red-700"
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCampaignClick(campaign.id);
+                              }}
+                            >
+                              View Details
+                            </Button>
+                            <Button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/payment/${campaign.id}`);
+                              }}
+                              className="bg-primary hover:bg-primary/90"
                             >
                               <Heart className="w-4 h-4 mr-1" />
                               Donate Now
@@ -288,16 +287,14 @@ const Donations = () => {
         </div>
 
         {/* Call to Action */}
-        <Card className="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950/50 dark:to-pink-950/50 border-red-200 dark:border-red-800">
+        <Card className="bg-muted/50">
           <CardContent className="p-8 text-center">
-            <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-4">Start Your Own Campaign</h2>
             <p className="text-muted-foreground mb-6">
               Have a cause you're passionate about? Create your own fundraising campaign and get the support you need.
             </p>
-            <Button className="bg-red-600 hover:bg-red-700" size="lg">
-              Create Campaign
-            </Button>
+            <CreateCampaignDialog onCampaignCreated={handleCampaignCreated} />
           </CardContent>
         </Card>
       </main>
