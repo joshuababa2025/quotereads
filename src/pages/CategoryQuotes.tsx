@@ -6,6 +6,7 @@ import { Search, Filter, Heart, Target, Brain, Sun } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useParams } from "react-router-dom";
 import { useState } from "react";
+import { allQuotes, getQuotesByCategory } from "@/data/quotes";
 
 const categoryData = {
   love: {
@@ -14,30 +15,7 @@ const categoryData = {
     title: "Love",
     description: "Beautiful quotes about love, relationships, and human connections",
     bgColor: "bg-gradient-to-r from-pink-100 to-pink-50",
-    borderColor: "border-pink-500",
-    quotes: [
-      {
-        quote: "Being deeply loved by someone gives you strength, while loving someone deeply gives you courage.",
-        author: "Lao Tzu",
-        category: "Love",
-        variant: "pink" as const,
-        likes: 543
-      },
-      {
-        quote: "The best thing to hold onto in life is each other.",
-        author: "Audrey Hepburn",
-        category: "Love",
-        variant: "purple" as const,
-        likes: 687
-      },
-      {
-        quote: "Love is not about how much you say 'I love you,' but how much you can prove that it's true.",
-        author: "Unknown",
-        category: "Love",
-        variant: "pink" as const,
-        likes: 234
-      }
-    ]
+    borderColor: "border-pink-500"
   },
   motivation: {
     icon: Target,
@@ -45,30 +23,7 @@ const categoryData = {
     title: "Motivation",
     description: "Inspiring quotes to fuel your drive and ambition",
     bgColor: "bg-gradient-to-r from-green-100 to-green-50",
-    borderColor: "border-green-500",
-    quotes: [
-      {
-        quote: "The only way to do great work is to love what you do.",
-        author: "Steve Jobs",
-        category: "Motivation",
-        variant: "green" as const,
-        likes: 1247
-      },
-      {
-        quote: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-        author: "Winston Churchill",
-        category: "Motivation",
-        variant: "orange" as const,
-        likes: 892
-      },
-      {
-        quote: "Don't watch the clock; do what it does. Keep going.",
-        author: "Sam Levenson",
-        category: "Motivation",
-        variant: "green" as const,
-        likes: 445
-      }
-    ]
+    borderColor: "border-green-500"
   },
   wisdom: {
     icon: Brain,
@@ -76,30 +31,7 @@ const categoryData = {
     title: "Wisdom",
     description: "Timeless wisdom from great thinkers and philosophers",
     bgColor: "bg-gradient-to-r from-blue-100 to-blue-50",
-    borderColor: "border-blue-500",
-    quotes: [
-      {
-        quote: "The only true wisdom is in knowing you know nothing.",
-        author: "Socrates",
-        category: "Wisdom",
-        variant: "blue" as const,
-        likes: 567
-      },
-      {
-        quote: "The unexamined life is not worth living.",
-        author: "Socrates",
-        category: "Wisdom",
-        variant: "purple" as const,
-        likes: 789
-      },
-      {
-        quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
-        author: "Aristotle",
-        category: "Wisdom",
-        variant: "blue" as const,
-        likes: 612
-      }
-    ]
+    borderColor: "border-blue-500"
   },
   happiness: {
     icon: Sun,
@@ -107,30 +39,7 @@ const categoryData = {
     title: "Happiness",
     description: "Uplifting quotes about joy, contentment, and positive living",
     bgColor: "bg-gradient-to-r from-yellow-100 to-yellow-50",
-    borderColor: "border-yellow-500",
-    quotes: [
-      {
-        quote: "Happiness is not something ready made. It comes from your own actions.",
-        author: "Dalai Lama",
-        category: "Happiness",
-        variant: "orange" as const,
-        likes: 456
-      },
-      {
-        quote: "The purpose of our lives is to be happy.",
-        author: "Dalai Lama",
-        category: "Happiness",
-        variant: "pink" as const,
-        likes: 623
-      },
-      {
-        quote: "Happiness is when what you think, what you say, and what you do are in harmony.",
-        author: "Mahatma Gandhi",
-        category: "Happiness",
-        variant: "green" as const,
-        likes: 384
-      }
-    ]
+    borderColor: "border-yellow-500"
   }
 };
 
@@ -154,7 +63,10 @@ export default function CategoryQuotes() {
     );
   }
 
-  const { icon: Icon, color, title, description, bgColor, borderColor, quotes } = categoryInfo;
+  const { icon: Icon, color, title, description, bgColor, borderColor } = categoryInfo;
+  
+  // Get quotes for this category from centralized data
+  const quotes = getQuotesByCategory(category);
 
   const filteredQuotes = quotes.filter(quote =>
     quote.quote.toLowerCase().includes(searchQuery.toLowerCase()) ||

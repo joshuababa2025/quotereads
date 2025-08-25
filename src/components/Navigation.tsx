@@ -5,10 +5,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { useSearch } from "@/contexts/SearchContext";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { NotificationPopup } from "@/components/NotificationPopup";
 import { MessagesPopup } from "@/components/MessagesPopup";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
+import { SearchSuggestions } from "@/components/SearchSuggestions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
@@ -25,12 +26,13 @@ import {
 export const Navigation = () => {
   const { user, signOut } = useAuth();
   const { state } = useCart();
-  const { searchQuery, setSearchQuery } = useSearch();
+  const { searchQuery, setSearchQuery, showSuggestions, setShowSuggestions } = useSearch();
   const isMobile = useIsMobile();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   // Emit popup state change events
   const handlePopupStateChange = (isOpen: boolean) => {
@@ -78,6 +80,27 @@ export const Navigation = () => {
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  // Close search suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [setShowSuggestions]);
+
+  const handleSearchFocus = () => {
+    setShowSuggestions(true);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setShowSuggestions(true);
   };
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -217,14 +240,20 @@ export const Navigation = () => {
 
           {/* Search and Actions */}
           <div className="flex items-center space-x-4">
-            <div className="relative hidden sm:block">
+            <div className="relative hidden sm:block" ref={searchRef}>
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input 
                 type="search" 
                 placeholder="Search quotes, authors..." 
                 className="pl-10 w-64 bg-muted/50 border-border"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
+                onFocus={handleSearchFocus}
+              />
+              <SearchSuggestions
+                searchQuery={searchQuery}
+                isVisible={showSuggestions && !isMobile}
+                onClose={() => setShowSuggestions(false)}
               />
             </div>
             
