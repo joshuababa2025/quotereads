@@ -24,9 +24,11 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
     privacy: 'public',
     type: '',
     tags: '',
+    meetingFormat: 'online',
     enableVoting: false,
     encourageLeadership: false,
-    guides: ''
+    guides: '',
+    guidesType: 'paste'
   });
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -91,9 +93,11 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
         privacy: 'public',
         type: '',
         tags: '',
+        meetingFormat: 'online',
         enableVoting: false,
         encourageLeadership: false,
-        guides: ''
+        guides: '',
+        guidesType: 'paste'
       });
       setOpen(false);
 
@@ -181,6 +185,20 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="meetingFormat">Meeting Format</Label>
+            <Select value={formData.meetingFormat} onValueChange={(value) => handleInputChange('meetingFormat', value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="online">Online</SelectItem>
+                <SelectItem value="physical">Physical</SelectItem>
+                <SelectItem value="hybrid">Hybrid</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="tags">Tags</Label>
             <Input
               id="tags"
@@ -220,13 +238,34 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
 
           <div className="space-y-2">
             <Label htmlFor="guides">Self-Guides (Optional)</Label>
-            <Textarea
-              id="guides"
-              value={formData.guides}
-              onChange={(e) => handleInputChange('guides', e.target.value)}
-              placeholder="Upload or paste helpful self-guides for members"
-              className="min-h-[60px]"
-            />
+            <div className="space-y-2">
+              <Select value={formData.guidesType} onValueChange={(value) => handleInputChange('guidesType', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="paste">Paste Text</SelectItem>
+                  <SelectItem value="upload">Upload File</SelectItem>
+                </SelectContent>
+              </Select>
+              {formData.guidesType === 'paste' ? (
+                <Textarea
+                  id="guides"
+                  value={formData.guides}
+                  onChange={(e) => handleInputChange('guides', e.target.value)}
+                  placeholder="Paste helpful self-guides for members"
+                  className="min-h-[60px]"
+                />
+              ) : (
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center">
+                  <Input type="file" accept=".pdf,.doc,.docx,.txt" className="hidden" id="file-upload" />
+                  <Label htmlFor="file-upload" className="cursor-pointer">
+                    <div className="text-sm text-muted-foreground">Click to upload guide files</div>
+                    <div className="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, TXT files supported</div>
+                  </Label>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

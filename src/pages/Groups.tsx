@@ -6,12 +6,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Clock } from "lucide-react";
+import { Users, Clock, Search, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CreateGroupDialog } from "@/components/CreateGroupDialog";
 import { useState } from "react";
 
 const Groups = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [tagQuery, setTagQuery] = useState('');
   const [groups, setGroups] = useState([
     {
       id: 1,
@@ -45,6 +47,17 @@ const Groups = () => {
     }
   ]);
 
+  const availableTags = ['bookclub', 'fun', 'fantasy', 'science-fiction', 'romance', 'mystery', 'fiction', 'book-club', 'young-adult', 'books', 'horror', 'sports', 'tech', 'javascript', 'programming'];
+
+  const filteredGroups = groups.filter(group => 
+    group.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    group.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredTags = availableTags.filter(tag => 
+    tag.toLowerCase().includes(tagQuery.toLowerCase())
+  );
+
   const handleGroupCreated = (newGroup: any) => {
     const groupWithDefaults = {
       ...newGroup,
@@ -53,6 +66,14 @@ const Groups = () => {
       link: `/group/${newGroup.id}`
     };
     setGroups(prev => [groupWithDefaults, ...prev]);
+  };
+
+  const handleSearch = () => {
+    // Search functionality is now reactive through filteredGroups
+  };
+
+  const handleTagSearch = () => {
+    // Tag search functionality is now reactive through filteredTags
   };
   return (
     <div className="min-h-screen bg-background">
@@ -73,23 +94,28 @@ const Groups = () => {
               <Input 
                 placeholder="Group name, description" 
                 className="flex-1"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <Button>Search groups</Button>
+              <Button onClick={handleSearch}>
+                <Search className="w-4 h-4 mr-2" />
+                Search groups
+              </Button>
             </div>
 
             {/* Featured Groups */}
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">Featured groups</h2>
-              <Card className="mb-4">
+              <Card className="mb-4 cursor-pointer hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
-                  <div className="flex gap-4">
+                  <Link to="/read-with-jenna" className="flex gap-4">
                     <img 
                       src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
                       alt="Group avatar" 
                       className="w-16 h-16 rounded object-cover"
                     />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1">Read With Jenna (Official)</h3>
+                      <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors">Read With Jenna (Official)</h3>
                       <p className="text-sm text-muted-foreground mb-2">
                         39649 members • Active a month ago
                       </p>
@@ -98,7 +124,7 @@ const Groups = () => {
                         one person to turn to: Jenna Bush Hager. Jenna selects a book...
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 </CardContent>
               </Card>
             </section>
@@ -107,7 +133,7 @@ const Groups = () => {
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">Popular groups</h2>
               
-              {groups.map((group) => (
+              {filteredGroups.map((group) => (
                 <Card key={group.id} className="mb-4 cursor-pointer hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex gap-4">
@@ -227,22 +253,28 @@ const Groups = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2 mb-4">
-                  <Input placeholder="Tag name" className="flex-1" />
-                  <Button variant="secondary" size="sm">Search tags</Button>
+                  <Input 
+                    placeholder="Tag name" 
+                    className="flex-1" 
+                    value={tagQuery}
+                    onChange={(e) => setTagQuery(e.target.value)}
+                  />
+                  <Button variant="secondary" size="sm" onClick={handleTagSearch}>
+                    <Search className="w-4 h-4" />
+                  </Button>
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">bookclub</Badge>
-                  <Badge variant="outline">fun</Badge>
-                  <Badge variant="outline">fantasy</Badge>
-                  <Badge variant="outline">science-fiction</Badge>
-                  <Badge variant="outline">romance</Badge>
-                  <Badge variant="outline">mystery</Badge>
-                  <Badge variant="outline">fiction</Badge>
-                  <Badge variant="outline">book-club</Badge>
-                  <Badge variant="outline">young-adult</Badge>
-                  <Badge variant="outline">books</Badge>
-                  <Badge variant="outline">horror</Badge>
+                  {filteredTags.map(tag => (
+                    <Badge 
+                      key={tag} 
+                      variant="outline" 
+                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                      onClick={() => setSearchQuery(tag)}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -253,12 +285,14 @@ const Groups = () => {
                 <CardTitle className="text-lg">More groups</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Goodreads Librarians Group: request changes to book records
-                </p>
-                <Button variant="link" className="p-0 h-auto text-primary">
-                  Create a group
-                </Button>
+                <Link to="/goodreads-librarians" className="block mb-2">
+                  <p className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                    Goodreads Librarians Group: request changes to book records
+                  </p>
+                </Link>
+                <div className="pt-2">
+                  <CreateGroupDialog onGroupCreated={handleGroupCreated} />
+                </div>
               </CardContent>
             </Card>
           </div>
