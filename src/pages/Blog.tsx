@@ -3,7 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Calendar, User } from "lucide-react";
+import { ArrowRight, Calendar, User, MessageCircle, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { LatestBlogPosts } from "@/components/LatestBlogPosts";
 
@@ -110,6 +110,18 @@ const Blog = () => {
                         </div>
                       </div>
                       <span>{post.readTime}</span>
+                    </div>
+                    
+                    {/* Comments preview */}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="h-3 w-3" />
+                        <span>12 comments</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        <span>45 likes</span>
+                      </div>
                     </div>
                     
                     <Link to={`/blog/${post.id}`}>

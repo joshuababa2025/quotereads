@@ -20,6 +20,7 @@ import {
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { LatestBlogPosts } from "@/components/LatestBlogPosts";
+import { NestedCommentSection } from "@/components/NestedCommentSection";
 
 const BlogPost = () => {
   const { id } = useParams();
@@ -43,7 +44,8 @@ const BlogPost = () => {
           content: "I completely agree! The morning routine suggestions are particularly helpful.",
           time: "1 hour ago",
           likes: 2,
-          liked: false
+          liked: false,
+          replies: []
         }
       ]
     },
@@ -58,6 +60,9 @@ const BlogPost = () => {
       replies: []
     }
   ]);
+  const [replyingTo, setReplyingTo] = useState<{commentId: number, replyId?: number, username: string} | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [following, setFollowing] = useState(false);
 
   const handleLike = () => {
     setLiked(!liked);
@@ -99,6 +104,49 @@ const BlogPost = () => {
       setComments([...comments, newCommentObj]);
       setNewComment("");
     }
+  };
+
+  const handleReplySubmit = () => {
+    if (replyText.trim() && replyingTo) {
+      const newReply = {
+        id: Date.now(),
+        author: "You",
+        avatar: "YU",
+        content: `@${replyingTo.username} ${replyText}`,
+        time: "just now",
+        likes: 0,
+        liked: false,
+        replies: []
+      };
+
+      setComments(comments.map(comment => {
+        if (comment.id === replyingTo.commentId) {
+          if (replyingTo.replyId) {
+            // Reply to a reply - add to nested replies
+            return {
+              ...comment,
+              replies: comment.replies.map(reply => 
+                reply.id === replyingTo.replyId
+                  ? { ...reply, replies: [...(reply.replies || []), newReply] }
+                  : reply
+              )
+            };
+          } else {
+            // Reply to main comment
+            return { ...comment, replies: [...comment.replies, newReply] };
+          }
+        }
+        return comment;
+      }));
+      
+      setReplyText("");
+      setReplyingTo(null);
+    }
+  };
+
+  const handleTagClick = (tag: string) => {
+    // Navigate to blog posts filtered by tag
+    console.log("Filtering by tag:", tag);
   };
 
   // Mock blog post data - in real app, this would be fetched based on ID
@@ -237,64 +285,18 @@ const BlogPost = () => {
                 {/* Comments List */}
                 <div className="space-y-6">
                   {comments.map((comment) => (
-                    <div key={comment.id} className="space-y-4">
-                      <div className="flex gap-4">
-                        <Avatar>
-                          <AvatarFallback>{comment.avatar}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-semibold">{comment.author}</span>
-                            <span className="text-sm text-muted-foreground">{comment.time}</span>
-                          </div>
-                          <p className="text-sm mb-3">{comment.content}</p>
-                          <div className="flex items-center gap-4">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleCommentLike(comment.id)}
-                              className={comment.liked ? "text-blue-500" : ""}
-                            >
-                              <ThumbsUp className={`h-3 w-3 mr-1 ${comment.liked ? 'fill-current' : ''}`} />
-                              {comment.likes}
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Reply className="h-3 w-3 mr-1" />
-                              Reply
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Replies */}
-                      {comment.replies.length > 0 && (
-                        <div className="ml-12 space-y-4">
-                          {comment.replies.map((reply) => (
-                            <div key={reply.id} className="flex gap-4">
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback>{reply.avatar}</AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="font-semibold text-sm">{reply.author}</span>
-                                  <span className="text-xs text-muted-foreground">{reply.time}</span>
-                                </div>
-                                <p className="text-sm mb-3">{reply.content}</p>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => handleCommentLike(comment.id, reply.id)}
-                                  className={reply.liked ? "text-blue-500" : ""}
-                                >
-                                  <ThumbsUp className={`h-3 w-3 mr-1 ${reply.liked ? 'fill-current' : ''}`} />
-                                  {reply.likes}
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    <NestedCommentSection
+                      key={comment.id}
+                      comment={comment}
+                      level={0}
+                      onLike={handleCommentLike}
+                      onReply={(commentId, replyId, username) => setReplyingTo({commentId, replyId, username})}
+                      replyingTo={replyingTo}
+                      replyText={replyText}
+                      setReplyText={setReplyText}
+                      onReplySubmit={handleReplySubmit}
+                      onCancelReply={() => {setReplyingTo(null); setReplyText("");}}
+                    />
                   ))}
                 </div>
               </div>
@@ -318,8 +320,13 @@ const BlogPost = () => {
                 <p className="text-sm text-muted-foreground mb-4">
                   Sarah is a mindfulness coach and writer who specializes in helping people find meaning through daily reflection and quote practices.
                 </p>
-                <Button variant="outline" size="sm" className="w-full">
-                  Follow
+                <Button 
+                  variant={following ? "default" : "outline"} 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => setFollowing(!following)}
+                >
+                  {following ? "Following" : "Follow"}
                 </Button>
               </CardContent>
             </Card>
@@ -343,12 +350,48 @@ const BlogPost = () => {
               <CardContent className="p-6">
                 <h4 className="font-semibold mb-4">Popular Tags</h4>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">Mindfulness</Badge>
-                  <Badge variant="secondary">Self-Growth</Badge>
-                  <Badge variant="secondary">Reflection</Badge>
-                  <Badge variant="secondary">Daily Habits</Badge>
-                  <Badge variant="secondary">Inspiration</Badge>
-                  <Badge variant="secondary">Wellness</Badge>
+                  <Badge 
+                    variant="secondary" 
+                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => handleTagClick("Mindfulness")}
+                  >
+                    Mindfulness
+                  </Badge>
+                  <Badge 
+                    variant="secondary" 
+                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => handleTagClick("Self-Growth")}
+                  >
+                    Self-Growth
+                  </Badge>
+                  <Badge 
+                    variant="secondary" 
+                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => handleTagClick("Reflection")}
+                  >
+                    Reflection
+                  </Badge>
+                  <Badge 
+                    variant="secondary" 
+                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => handleTagClick("Daily Habits")}
+                  >
+                    Daily Habits
+                  </Badge>
+                  <Badge 
+                    variant="secondary" 
+                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => handleTagClick("Inspiration")}
+                  >
+                    Inspiration
+                  </Badge>
+                  <Badge 
+                    variant="secondary" 
+                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => handleTagClick("Wellness")}
+                  >
+                    Wellness
+                  </Badge>
                 </div>
               </CardContent>
             </Card>

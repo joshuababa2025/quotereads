@@ -290,7 +290,9 @@ const CommunityQuotes = () => {
 
               {filteredQuotes.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground">No quotes found matching your search criteria.</p>
+                  <p className="text-muted-foreground">
+                    {activeTab === 'friends' ? 'No friends yet. Follow other users to see their quotes here!' : 'No quotes found matching your search criteria.'}
+                  </p>
                 </div>
               )}
             </div>
