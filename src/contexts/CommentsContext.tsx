@@ -23,6 +23,9 @@ export interface Reply {
   createdAt: Date;
   likes: number;
   isLiked: boolean;
+  parentReplyId?: string; // For nested replies
+  mentions?: string[]; // @username mentions
+  replies?: Reply[]; // Nested replies
 }
 
 interface CommentsState {
@@ -32,9 +35,10 @@ interface CommentsState {
 
 type CommentsAction =
   | { type: 'ADD_COMMENT'; quoteId: string; comment: Omit<Comment, 'id' | 'createdAt' | 'likes' | 'replies' | 'isLiked'> }
-  | { type: 'ADD_REPLY'; commentId: string; reply: Omit<Reply, 'id' | 'createdAt' | 'likes' | 'isLiked'> }
+  | { type: 'ADD_REPLY'; commentId: string; reply: Omit<Reply, 'id' | 'createdAt' | 'likes' | 'isLiked' | 'replies'> }
+  | { type: 'ADD_NESTED_REPLY'; commentId: string; parentReplyId: string; reply: Omit<Reply, 'id' | 'createdAt' | 'likes' | 'isLiked' | 'replies'> }
   | { type: 'TOGGLE_COMMENT_LIKE'; commentId: string; quoteId: string }
-  | { type: 'TOGGLE_REPLY_LIKE'; replyId: string; commentId: string; quoteId: string };
+  | { type: 'TOGGLE_REPLY_LIKE'; replyId: string; commentId: string; quoteId: string; parentReplyId?: string };
 
 const CommentsContext = createContext<{
   state: CommentsState;
@@ -64,7 +68,24 @@ const sampleComments: Record<string, Comment[]> = {
           content: 'I completely agree! Sometimes we need that extra push to keep going.',
           createdAt: new Date('2024-01-15'),
           likes: 3,
-          isLiked: false
+          isLiked: false,
+          mentions: ['Sarah Johnson'],
+          replies: [
+            {
+              id: 'nested-reply-1',
+              commentId: 'comment-1',
+              parentReplyId: 'reply-1',
+              userId: 'user-1',
+              username: 'Sarah Johnson',
+              avatar: '/placeholder-avatar.jpg',
+              content: '@Mike Chen Thanks! It really made a difference in my life.',
+              createdAt: new Date('2024-01-15'),
+              likes: 1,
+              isLiked: true,
+              mentions: ['Mike Chen'],
+              replies: []
+            }
+          ]
         }
       ]
     },
@@ -138,12 +159,69 @@ function commentsReducer(state: CommentsState, action: CommentsAction): Comments
             id: crypto.randomUUID(),
             createdAt: new Date(),
             likes: 0,
-            isLiked: false
+            isLiked: false,
+            replies: []
           };
 
           const updatedComment = {
             ...comments[commentIndex],
             replies: [...comments[commentIndex].replies, newReply]
+          };
+
+          updatedComments[quoteId] = [
+            ...comments.slice(0, commentIndex),
+            updatedComment,
+            ...comments.slice(commentIndex + 1)
+          ];
+          break;
+        }
+      }
+
+      return {
+        ...state,
+        comments: updatedComments
+      };
+    }
+
+    case 'ADD_NESTED_REPLY': {
+      const updatedComments = { ...state.comments };
+      
+      for (const quoteId in updatedComments) {
+        const comments = updatedComments[quoteId];
+        const commentIndex = comments.findIndex(c => c.id === action.commentId);
+        
+        if (commentIndex !== -1) {
+          const comment = comments[commentIndex];
+          
+          // Helper function to add nested reply recursively
+          const addNestedReplyToReplies = (replies: Reply[], parentReplyId: string): Reply[] => {
+            return replies.map(reply => {
+              if (reply.id === parentReplyId) {
+                const newReply: Reply = {
+                  ...action.reply,
+                  id: crypto.randomUUID(),
+                  createdAt: new Date(),
+                  likes: 0,
+                  isLiked: false,
+                  replies: []
+                };
+                return {
+                  ...reply,
+                  replies: [...(reply.replies || []), newReply]
+                };
+              } else if (reply.replies && reply.replies.length > 0) {
+                return {
+                  ...reply,
+                  replies: addNestedReplyToReplies(reply.replies, parentReplyId)
+                };
+              }
+              return reply;
+            });
+          };
+
+          const updatedComment = {
+            ...comment,
+            replies: addNestedReplyToReplies(comment.replies, action.parentReplyId)
           };
 
           updatedComments[quoteId] = [
@@ -191,19 +269,29 @@ function commentsReducer(state: CommentsState, action: CommentsAction): Comments
         
         if (commentIndex !== -1) {
           const comment = comments[commentIndex];
-          const updatedReplies = comment.replies.map(reply =>
-            reply.id === action.replyId
-              ? {
+          
+          // Helper function to toggle like recursively
+          const toggleReplyLikeRecursively = (replies: Reply[], targetReplyId: string): Reply[] => {
+            return replies.map(reply => {
+              if (reply.id === targetReplyId) {
+                return {
                   ...reply,
                   isLiked: !reply.isLiked,
                   likes: reply.isLiked ? reply.likes - 1 : reply.likes + 1
-                }
-              : reply
-          );
+                };
+              } else if (reply.replies && reply.replies.length > 0) {
+                return {
+                  ...reply,
+                  replies: toggleReplyLikeRecursively(reply.replies, targetReplyId)
+                };
+              }
+              return reply;
+            });
+          };
 
           const updatedComment = {
             ...comment,
-            replies: updatedReplies
+            replies: toggleReplyLikeRecursively(comment.replies, action.replyId)
           };
 
           updatedComments[quoteId] = [
