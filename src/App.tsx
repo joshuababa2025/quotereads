@@ -106,6 +106,7 @@ const App = () => (
                         <Route path="/newsletter" element={<Newsletter />} />
                         <Route path="/wisdom-of-ages" element={<WisdomOfAges />} />
                         <Route path="/daily-motivation" element={<DailyMotivation />} />
+                        <Route path="/quotes" element={<CategoryQuotes />} />
                         <Route path="/category/:category" element={<CategoryQuotes />} />
                         <Route path="/quote-themes" element={<QuoteThemes />} />
                         <Route path="/quote/:quoteId" element={<QuoteDetails />} />
