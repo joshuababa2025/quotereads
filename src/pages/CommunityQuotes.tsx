@@ -67,9 +67,21 @@ const CommunityQuotes = () => {
       case "new":
         return filtered.slice(0, 20);
       case "friends":
-        return filtered.filter(quote => quote.category === "Love" || quote.category === "Happiness");
+        // Filter quotes from users who are mutual friends (followed each other)
+        // TODO: Replace with actual friends logic from user relationships
+        return filtered.filter(quote => {
+          // Mock: Show quotes from users who are in mutual follow relationship
+          const mutualFriends = ["Maya Angelou", "Nelson Mandela", "Oprah Winfrey"];
+          return mutualFriends.includes(quote.author);
+        });
       case "authors":
-        return filtered.sort((a, b) => a.author.localeCompare(b.author));
+        // Filter quotes from authors who have published books in Chapters Preview
+        // TODO: Replace with actual authors from chapters/books database
+        return filtered.filter(quote => {
+          // Mock: Show quotes from authors who have books in the platform
+          const bookAuthors = ["Maya Angelou", "Albert Einstein", "Mark Twain", "Oscar Wilde"];
+          return bookAuthors.includes(quote.author);
+        });
       default:
         return filtered;
     }
@@ -166,12 +178,12 @@ const CommunityQuotes = () => {
 
               {/* Tab Navigation */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-                <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="popular">Popular</TabsTrigger>
-                  <TabsTrigger value="recent">Recent</TabsTrigger>
-                  <TabsTrigger value="new">New</TabsTrigger>
-                  <TabsTrigger value="friends">Friends</TabsTrigger>
-                  <TabsTrigger value="authors">Authors</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-5 bg-transparent p-0 h-auto gap-1">
+                  <TabsTrigger value="popular" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Popular</TabsTrigger>
+                  <TabsTrigger value="recent" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Recent</TabsTrigger>
+                  <TabsTrigger value="new" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">New</TabsTrigger>
+                  <TabsTrigger value="friends" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Friends</TabsTrigger>
+                  <TabsTrigger value="authors" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Authors</TabsTrigger>
                 </TabsList>
               </Tabs>
 
