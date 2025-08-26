@@ -26,7 +26,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 
 const BookClub = () => {
-  const { user } = useAuth();
   const [newPost, setNewPost] = useState('');
   const [showComments, setShowComments] = useState<{ [key: number]: boolean }>({});
   const [comments, setComments] = useState<{ [key: number]: string }>({});

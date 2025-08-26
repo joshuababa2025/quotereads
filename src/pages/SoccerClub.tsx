@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
 import { 
   Calendar, 
   MapPin, 
@@ -13,10 +14,13 @@ import {
   Share,
   User,
   Edit,
-  Upload
+  Upload,
+  Camera,
+  Video
 } from "lucide-react";
 
 const SoccerClub = () => {
+  const [newPost, setNewPost] = useState("");
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -133,11 +137,25 @@ const SoccerClub = () => {
               <CardContent className="p-6">
                 <h2 className="text-xl font-semibold mb-4">Activity Feed</h2>
                 
-                <Textarea 
-                  placeholder="Share an update with the group..." 
-                  className="mb-4"
-                />
-                <Button className="mb-6 bg-teal-600 hover:bg-teal-700">Post</Button>
+                <div className="mb-6">
+                  <Textarea 
+                    placeholder="Share updates about matches, training tips, or team news..." 
+                    className="mb-4"
+                    value={newPost}
+                    onChange={(e) => setNewPost(e.target.value)}
+                  />
+                  <div className="flex items-center gap-2">
+                    <Button className="bg-teal-600 hover:bg-teal-700">Post</Button>
+                    <Button variant="outline" size="sm">
+                      <Camera className="h-4 w-4 mr-2" />
+                      Photo
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Video className="h-4 w-4 mr-2" />
+                      Video
+                    </Button>
+                  </div>
+                </div>
 
                 <div className="space-y-4">
                   <div className="flex gap-3">
