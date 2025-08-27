@@ -6,10 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuotes } from '@/contexts/QuotesContext';
 import { CreateShelfDialog } from '@/components/CreateShelfDialog';
+import { AddQuoteDialog } from '@/components/AddQuoteDialog';
 import { Link, useNavigate } from 'react-router-dom';
 import { Grid3X3, List, Plus, Settings, BarChart3, Printer, Rss, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from '@/integrations/supabase/client';
 
 const MyQuotes = () => {
   console.log('MyQuotes component rendering...');
@@ -38,6 +40,52 @@ const MyQuotes = () => {
   
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
+  const [userQuotes, setUserQuotes] = useState<any[]>([]);
+  const [favoriteQuotes, setFavoriteQuotes] = useState<any[]>([]);
+  const [lovedQuotes, setLovedQuotes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadUserData();
+    }
+  }, [user]);
+
+  const loadUserData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load user's own quotes
+      const { data: quotes } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      // Load favorited quotes  
+      const { data: favorites } = await supabase
+        .from('favorited_quotes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      // Load liked/loved quotes
+      const { data: loved } = await supabase
+        .from('liked_quotes')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('interaction_type', 'love')
+        .order('created_at', { ascending: false });
+
+      setUserQuotes(quotes || []);
+      setFavoriteQuotes(favorites || []);
+      setLovedQuotes(loved || []);
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!user) {
     return (
@@ -58,41 +106,24 @@ const MyQuotes = () => {
     );
   }
 
-  const savedQuotes = [
-    {
-      text: "The only way to do great work is to love what you do.",
-      author: "Steve Jobs",
-      category: "Motivational",
-      variant: "purple" as const,
-      quote: "The only way to do great work is to love what you do."
-    },
-    {
-      text: "Life is what happens to you while you're busy making other plans.",
-      author: "John Lennon", 
-      category: "Life",
-      variant: "green" as const,
-      quote: "Life is what happens to you while you're busy making other plans."
-    },
-    {
-      text: "Be yourself; everyone else is already taken.",
-      author: "Oscar Wilde",
-      category: "Wisdom",
-      variant: "orange" as const,
-      quote: "Be yourself; everyone else is already taken."
-    },
-    {
-      text: "In the middle of difficulty lies opportunity.",
-      author: "Albert Einstein",
-      category: "Inspiration", 
-      variant: "pink" as const,
-      quote: "In the middle of difficulty lies opportunity."
-    }
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-foreground mb-4">Loading...</h1>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const defaultShelves = [
-    { id: "all", name: "All", count: savedQuotes.length + quotesState.favorites.length + quotesState.lovedQuotes.length },
-    { id: "favorites", name: "Saved for Later", count: quotesState.favorites.length },
-    { id: "loved", name: "Loved Quotes", count: quotesState.lovedQuotes.length }
+    { id: "all", name: "All", count: userQuotes.length + favoriteQuotes.length + lovedQuotes.length },
+    { id: "posted", name: "Posted Quotes", count: userQuotes.length },
+    { id: "favorites", name: "Saved for Later", count: favoriteQuotes.length },
+    { id: "loved", name: "Loved Quotes", count: lovedQuotes.length }
   ];
 
   const quoteActivity = [
@@ -115,6 +146,11 @@ const MyQuotes = () => {
 
   const getShelfQuotes = (shelfId: string) => {
     return quotesState.shelfQuotes[shelfId] || [];
+  };
+
+  const getQuoteVariant = (index: number) => {
+    const variants = ["purple", "green", "orange", "pink", "blue"] as const;
+    return variants[index % variants.length];
   };
 
   const tools = [
@@ -217,9 +253,12 @@ const MyQuotes = () => {
                 <CardTitle className="text-base font-semibold">Add Quotes</CardTitle>
               </CardHeader>
               <CardContent>
-                <span className="text-sm text-foreground cursor-pointer hover:text-primary">
-                  Add Your Quotes
-                </span>
+                <AddQuoteDialog>
+                  <Button className="w-full text-left" variant="ghost">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Your Quotes
+                  </Button>
+                </AddQuoteDialog>
               </CardContent>
             </Card>
 
@@ -249,21 +288,29 @@ const MyQuotes = () => {
               {/* Action Bar */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-2">
-                  <Button variant="default" size="sm" className="bg-teal-600 hover:bg-teal-700 text-white">
-                    Batch Edit
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Settings className="w-4 h-4 mr-1" />
-                    Settings
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <BarChart3 className="w-4 h-4 mr-1" />
-                    Stats
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Printer className="w-4 h-4 mr-1" />
-                    Print
-                  </Button>
+                  <Link to="/my-quotes/batch-edit">
+                    <Button variant="default" size="sm" className="bg-teal-600 hover:bg-teal-700 text-white">
+                      Batch Edit
+                    </Button>
+                  </Link>
+                  <Link to="/my-quotes/settings">
+                    <Button variant="outline" size="sm">
+                      <Settings className="w-4 h-4 mr-1" />
+                      Settings
+                    </Button>
+                  </Link>
+                  <Link to="/my-quotes/stats">
+                    <Button variant="outline" size="sm">
+                      <BarChart3 className="w-4 h-4 mr-1" />
+                      Stats
+                    </Button>
+                  </Link>
+                  <Link to="/my-quotes/print">
+                    <Button variant="outline" size="sm">
+                      <Printer className="w-4 h-4 mr-1" />
+                      Print
+                    </Button>
+                  </Link>
                 </div>
                 
                 {/* View Toggle */}
@@ -292,48 +339,62 @@ const MyQuotes = () => {
                     {defaultShelves.find(s => s.id === selectedShelf)?.name || 
                      quotesState.customShelves.find(s => s.id === selectedShelf)?.name}
                   </h2>
-                  {selectedShelf === 'all' ? (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                      {[...savedQuotes, ...quotesState.favorites, ...quotesState.lovedQuotes].map((quote, index) => (
-                        <QuoteCard
-                          key={quote.id || index}
-                          id={quote.id || `${quote.quote?.slice(0, 20)}-${quote.author}`}
-                          quote={quote.quote || quote.text}
-                          author={quote.author}
-                          category={quote.category}
-                          variant={quote.variant}
-                          className="h-full"
-                        />
-                      ))}
-                    </div>
-                  ) : selectedShelf === 'favorites' ? (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                      {quotesState.favorites.map((quote) => (
-                        <QuoteCard
-                          key={quote.id}
-                          id={quote.id}
-                          quote={quote.quote}
-                          author={quote.author}
-                          category={quote.category}
-                          variant={quote.variant}
-                          className="h-full"
-                        />
-                      ))}
-                    </div>
-                  ) : selectedShelf === 'loved' ? (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                      {quotesState.lovedQuotes.map((quote) => (
-                        <QuoteCard
-                          key={quote.id}
-                          id={quote.id}
-                          quote={quote.quote}
-                          author={quote.author}
-                          category={quote.category}
-                          variant={quote.variant}
-                          className="h-full"
-                        />
-                      ))}
-                    </div>
+                   {selectedShelf === 'all' ? (
+                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                       {[...userQuotes, ...favoriteQuotes, ...lovedQuotes].map((quote, index) => (
+                         <QuoteCard
+                           key={quote.id || index}
+                           id={quote.id || `quote-${index}`}
+                           quote={quote.content || quote.quote_content}
+                           author={quote.author || quote.quote_author}
+                           category={quote.category || quote.quote_category}
+                           variant={getQuoteVariant(index)}
+                           className="h-full"
+                         />
+                       ))}
+                     </div>
+                   ) : selectedShelf === 'posted' ? (
+                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                       {userQuotes.map((quote, index) => (
+                         <QuoteCard
+                           key={quote.id}
+                           id={quote.id}
+                           quote={quote.content}
+                           author={quote.author}
+                           category={quote.category}
+                           variant={getQuoteVariant(index)}
+                           className="h-full"
+                         />
+                       ))}
+                     </div>
+                   ) : selectedShelf === 'favorites' ? (
+                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                       {favoriteQuotes.map((quote, index) => (
+                         <QuoteCard
+                           key={quote.id}
+                           id={quote.quote_id}
+                           quote={quote.quote_content}
+                           author={quote.quote_author}
+                           category={quote.quote_category}
+                           variant={getQuoteVariant(index)}
+                           className="h-full"
+                         />
+                       ))}
+                     </div>
+                   ) : selectedShelf === 'loved' ? (
+                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                       {lovedQuotes.map((quote, index) => (
+                         <QuoteCard
+                           key={quote.id}
+                           id={quote.quote_id}
+                           quote={quote.quote_content}
+                           author={quote.quote_author}
+                           category={quote.quote_category}
+                           variant={getQuoteVariant(index)}
+                           className="h-full"
+                         />
+                       ))}
+                     </div>
                   ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
                       {getShelfQuotes(selectedShelf).map((quote) => (
@@ -352,44 +413,68 @@ const MyQuotes = () => {
                 </div>
               ) : (
                 <Tabs defaultValue="all" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-6">
-                    <TabsTrigger value="all">All Quotes ({savedQuotes.length})</TabsTrigger>
-                    <TabsTrigger value="favorites">Favorites ({quotesState.favorites.length})</TabsTrigger>
-                    <TabsTrigger value="loved">Loved ({quotesState.lovedQuotes.length})</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-4 mb-6">
+                    <TabsTrigger value="all">All Quotes ({userQuotes.length + favoriteQuotes.length + lovedQuotes.length})</TabsTrigger>
+                    <TabsTrigger value="posted">Posted ({userQuotes.length})</TabsTrigger>
+                    <TabsTrigger value="favorites">Favorites ({favoriteQuotes.length})</TabsTrigger>
+                    <TabsTrigger value="loved">Loved ({lovedQuotes.length})</TabsTrigger>
                   </TabsList>
                 
                   <TabsContent value="all" className="mt-6">
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                      {savedQuotes.map((quote, index) => (
+                      {[...userQuotes, ...favoriteQuotes, ...lovedQuotes].map((quote, index) => (
                         <QuoteCard
-                          key={index}
-                          id={`saved-${index}`}
-                          quote={quote.quote}
-                          author={quote.author}
-                          category={quote.category}
-                          variant={quote.variant}
+                          key={quote.id || index}
+                          id={quote.id || `quote-${index}`}
+                          quote={quote.content || quote.quote_content}
+                          author={quote.author || quote.quote_author}
+                          category={quote.category || quote.quote_category}
+                          variant={getQuoteVariant(index)}
                           className="h-full"
                         />
                       ))}
                     </div>
                   </TabsContent>
+
+                  <TabsContent value="posted" className="mt-6">
+                    {userQuotes.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <p>No quotes posted yet</p>
+                        <p className="text-sm mt-2">Start sharing your favorite quotes</p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+                        {userQuotes.map((quote, index) => (
+                          <QuoteCard
+                            key={quote.id}
+                            id={quote.id}
+                            quote={quote.content}
+                            author={quote.author}
+                            category={quote.category}
+                            variant={getQuoteVariant(index)}
+                            className="h-full"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
                 
                 <TabsContent value="favorites" className="mt-6">
-                  {quotesState.favorites.length === 0 ? (
+                  {favoriteQuotes.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
                       <p>No favorite quotes yet</p>
                       <p className="text-sm mt-2">Bookmark quotes to save them here</p>
                     </div>
                   ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                      {quotesState.favorites.map((quote) => (
+                      {favoriteQuotes.map((quote, index) => (
                         <QuoteCard
                           key={quote.id}
-                          id={quote.id}
-                          quote={quote.quote}
-                          author={quote.author}
-                          category={quote.category}
-                          variant={quote.variant}
+                          id={quote.quote_id}
+                          quote={quote.quote_content}
+                          author={quote.quote_author}
+                          category={quote.quote_category}
+                          variant={getQuoteVariant(index)}
                           className="h-full"
                         />
                       ))}
@@ -398,21 +483,21 @@ const MyQuotes = () => {
                 </TabsContent>
                 
                 <TabsContent value="loved" className="mt-6">
-                  {quotesState.lovedQuotes.length === 0 ? (
+                  {lovedQuotes.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
                       <p>No loved quotes yet</p>
                       <p className="text-sm mt-2">Heart quotes to save them here</p>
                     </div>
                   ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                      {quotesState.lovedQuotes.map((quote) => (
+                      {lovedQuotes.map((quote, index) => (
                         <QuoteCard
                           key={quote.id}
-                          id={quote.id}
-                          quote={quote.quote}
-                          author={quote.author}
-                          category={quote.category}
-                          variant={quote.variant}
+                          id={quote.quote_id}
+                          quote={quote.quote_content}
+                          author={quote.quote_author}
+                          category={quote.quote_category}
+                          variant={getQuoteVariant(index)}
                           className="h-full"
                         />
                       ))}

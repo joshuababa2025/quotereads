@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useQuotes } from "@/contexts/QuotesContext";
 import { useQuoteInteraction } from "@/contexts/QuoteInteractionContext";
+import { usePersistentQuoteInteractions } from "@/hooks/usePersistentQuoteInteractions";
 import { useComments } from "@/contexts/CommentsContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
@@ -38,6 +39,7 @@ export const QuoteCard = ({
 }: QuoteCardProps) => {
   const { dispatch } = useQuotes();
   const { toggleLike, toggleFavorite, getInteraction } = useQuoteInteraction();
+  const { toggleLike: persistentToggleLike, toggleFavorite: persistentToggleFavorite } = usePersistentQuoteInteractions();
   const { state: commentsState } = useComments();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -46,9 +48,10 @@ export const QuoteCard = ({
   const displayLikes = likes + interaction.likeCount;
   const commentCount = commentsState.commentCounts[id] || 0;
 
-  const handleAddToFavorites = (e: React.MouseEvent) => {
+  const handleAddToFavorites = async (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleFavorite(id);
+    await persistentToggleFavorite({ id, content: quote, author, category });
     if (!interaction.isFavorited) {
       dispatch({ 
         type: 'ADD_TO_FAVORITES', 
@@ -61,9 +64,10 @@ export const QuoteCard = ({
     }
   };
 
-  const handleAddToLoved = (e: React.MouseEvent) => {
+  const handleAddToLoved = async (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleLike(id);
+    await persistentToggleLike({ id, content: quote, author, category });
     if (!interaction.isLiked) {
       dispatch({ 
         type: 'ADD_TO_LOVED', 

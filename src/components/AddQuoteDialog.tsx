@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddQuoteDialogProps {
   children: React.ReactNode;
@@ -29,6 +31,7 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const themes = ["purple", "orange", "green", "pink", "blue"];
   const categories = ["Love", "Motivation", "Wisdom", "Happiness", "Life", "Hope", "Dreams", "Success"];
@@ -44,7 +47,7 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!quote.trim() || !author.trim() || !category || !theme) {
       toast({
         title: "Please fill all required fields",
@@ -53,20 +56,47 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
       return;
     }
 
-    // Here you would typically save the quote to a database
-    toast({
-      title: "Quote submitted successfully!",
-      description: "Your quote has been added to the community.",
-    });
+    if (!user) {
+      toast({
+        title: "Please sign in to add quotes",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Reset form
-    setQuote("");
-    setAuthor("");
-    setCategory("");
-    setTheme("");
-    setTags([]);
-    setCurrentTag("");
-    setOpen(false);
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .insert({
+          content: quote.trim(),
+          author: author.trim(),
+          category,
+          user_id: user.id
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Quote submitted successfully!",
+        description: "Your quote has been added to the community.",
+      });
+
+      // Reset form
+      setQuote("");
+      setAuthor("");
+      setCategory("");
+      setTheme("");
+      setTags([]);
+      setCurrentTag("");
+      setOpen(false);
+    } catch (error) {
+      console.error('Error adding quote:', error);
+      toast({
+        title: "Error adding quote",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

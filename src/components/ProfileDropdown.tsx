@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { User, Users, MessageSquare, Gift, Quote, Settings, HelpCircle, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileDropdownProps {
   isOpen: boolean;
@@ -10,10 +11,29 @@ interface ProfileDropdownProps {
 
 export const ProfileDropdown = ({ isOpen, onClose }: ProfileDropdownProps) => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
-    await signOut();
-    onClose();
+    try {
+      const { error } = await signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account"
+      });
+      
+      onClose();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "Error signing out",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
   };
 
   if (!isOpen) return null;

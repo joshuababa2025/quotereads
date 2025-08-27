@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, MessageCircle, Share2, Plus, BookmarkPlus } from "lucide-react";
 import { allQuotes, Quote } from "@/data/quotes";
 import { useQuoteInteraction } from "@/contexts/QuoteInteractionContext";
+import { usePersistentQuoteInteractions } from "@/hooks/usePersistentQuoteInteractions";
 import { useSearch } from "@/contexts/SearchContext";
 import { useToast } from "@/hooks/use-toast";
 import { AddQuoteDialog } from "@/components/AddQuoteDialog";
@@ -25,6 +26,7 @@ const CommunityQuotes = () => {
   const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
   
   const { toggleLike, toggleFavorite, getInteraction } = useQuoteInteraction();
+  const { toggleLike: persistentToggleLike, toggleFavorite: persistentToggleFavorite, isLiked, isFavorited } = usePersistentQuoteInteractions();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -94,13 +96,15 @@ const CommunityQuotes = () => {
     ).slice(0, 20);
   }, [allTags, tagQuery]);
 
-  const handleLike = (quoteId: string) => {
-    toggleLike(quoteId);
+  const handleLike = async (quote: Quote) => {
+    toggleLike(quote.id);
+    await persistentToggleLike({ id: quote.id, content: quote.quote, author: quote.author, category: quote.category });
   };
 
-  const handleFavorite = (quoteId: string) => {
-    toggleFavorite(quoteId);
-    const interaction = getInteraction(quoteId);
+  const handleFavorite = async (quote: Quote) => {
+    toggleFavorite(quote.id);
+    await persistentToggleFavorite({ id: quote.id, content: quote.quote, author: quote.author, category: quote.category });
+    const interaction = getInteraction(quote.id);
     toast({
       title: interaction.isFavorited ? "Added to favorites" : "Removed from favorites",
       description: interaction.isFavorited ? "Quote saved to your favorites" : "Quote removed from your favorites",
@@ -264,7 +268,7 @@ const CommunityQuotes = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                onClick={() => handleFavorite(quote.id)}
+                                onClick={() => handleFavorite(quote)}
                                 className={interaction.isFavorited ? "text-yellow-600" : ""}
                               >
                                 <BookmarkPlus className="w-4 h-4 mr-1" />
@@ -273,7 +277,7 @@ const CommunityQuotes = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                onClick={() => handleLike(quote.id)}
+                                onClick={() => handleLike(quote)}
                                 className={interaction.isLiked ? "text-red-500" : ""}
                               >
                                 <Heart className={`w-4 h-4 mr-1 ${interaction.isLiked ? "fill-current" : ""}`} />
