@@ -59,10 +59,25 @@ export const usePersistentQuoteInteractions = () => {
           });
 
         // Update user stats
-        await supabase.rpc('increment_user_stat', {
-          user_id: user.id,
-          stat_name: 'quotes_liked'
-        });
+        await supabase
+          .from('user_stats')
+          .upsert({ 
+            user_id: user.id,
+            quotes_liked: 1
+          }, {
+            onConflict: 'user_id',
+            count: 'exact'
+          })
+          .select()
+          .then(async ({ data }) => {
+            if (data && data.length > 0) {
+              const currentStats = data[0];
+              await supabase
+                .from('user_stats')
+                .update({ quotes_liked: currentStats.quotes_liked + 1 })
+                .eq('user_id', user.id);
+            }
+          });
 
         toast({
           title: "Quote liked!",
@@ -123,11 +138,19 @@ export const usePersistentQuoteInteractions = () => {
             interaction_type: 'love'
           });
 
-        // Update user stats
-        await supabase.rpc('increment_user_stat', {
-          user_id: user.id,
-          stat_name: 'quotes_loved'
-        });
+        // Update user stats - simplified approach
+        const { data: currentStats } = await supabase
+          .from('user_stats')  
+          .select('quotes_loved')
+          .eq('user_id', user.id)
+          .single();
+
+        await supabase
+          .from('user_stats')
+          .upsert({ 
+            user_id: user.id,
+            quotes_loved: (currentStats?.quotes_loved || 0) + 1
+          });
 
         toast({
           title: "Quote loved! ❤️",
@@ -186,11 +209,19 @@ export const usePersistentQuoteInteractions = () => {
             quote_category: quote.category
           });
 
-        // Update user stats
-        await supabase.rpc('increment_user_stat', {
-          user_id: user.id,
-          stat_name: 'quotes_favorited'
-        });
+        // Update user stats - simplified approach
+        const { data: currentStats } = await supabase
+          .from('user_stats')  
+          .select('quotes_favorited')
+          .eq('user_id', user.id)
+          .single();
+
+        await supabase
+          .from('user_stats')
+          .upsert({ 
+            user_id: user.id,
+            quotes_favorited: (currentStats?.quotes_favorited || 0) + 1
+          });
 
         toast({
           title: "Added to favorites!",

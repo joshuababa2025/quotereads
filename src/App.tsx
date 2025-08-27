@@ -20,6 +20,10 @@ const Groups = lazy(() => import("./pages/Groups"));
 const CommunityQuotes = lazy(() => import("./pages/CommunityQuotes"));
 const Giveaway = lazy(() => import("./pages/Giveaway"));
 const MyQuotes = lazy(() => import("./pages/MyQuotes"));
+const MyQuotesSettings = lazy(() => import("./pages/MyQuotesSettings"));
+const MyQuotesStats = lazy(() => import("./pages/MyQuotesStats"));
+const MyQuotesBatchEdit = lazy(() => import("./pages/MyQuotesBatchEdit"));
+const MyQuotesPrint = lazy(() => import("./pages/MyQuotesPrint"));
 const Shop = lazy(() => import("./pages/Shop"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
@@ -88,7 +92,11 @@ const App = () => (
                         <Route path="/donations" element={<Donations />} />
                         <Route path="/campaign/:id" element={<CampaignDetails />} />
                         <Route path="/payment/:id" element={<CampaignPayment />} />
-                        <Route path="/my-quotes" element={<MyQuotes />} />
+          <Route path="/my-quotes" element={<MyQuotes />} />
+          <Route path="/my-quotes/settings" element={<MyQuotesSettings />} />
+          <Route path="/my-quotes/stats" element={<MyQuotesStats />} />
+          <Route path="/my-quotes/batch-edit" element={<MyQuotesBatchEdit />} />
+          <Route path="/my-quotes/print" element={<MyQuotesPrint />} />
                         <Route path="/shop" element={<Shop />} />
                         <Route path="/cart" element={<Cart />} />
                         <Route path="/checkout" element={<Checkout />} />
