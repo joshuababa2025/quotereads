@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      favorited_quotes: {
+        Row: {
+          created_at: string
+          id: string
+          quote_author: string | null
+          quote_category: string | null
+          quote_content: string
+          quote_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quote_author?: string | null
+          quote_category?: string | null
+          quote_content: string
+          quote_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quote_author?: string | null
+          quote_category?: string | null
+          quote_content?: string
+          quote_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      liked_quotes: {
+        Row: {
+          created_at: string
+          id: string
+          interaction_type: string
+          quote_author: string | null
+          quote_category: string | null
+          quote_content: string
+          quote_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interaction_type: string
+          quote_author?: string | null
+          quote_category?: string | null
+          quote_content: string
+          quote_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interaction_type?: string
+          quote_author?: string | null
+          quote_category?: string | null
+          quote_content?: string
+          quote_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -44,6 +107,72 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          author: string | null
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          is_hidden: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author?: string | null
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_hidden?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_hidden?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          id: string
+          quotes_favorited: number | null
+          quotes_liked: number | null
+          quotes_loved: number | null
+          quotes_posted: number | null
+          quotes_shared: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          quotes_favorited?: number | null
+          quotes_liked?: number | null
+          quotes_loved?: number | null
+          quotes_posted?: number | null
+          quotes_shared?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          quotes_favorited?: number | null
+          quotes_liked?: number | null
+          quotes_loved?: number | null
+          quotes_posted?: number | null
+          quotes_shared?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
