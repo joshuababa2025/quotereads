@@ -92,11 +92,11 @@ const App = () => (
                         <Route path="/donations" element={<Donations />} />
                         <Route path="/campaign/:id" element={<CampaignDetails />} />
                         <Route path="/payment/:id" element={<CampaignPayment />} />
-          <Route path="/my-quotes" element={<MyQuotes />} />
-          <Route path="/my-quotes/settings" element={<MyQuotesSettings />} />
-          <Route path="/my-quotes/stats" element={<MyQuotesStats />} />
-          <Route path="/my-quotes/batch-edit" element={<MyQuotesBatchEdit />} />
-          <Route path="/my-quotes/print" element={<MyQuotesPrint />} />
+                        <Route path="/my-quotes" element={<MyQuotes />} />
+                        <Route path="/my-quotes/settings" element={<MyQuotesSettings />} />
+                        <Route path="/my-quotes/stats" element={<MyQuotesStats />} />
+                        <Route path="/my-quotes/batch-edit" element={<MyQuotesBatchEdit />} />
+                        <Route path="/my-quotes/print" element={<MyQuotesPrint />} />
                         <Route path="/shop" element={<Shop />} />
                         <Route path="/cart" element={<Cart />} />
                         <Route path="/checkout" element={<Checkout />} />
