@@ -162,12 +162,12 @@ const QuoteOfTheDay = () => {
   const commentCount = commentsState.commentCounts[currentQuote.id] || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
       {/* Hero Background */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10" />
+        <div className="absolute inset-0 bg-muted/20" />
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmMWY1ZjkiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSI3IiBjeT0iNyIgcj0iMSIvPjwvZz48L2c+PC9zdmc+')] opacity-20" />
         
         <main className="relative container mx-auto px-4 py-12">
@@ -178,7 +178,7 @@ const QuoteOfTheDay = () => {
                 <div className="p-3 bg-primary/10 rounded-full">
                   <Calendar className="h-8 w-8 text-primary" />
                 </div>
-                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <h1 className="text-4xl md:text-5xl font-bold text-foreground">
                   Quote of the Day
                 </h1>
               </div>
@@ -191,7 +191,7 @@ const QuoteOfTheDay = () => {
             {/* Featured Quote Card */}
             <div className="mb-12 animate-scale-in">
               <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000"></div>
+                <div className="absolute -inset-1 bg-primary/20 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000"></div>
                 <div className="relative bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-8 md:p-12 shadow-2xl">
                   {/* Quote Icon */}
                   <div className="text-8xl font-serif mb-6 text-primary/20 leading-none">"</div>
@@ -273,7 +273,7 @@ const QuoteOfTheDay = () => {
               <Button 
                 onClick={getNextQuote}
                 size="lg"
-                className="gap-2 hover-scale bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-8 py-3"
+                className="gap-2 hover-scale bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3"
               >
                 <RefreshCw className="h-5 w-5" />
                 Discover Another Quote
@@ -298,7 +298,7 @@ const QuoteOfTheDay = () => {
                   .map((quote, index) => (
                     <div key={quote.id} className="group hover-scale">
                       <div className="relative">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                        <div className="absolute -inset-0.5 bg-primary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
                         <QuoteCard
                           id={quote.id}
                           quote={quote.quote}

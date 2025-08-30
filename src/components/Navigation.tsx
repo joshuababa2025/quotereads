@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { useSearch } from "@/contexts/SearchContext";
+import { useNotifications } from "@/hooks/useNotifications";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { NotificationPopup } from "@/components/NotificationPopup";
@@ -27,6 +28,7 @@ export const Navigation = () => {
   const { user, signOut } = useAuth();
   const { state } = useCart();
   const { searchQuery, setSearchQuery, showSuggestions, setShowSuggestions } = useSearch();
+  const { unreadNotifications, unreadMessages } = useNotifications();
   const isMobile = useIsMobile();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
@@ -265,9 +267,11 @@ export const Navigation = () => {
                 onClick={toggleNotifications}
               >
                 <Bell className="h-4 w-4" />
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  2
-                </span>
+                {unreadNotifications > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                    {unreadNotifications}
+                  </span>
+                )}
               </Button>
               <Button 
                 variant="ghost" 
@@ -276,9 +280,11 @@ export const Navigation = () => {
                 onClick={toggleMessages}
               >
                 <Mail className="h-4 w-4" />
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  3
-                </span>
+                {unreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                    {unreadMessages}
+                  </span>
+                )}
               </Button>
               <Button variant="ghost" size="sm" className="p-2 relative" asChild>
                 <Link to="/cart">
