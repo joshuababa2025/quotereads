@@ -129,7 +129,7 @@ export const MessagesPopup = ({ isOpen, onClose }: MessagesPopupProps) => {
 
   return (
     <div className="fixed inset-0 z-[99999] bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="absolute top-16 right-4 md:right-8 lg:right-12 w-80 bg-background/95 backdrop-blur-md border border-border rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="absolute top-16 right-4 md:right-8 lg:right-12 w-80 bg-background border border-border rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h3 className="font-semibold text-foreground flex items-center gap-2">
             <MessageCircle className="h-4 w-4" />
@@ -149,7 +149,7 @@ export const MessagesPopup = ({ isOpen, onClose }: MessagesPopupProps) => {
           ) : messages.length === 0 ? (
             <div className="p-6 text-center text-muted-foreground">
               <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No messages yet</p>
+              <p>No messages</p>
             </div>
           ) : (
             <div className="p-2">

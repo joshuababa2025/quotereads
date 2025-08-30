@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AddQuoteDialog } from "@/components/AddQuoteDialog";
 import { QuoteDetailDialog } from "@/components/QuoteDetailDialog";
 import { useNavigate } from "react-router-dom";
+import { ClickableUsername } from "@/components/ClickableUsername";
 
 const CommunityQuotes = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -229,7 +230,12 @@ const CommunityQuotes = () => {
                           >
                             "{quote.quote}"
                           </blockquote>
-                          <p className="text-muted-foreground mb-3">— {quote.author}</p>
+                          <ClickableUsername 
+                            username={quote.author}
+                            className="text-muted-foreground mb-3"
+                          >
+                            — {quote.author}
+                          </ClickableUsername>
                           
                           <div className="flex flex-wrap gap-1 mb-4">
                             <Badge 

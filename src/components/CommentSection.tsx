@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Heart, MessageCircle, Send } from 'lucide-react';
 import { useComments, Comment, Reply } from '@/contexts/CommentsContext';
 import { useToast } from '@/hooks/use-toast';
+import { ClickableUsername } from '@/components/ClickableUsername';
 
 interface CommentSectionProps {
   quoteId: string;
@@ -120,7 +121,11 @@ export const CommentSection = ({ quoteId }: CommentSectionProps) => {
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2 mb-1">
-              <span className="font-medium text-xs">{reply.username}</span>
+              <ClickableUsername 
+                username={reply.username}
+                userId={reply.userId}
+                className="font-medium text-xs"
+              />
               <span className="text-xs text-muted-foreground">
                 {reply.createdAt.toLocaleDateString()}
               </span>
@@ -195,7 +200,11 @@ export const CommentSection = ({ quoteId }: CommentSectionProps) => {
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2 mb-2">
-                    <span className="font-medium text-sm">{comment.username}</span>
+                    <ClickableUsername 
+                      username={comment.username}
+                      userId={comment.userId}
+                      className="font-medium text-sm"
+                    />
                     <span className="text-xs text-muted-foreground">
                       {comment.createdAt.toLocaleDateString()}
                     </span>
