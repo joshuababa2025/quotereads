@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { QuoteCard } from '@/components/QuoteCard';
-import { CommentSection } from '@/components/CommentSection';
+import { RealtimeCommentSection } from '@/components/RealtimeCommentSection';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Download } from 'lucide-react';
 import { getQuotesByCategory, findQuoteById } from '@/data/quotes';
@@ -195,7 +195,7 @@ export default function QuoteDetails() {
 
           {/* Comments Section */}
           <div className="bg-card rounded-xl p-6 border mb-8">
-            <CommentSection quoteId={quoteId} />
+            <RealtimeCommentSection quoteId={quoteId} />
           </div>
 
           {/* Related Quotes from Same Category */}

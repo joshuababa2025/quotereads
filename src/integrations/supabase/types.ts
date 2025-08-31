@@ -14,6 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
+      comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comment_replies: {
+        Row: {
+          comment_id: string
+          content: string
+          created_at: string
+          id: string
+          likes_count: number | null
+          parent_reply_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          content: string
+          created_at?: string
+          id?: string
+          likes_count?: number | null
+          parent_reply_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          likes_count?: number | null
+          parent_reply_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_replies_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_replies_parent_reply_id_fkey"
+            columns: ["parent_reply_id"]
+            isOneToOne: false
+            referencedRelation: "comment_replies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          likes_count: number | null
+          quote_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          likes_count?: number | null
+          quote_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          likes_count?: number | null
+          quote_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorited_quotes: {
         Row: {
           created_at: string
@@ -202,6 +309,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      reply_likes: {
+        Row: {
+          created_at: string
+          id: string
+          reply_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reply_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reply_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reply_likes_reply_id_fkey"
+            columns: ["reply_id"]
+            isOneToOne: false
+            referencedRelation: "comment_replies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_stats: {
         Row: {

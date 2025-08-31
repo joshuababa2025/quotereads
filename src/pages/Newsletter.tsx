@@ -89,9 +89,18 @@ export default function Newsletter() {
             Join thousands of quote enthusiasts who start their day with wisdom, inspiration, and community connection.
           </p>
           <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">
-            <Badge variant="secondary">📧 Daily Delivery</Badge>
-            <Badge variant="secondary">🎯 Personalized</Badge>
-            <Badge variant="secondary">🆓 Always Free</Badge>
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Mail className="h-3 w-3" />
+              Daily Delivery
+            </Badge>
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Star className="h-3 w-3" />
+              Personalized
+            </Badge>
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              Always Free
+            </Badge>
           </div>
         </div>
 
@@ -215,18 +224,27 @@ export default function Newsletter() {
               </CardHeader>
               <CardContent>
                 <div className="bg-muted/30 rounded-lg p-4 text-sm">
-                  <div className="font-semibold mb-2">🌅 Today's Quote</div>
+                  <div className="font-semibold mb-2 flex items-center gap-2">
+                    <Quote className="h-4 w-4" />
+                    Today's Quote
+                  </div>
                   <blockquote className="italic text-muted-foreground mb-2">
                     "The only way to do great work is to love what you do."
                   </blockquote>
                   <div className="text-xs text-muted-foreground mb-3">— Steve Jobs</div>
                   
-                  <div className="font-semibold mb-2">💡 Reflection</div>
+                  <div className="font-semibold mb-2 flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Reflection
+                  </div>
                   <p className="text-muted-foreground text-xs mb-3">
                     Today, consider how passion drives excellence...
                   </p>
                   
-                  <div className="font-semibold mb-2">🔥 Community Favorite</div>
+                  <div className="font-semibold mb-2 flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    Community Favorite
+                  </div>
                   <p className="text-muted-foreground text-xs">
                     This week's most shared quote was...
                   </p>
