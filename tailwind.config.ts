@@ -70,7 +70,8 @@ export default {
 				'gradient-quote-purple': 'var(--gradient-quote-purple)',
 				'gradient-quote-green': 'var(--gradient-quote-green)',
 				'gradient-quote-orange': 'var(--gradient-quote-orange)',
-				'gradient-quote-pink': 'var(--gradient-quote-pink)'
+				'gradient-quote-pink': 'var(--gradient-quote-pink)',
+				'gradient-quote-blue': 'var(--gradient-quote-blue)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

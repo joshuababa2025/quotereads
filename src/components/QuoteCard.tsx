@@ -25,7 +25,7 @@ const variantStyles = {
   green: "bg-gradient-quote-green text-white", 
   orange: "bg-gradient-quote-orange text-white",
   pink: "bg-gradient-quote-pink text-white",
-  blue: "bg-quote-blue text-white"
+  blue: "bg-gradient-quote-blue text-white"
 };
 
 export const QuoteCard = ({ 
