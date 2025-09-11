@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      campaigns: {
+        Row: {
+          call_to_action: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          call_to_action?: string | null
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          image_url?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          call_to_action?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       comment_likes: {
         Row: {
           comment_id: string
@@ -151,6 +193,42 @@ export type Database = {
         }
         Relationships: []
       }
+      giveaway_packages: {
+        Row: {
+          base_price: number
+          category: string
+          created_at: string
+          description: string
+          features: string[] | null
+          id: string
+          image_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          category: string
+          created_at?: string
+          description: string
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          created_at?: string
+          description?: string
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       liked_quotes: {
         Row: {
           created_at: string
@@ -243,6 +321,88 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      package_addons: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          package_id: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          package_id: string
+          price?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          package_id?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_addons_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "giveaway_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      package_orders: {
+        Row: {
+          created_at: string
+          id: string
+          package_id: string
+          personal_info: Json
+          reason: string
+          selected_addons: string[] | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          package_id: string
+          personal_info: Json
+          reason: string
+          selected_addons?: string[] | null
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          package_id?: string
+          personal_info?: Json
+          reason?: string
+          selected_addons?: string[] | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_orders_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "giveaway_packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -338,6 +498,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_earnings: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          money_earned: number
+          points_earned: number
+          status: string
+          task_id: string
+          task_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          money_earned?: number
+          points_earned?: number
+          status?: string
+          task_id: string
+          task_type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          money_earned?: number
+          points_earned?: number
+          status?: string
+          task_id?: string
+          task_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_rankings: {
+        Row: {
+          created_at: string
+          display_rank: boolean
+          id: string
+          points: number
+          rank_level: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_rank?: boolean
+          id?: string
+          points?: number
+          rank_level?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_rank?: boolean
+          id?: string
+          points?: number
+          rank_level?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_stats: {
         Row: {
