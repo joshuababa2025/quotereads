@@ -8,11 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ShareDialog } from "@/components/ShareDialog";
-import { UserPlus, Users, Calendar, MapPin, Edit, Share, Mail } from "lucide-react";
+import { RankingBadge } from "@/components/RankingBadge";
+import { UserPlus, Users, Calendar, MapPin, Edit, Share, Mail, Trophy, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useRanking } from "@/hooks/useRanking";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,6 +33,7 @@ export default function Profile() {
   const { userId } = useParams();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { ranking, toggleDisplayRank, getNextRankInfo } = useRanking();
   const [isFollowing, setIsFollowing] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -166,6 +170,16 @@ export default function Profile() {
                       <p className="text-muted-foreground">
                         {profileData.username ? `@${profileData.username}` : 'No username set'}
                       </p>
+                      {ranking && ranking.display_rank && isCurrentUser && (
+                        <div className="mt-2">
+                          <RankingBadge 
+                            rankLevel={ranking.rank_level}
+                            points={ranking.points}
+                            showPoints={true}
+                            size="sm"
+                          />
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex gap-2">
@@ -323,44 +337,124 @@ export default function Profile() {
             </TabsContent>
             
             <TabsContent value="about" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>About {profileData.full_name || 'User'}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <p className="text-muted-foreground">User information and account details.</p>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <h4 className="font-semibold mb-2">Member Since</h4>
-                        <p className="text-muted-foreground">
-                          {new Date(profileData.created_at).toLocaleDateString('en-US', { 
-                            weekday: 'long',
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                          })}
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-2">Profile ID</h4>
-                        <p className="text-muted-foreground font-mono text-sm">{profileData.user_id}</p>
-                      </div>
-                      {isCurrentUser && (
-                        <div className="mt-4 p-4 bg-muted/30 rounded-lg">
-                          <h4 className="font-semibold mb-2 flex items-center gap-2">
-                            <Mail className="h-4 w-4" />
-                            Account Settings
-                          </h4>
-                          <p className="text-muted-foreground text-sm">
-                            Manage your account settings and privacy preferences in your profile settings.
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>About {profileData.full_name || 'User'}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-muted-foreground">User information and account details.</p>
+                      <div className="grid grid-cols-1 gap-4">
+                        <div>
+                          <h4 className="font-semibold mb-2">Member Since</h4>
+                          <p className="text-muted-foreground">
+                            {new Date(profileData.created_at).toLocaleDateString('en-US', { 
+                              weekday: 'long',
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}
                           </p>
                         </div>
-                      )}
+                        <div>
+                          <h4 className="font-semibold mb-2">Profile ID</h4>
+                          <p className="text-muted-foreground font-mono text-sm">{profileData.user_id}</p>
+                        </div>
+                        {isCurrentUser && (
+                          <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+                            <h4 className="font-semibold mb-2 flex items-center gap-2">
+                              <Mail className="h-4 w-4" />
+                              Account Settings
+                            </h4>
+                            <p className="text-muted-foreground text-sm">
+                              Manage your account settings and privacy preferences in your profile settings.
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+                
+                {/* Ranking Card - only show for current user */}
+                {ranking && isCurrentUser && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Trophy className="w-5 h-5 mr-2" />
+                        Your Ranking
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="text-center">
+                        <RankingBadge 
+                          rankLevel={ranking.rank_level}
+                          points={ranking.points}
+                          showPoints={true}
+                          size="lg"
+                          className="mb-3"
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          Current Level: {ranking.rank_level.charAt(0).toUpperCase() + ranking.rank_level.slice(1)}
+                        </p>
+                      </div>
+                      
+                      {(() => {
+                        const nextRankInfo = getNextRankInfo();
+                        return nextRankInfo ? (
+                          <div className="space-y-3">
+                            {!nextRankInfo.isMaxRank ? (
+                              <>
+                                <div className="flex justify-between text-sm">
+                                  <span>Progress to {nextRankInfo.nextRank}</span>
+                                  <span>{Math.round(nextRankInfo.progress)}%</span>
+                                </div>
+                                <div className="w-full bg-muted rounded-full h-3">
+                                  <div 
+                                    className="bg-primary h-3 rounded-full transition-all duration-300" 
+                                    style={{ width: `${nextRankInfo.progress}%` }}
+                                  />
+                                </div>
+                                <p className="text-sm text-muted-foreground text-center">
+                                  {nextRankInfo.pointsNeeded} points needed for next rank
+                                </p>
+                              </>
+                            ) : (
+                              <div className="text-center py-4">
+                                <Star className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
+                                <p className="font-medium">Maximum Level Reached!</p>
+                                <p className="text-sm text-muted-foreground">You're at the highest rank</p>
+                              </div>
+                            )}
+                          </div>
+                        ) : null;
+                      })()}
+                      
+                      <div className="flex items-center justify-between pt-4 border-t">
+                        <Label htmlFor="display-rank" className="text-sm font-medium">
+                          Show rank publicly
+                        </Label>
+                        <Switch
+                          id="display-rank"
+                          checked={ranking.display_rank}
+                          onCheckedChange={toggleDisplayRank}
+                        />
+                      </div>
+                      
+                      <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                        <p className="font-medium mb-1">How to earn points:</p>
+                        <ul className="space-y-1">
+                          <li>• Share quotes: +5 points</li>
+                          <li>• Create campaigns: +50 points</li>
+                          <li>• Complete giveaway orders: +25 points</li>
+                          <li>• Participate in community: +10 points</li>
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </div>

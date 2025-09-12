@@ -18,6 +18,12 @@ const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Groups = lazy(() => import("./pages/Groups"));
 const CommunityQuotes = lazy(() => import("./pages/CommunityQuotes"));
+const NewGiveaway = lazy(() => import("./pages/NewGiveaway"));
+const PackageDetails = lazy(() => import("./pages/PackageDetails"));
+const PersonalizePackage = lazy(() => import("./pages/PersonalizePackage"));
+const InvoicePage = lazy(() => import("./pages/InvoicePage"));
+const ConfirmationPage = lazy(() => import("./pages/ConfirmationPage"));
+const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
 const Giveaway = lazy(() => import("./pages/Giveaway"));
 const MyQuotes = lazy(() => import("./pages/MyQuotes"));
 const MyQuotesSettings = lazy(() => import("./pages/MyQuotesSettings"));
@@ -90,6 +96,11 @@ const App = () => (
                         <Route path="/groups" element={<Groups />} />
                         <Route path="/community-quotes" element={<CommunityQuotes />} />
                         <Route path="/giveaway" element={<Giveaway />} />
+                        <Route path="/giveaway/package/:id" element={<PackageDetails />} />
+                        <Route path="/giveaway/personalize/:id" element={<PersonalizePackage />} />
+                        <Route path="/giveaway/invoice/:id" element={<InvoicePage />} />
+                        <Route path="/giveaway/confirmation/:orderId" element={<ConfirmationPage />} />
+                        <Route path="/giveaway/create-campaign" element={<CreateCampaign />} />
                         <Route path="/donations" element={<Donations />} />
                         <Route path="/campaign/:id" element={<CampaignDetails />} />
                         <Route path="/payment/:id" element={<CampaignPayment />} />
