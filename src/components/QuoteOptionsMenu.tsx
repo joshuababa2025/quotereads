@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useQuotes } from "@/contexts/QuotesContext";
 import { useToast } from "@/hooks/use-toast";
+import { downloadQuoteImage } from "@/lib/quoteDownload";
 
 interface QuoteOptionsMenuProps {
   quoteId: string;
@@ -58,43 +59,11 @@ export const QuoteOptionsMenu = ({
   };
 
   const handleDownload = () => {
-    // Create a downloadable image of the quote
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = 800;
-    canvas.height = 600;
-    
-    // Set background
-    ctx.fillStyle = '#6366f1';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Set text properties
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 24px Arial';
-    ctx.textAlign = 'center';
-    
-    // Draw quote text (simple implementation)
-    const lines = quote.match(/.{1,40}(\s|$)/g) || [quote];
-    lines.forEach((line, index) => {
-      ctx.fillText(line.trim(), canvas.width / 2, 200 + (index * 40));
-    });
-    
-    // Draw author
-    ctx.font = '18px Arial';
-    ctx.fillText(`— ${author}`, canvas.width / 2, 200 + (lines.length * 40) + 60);
-    
-    // Download
-    canvas.toBlob(blob => {
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `quote-${author.replace(/\s+/g, '-').toLowerCase()}.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
+    downloadQuoteImage({
+      quote,
+      author,
+      category,
+      variant
     });
 
     toast({

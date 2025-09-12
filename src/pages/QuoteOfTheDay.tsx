@@ -10,6 +10,7 @@ import { useQuotes } from "@/contexts/QuotesContext";
 import { useComments } from "@/contexts/CommentsContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { downloadQuoteImage } from "@/lib/quoteDownload";
 
 const QuoteOfTheDay = () => {
   const quotesOfTheDay = getQuotesByCategory("Quote of the Day");
@@ -34,59 +35,13 @@ const QuoteOfTheDay = () => {
     });
   };
 
-  const downloadQuote = async (quote: any) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Set canvas size
-    canvas.width = 800;
-    canvas.height = 600;
-
-    // Create gradient background
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#667eea');
-    gradient.addColorStop(1, '#764ba2');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Set text style
-    ctx.fillStyle = 'white';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Draw quote
-    ctx.font = 'bold 32px Arial';
-    const words = quote.quote.split(' ');
-    const lines = [];
-    let currentLine = '';
-    
-    for (const word of words) {
-      const testLine = currentLine + (currentLine ? ' ' : '') + word;
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > 700 && currentLine) {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
-      }
-    }
-    lines.push(currentLine);
-
-    const startY = canvas.height / 2 - (lines.length * 40) / 2;
-    lines.forEach((line, index) => {
-      ctx.fillText(line, canvas.width / 2, startY + index * 40);
+  const downloadQuote = (quote: any) => {
+    downloadQuoteImage({
+      quote: quote.quote,
+      author: quote.author,
+      category: quote.category,
+      variant: quote.variant
     });
-
-    // Draw author
-    ctx.font = '24px Arial';
-    ctx.fillText(`— ${quote.author}`, canvas.width / 2, canvas.height - 100);
-
-    // Download
-    const link = document.createElement('a');
-    link.download = `quote-${quote.author.replace(/\s+/g, '-').toLowerCase()}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
 
     toast({
       title: "Quote downloaded!",

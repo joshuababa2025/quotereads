@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Download } from 'lucide-react';
 import { getQuotesByCategory, findQuoteById } from '@/data/quotes';
 import { useToast } from '@/hooks/use-toast';
+import { downloadQuoteImage } from '@/lib/quoteDownload';
 import { startTransition } from 'react';
 
 export default function QuoteDetails() {
@@ -69,90 +70,16 @@ export default function QuoteDetails() {
   };
 
   const handleDownload = () => {
-    // Create a canvas element to generate an image
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = 800;
-    canvas.height = 600;
-
-    // Set background gradient based on variant
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    switch (quote.variant) {
-      case 'purple':
-        gradient.addColorStop(0, '#8B5CF6');
-        gradient.addColorStop(1, '#A855F7');
-        break;
-      case 'green':
-        gradient.addColorStop(0, '#10B981');
-        gradient.addColorStop(1, '#059669');
-        break;
-      case 'orange':
-        gradient.addColorStop(0, '#F59E0B');
-        gradient.addColorStop(1, '#D97706');
-        break;
-      case 'pink':
-        gradient.addColorStop(0, '#EC4899');
-        gradient.addColorStop(1, '#DB2777');
-        break;
-      case 'blue':
-        gradient.addColorStop(0, '#3B82F6');
-        gradient.addColorStop(1, '#2563EB');
-        break;
-    }
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Add quote text
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 32px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Word wrap for long quotes
-    const words = quote.quote.split(' ');
-    const lines = [];
-    let currentLine = '';
-    
-    for (const word of words) {
-      const testLine = currentLine + word + ' ';
-      if (ctx.measureText(testLine).width > 700) {
-        lines.push(currentLine.trim());
-        currentLine = word + ' ';
-      } else {
-        currentLine = testLine;
-      }
-    }
-    lines.push(currentLine.trim());
-
-    const startY = canvas.height / 2 - (lines.length * 40) / 2;
-    lines.forEach((line, index) => {
-      ctx.fillText(line, canvas.width / 2, startY + index * 40);
+    downloadQuoteImage({
+      quote: quote.quote,
+      author: quote.author,
+      category: quote.category,
+      variant: quote.variant
     });
-
-    // Add author
-    ctx.font = '24px Arial';
-    ctx.fillText(`— ${quote.author}`, canvas.width / 2, startY + lines.length * 40 + 60);
-
-    // Download the image
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `quote-${quote.author.replace(/\s+/g, '-').toLowerCase()}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        toast({
-          title: "Quote downloaded!",
-          description: "The quote image has been saved to your device"
-        });
-      }
+    
+    toast({
+      title: "Quote downloaded!",
+      description: "The quote image has been saved to your device"
     });
   };
 
