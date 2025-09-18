@@ -5,16 +5,30 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
+import { PreOrderModal } from "@/components/PreOrderModal";
 import { ShopFilters } from "@/components/ShopFilters";
 import { MobileShopFilters } from "@/components/MobileShopFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useMemo } from "react";
+
+interface Product {
+  id: number;
+  title: string;
+  author: string;
+  price: number;
+  image: string;
+  category?: string;
+  rating?: number;
+  comingSoon?: boolean;
+  releaseDate?: Date;
+}
 
 const Shop = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [priceRange, setPriceRange] = useState<[number, number]>([5, 50]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedRating, setSelectedRating] = useState(0);
+  const [preOrderProduct, setPreOrderProduct] = useState<Product | null>(null);
 
   const products = [
     {
@@ -33,7 +47,9 @@ const Shop = () => {
       price: 13.99,
       image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
       category: "Science Fiction",
-      rating: 5
+      rating: 5,
+      comingSoon: true,
+      releaseDate: new Date('2025-01-15T00:00:00')
     },
     {
       id: 3,
@@ -78,7 +94,9 @@ const Shop = () => {
       price: 16.99,
       image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
       category: "Science Fiction",
-      rating: 5
+      rating: 5,
+      comingSoon: true,
+      releaseDate: new Date('2025-02-28T00:00:00')
     },
     {
       id: 8,
@@ -250,7 +268,11 @@ const Shop = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onPreOrder={setPreOrderProduct}
+                  />
                 ))
               ) : (
                 <div className="col-span-full text-center py-12">
@@ -306,6 +328,12 @@ const Shop = () => {
           </div>
         </div>
       </div>
+
+      <PreOrderModal
+        product={preOrderProduct!}
+        isOpen={!!preOrderProduct}
+        onClose={() => setPreOrderProduct(null)}
+      />
 
       <Footer />
     </div>
