@@ -329,11 +329,13 @@ const Shop = () => {
         </div>
       </div>
 
-      <PreOrderModal
-        product={preOrderProduct!}
-        isOpen={!!preOrderProduct}
-        onClose={() => setPreOrderProduct(null)}
-      />
+      {preOrderProduct && (
+        <PreOrderModal
+          product={preOrderProduct}
+          isOpen={!!preOrderProduct}
+          onClose={() => setPreOrderProduct(null)}
+        />
+      )}
 
       <Footer />
     </div>

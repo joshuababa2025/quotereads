@@ -35,7 +35,7 @@ export function PreOrderModal({ product, isOpen, onClose }: PreOrderModalProps) 
   });
 
   useEffect(() => {
-    if (!product.releaseDate) return;
+    if (!product || !product.releaseDate) return;
 
     const updateCountdown = () => {
       const now = new Date().getTime();
@@ -58,10 +58,10 @@ export function PreOrderModal({ product, isOpen, onClose }: PreOrderModalProps) 
     const interval = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(interval);
-  }, [product.releaseDate]);
+  }, [product?.releaseDate]);
 
   const handlePreOrder = () => {
-    if (!email) {
+    if (!product || !email) {
       toast.error("Please enter your email address");
       return;
     }
@@ -73,7 +73,7 @@ export function PreOrderModal({ product, isOpen, onClose }: PreOrderModalProps) 
   };
 
   const handleNotifyMe = () => {
-    if (!email) {
+    if (!product || !email) {
       toast.error("Please enter your email address");
       return;
     }
@@ -83,6 +83,9 @@ export function PreOrderModal({ product, isOpen, onClose }: PreOrderModalProps) 
     setPhone("");
     onClose();
   };
+
+  // Don't render if product is null
+  if (!product) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
