@@ -9,6 +9,9 @@ export interface CartItem {
   quantity: number;
   category?: string;
   rating?: number;
+  isPreOrder?: boolean;
+  releaseDate?: Date;
+  comingSoon?: boolean;
 }
 
 interface CartState {

@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
-import { PreOrderModal } from "@/components/PreOrderModal";
 import { ShopFilters } from "@/components/ShopFilters";
 import { MobileShopFilters } from "@/components/MobileShopFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,7 +27,6 @@ const Shop = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([5, 50]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedRating, setSelectedRating] = useState(0);
-  const [preOrderProduct, setPreOrderProduct] = useState<Product | null>(null);
 
   const products = [
     {
@@ -270,8 +268,7 @@ const Shop = () => {
                 filteredProducts.map((product) => (
                   <ProductCard 
                     key={product.id} 
-                    product={product} 
-                    onPreOrder={setPreOrderProduct}
+                    product={product}
                   />
                 ))
               ) : (
@@ -329,13 +326,7 @@ const Shop = () => {
         </div>
       </div>
 
-      {preOrderProduct && (
-        <PreOrderModal
-          product={preOrderProduct}
-          isOpen={!!preOrderProduct}
-          onClose={() => setPreOrderProduct(null)}
-        />
-      )}
+      {/* Remove the PreOrderModal since we're going directly to checkout */}
 
       <Footer />
     </div>

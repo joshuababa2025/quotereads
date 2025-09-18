@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Star, Clock } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { usePreOrderTimer } from "@/hooks/usePreOrderTimer";
 
 interface Product {
   id: number;
@@ -24,55 +24,32 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onPreOrder }: ProductCardProps) {
   const { dispatch } = useCart();
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0
-  });
-
-  useEffect(() => {
-    if (!product.comingSoon || !product.releaseDate) return;
-
-    const updateCountdown = () => {
-      const now = new Date().getTime();
-      const releaseTime = product.releaseDate!.getTime();
-      const difference = releaseTime - now;
-
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((difference % (1000 * 60)) / 1000)
-        });
-      } else {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-
-    return () => clearInterval(interval);
-  }, [product.comingSoon, product.releaseDate]);
+  const timeLeft = usePreOrderTimer(product.releaseDate);
 
   const handleAddToCart = () => {
     dispatch({ type: 'ADD_TO_CART', item: product });
     toast.success(`${product.title} added to cart!`);
   };
 
-  const handleClick = () => {
-    if (product.comingSoon && onPreOrder) {
-      onPreOrder(product);
-    }
+  const handlePreOrder = () => {
+    // Add to cart as pre-order
+    dispatch({ 
+      type: 'ADD_TO_CART', 
+      item: { 
+        ...product, 
+        isPreOrder: true,
+        releaseDate: product.releaseDate,
+        comingSoon: product.comingSoon
+      } 
+    });
+    toast.success(`${product.title} pre-order added to cart!`);
+    
+    // Redirect to checkout
+    window.location.href = '/checkout';
   };
 
   return (
-    <Card 
-      className={`group hover:shadow-lg transition-shadow ${product.comingSoon ? 'cursor-pointer' : ''}`}
-      onClick={product.comingSoon ? handleClick : undefined}
-    >
+    <Card className="group hover:shadow-lg transition-shadow">
       <CardContent className="p-4">
         <div className="aspect-[4/5] bg-muted rounded-lg mb-4 overflow-hidden relative">
           <img 
@@ -115,28 +92,27 @@ export function ProductCard({ product, onPreOrder }: ProductCardProps) {
         )}
         
         {product.comingSoon && (
-          <div className="bg-muted/50 rounded p-3 mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-medium text-foreground">Releasing in:</span>
+          <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 rounded-lg p-4 mb-4 border border-orange-200 dark:border-orange-800">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              <span className="text-sm font-semibold text-orange-800 dark:text-orange-300">
+                Launches in:
+              </span>
             </div>
-            <div className="grid grid-cols-4 gap-1 text-center">
-              <div>
-                <div className="text-sm font-bold text-primary">{timeLeft.days}</div>
-                <div className="text-xs text-muted-foreground">d</div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1">
+                {timeLeft.days}
               </div>
-              <div>
-                <div className="text-sm font-bold text-primary">{timeLeft.hours}</div>
-                <div className="text-xs text-muted-foreground">h</div>
+              <div className="text-sm font-medium text-orange-700 dark:text-orange-300 uppercase tracking-wide">
+                {timeLeft.days === 1 ? 'Day' : 'Days'}
               </div>
-              <div>
-                <div className="text-sm font-bold text-primary">{timeLeft.minutes}</div>
-                <div className="text-xs text-muted-foreground">m</div>
-              </div>
-              <div>
-                <div className="text-sm font-bold text-primary">{timeLeft.seconds}</div>
-                <div className="text-xs text-muted-foreground">s</div>
-              </div>
+              {timeLeft.days < 1 && (
+                <div className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                  {String(timeLeft.hours).padStart(2, '0')}:
+                  {String(timeLeft.minutes).padStart(2, '0')}:
+                  {String(timeLeft.seconds).padStart(2, '0')}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -146,8 +122,12 @@ export function ProductCard({ product, onPreOrder }: ProductCardProps) {
             ${product.price}
           </span>
           {product.comingSoon ? (
-            <Button size="sm" className="gap-2 ml-3 bg-orange-500 hover:bg-orange-600" onClick={handleClick}>
-              Pre-Order
+            <Button 
+              size="sm" 
+              className="gap-2 ml-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4" 
+              onClick={handlePreOrder}
+            >
+              Pre-Order Now
             </Button>
           ) : (
             <Button size="sm" className="gap-2 ml-3" onClick={handleAddToCart}>
