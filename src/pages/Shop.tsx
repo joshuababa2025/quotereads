@@ -8,158 +8,78 @@ import { ProductCard } from "@/components/ProductCard";
 import { ShopFilters } from "@/components/ShopFilters";
 import { MobileShopFilters } from "@/components/MobileShopFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Product {
-  id: number;
-  title: string;
-  author: string;
+  id: string;
+  name: string;
+  description: string;
   price: number;
-  image: string;
-  category?: string;
-  rating?: number;
-  comingSoon?: boolean;
-  releaseDate?: Date;
+  category: string;
+  stock: number;
+  status: 'active' | 'inactive' | 'coming_soon';
+  featured_image: string;
+  images: string[];
+  launch_date?: string;
+  created_at: string;
 }
 
 const Shop = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([5, 50]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [selectedRating, setSelectedRating] = useState(0);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const products = [
-    {
-      id: 1,
-      title: "To Kill a Mockingbird",
-      author: "Harper Lee",
-      price: 14.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Fiction",
-      rating: 5
-    },
-    {
-      id: 2,
-      title: "1984",
-      author: "George Orwell",
-      price: 13.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Science Fiction",
-      rating: 5,
-      comingSoon: true,
-      releaseDate: new Date('2025-01-15T00:00:00')
-    },
-    {
-      id: 3,
-      title: "The Great Gatsby",
-      author: "F. Scott Fitzgerald",
-      price: 12.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Fiction",
-      rating: 4
-    },
-    {
-      id: 4,
-      title: "Pride and Prejudice",
-      author: "Jane Austen",
-      price: 11.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Romance",
-      rating: 5
-    },
-    {
-      id: 5,
-      title: "The Catcher in the Rye",
-      author: "J.D. Salinger",
-      price: 13.49,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Fiction",
-      rating: 4
-    },
-    {
-      id: 6,
-      title: "Lord of the Flies",
-      author: "William Golding",
-      price: 12.49,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Fiction",
-      rating: 4
-    },
-    {
-      id: 7,
-      title: "Dune",
-      author: "Frank Herbert",
-      price: 16.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Science Fiction",
-      rating: 5,
-      comingSoon: true,
-      releaseDate: new Date('2025-02-28T00:00:00')
-    },
-    {
-      id: 8,
-      title: "The Hobbit",
-      author: "J.R.R. Tolkien",
-      price: 15.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Fiction",
-      rating: 5
-    }
-  ];
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
 
-  const recommendedProducts = [
-    {
-      id: 101,
-      title: "Inspirational Collection",
-      author: "Various Authors",
-      price: 24.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Inspiration",
-      rating: 5
-    },
-    {
-      id: 102,
-      title: "Wisdom Quotes Book",
-      author: "Ancient Wisdom",
-      price: 19.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Wisdom",
-      rating: 4
-    },
-    {
-      id: 103,
-      title: "Motivational Journal",
-      author: "Daily Inspiration",
-      price: 15.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Self-Help",
-      rating: 5
-    },
-    {
-      id: 104,
-      title: "Life Planner 2025",
-      author: "Goal Setter Co",
-      price: 29.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Productivity",
-      rating: 4
-    },
-    {
-      id: 105,
-      title: "Quote Calendar",
-      author: "Daily Wisdom",
-      price: 12.99,
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      category: "Calendar",
-      rating: 5
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('shop_products')
+        .select('*')
+        .in('status', ['active', 'coming_soon'])
+        .order('created_at', { ascending: false });
+      
+      if (!error && data) {
+        setProducts(data);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('shop_products')
+        .select('category')
+        .in('status', ['active', 'coming_soon']);
+      
+      if (!error && data) {
+        const uniqueCategories = [...new Set(data.map(item => item.category).filter(Boolean))];
+        setAvailableCategories(uniqueCategories);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const recommendedProducts = products.slice(0, 5);
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
       // Search filter
-      const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.author.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.description.toLowerCase().includes(searchTerm.toLowerCase());
       
       // Price filter
       const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
@@ -167,18 +87,14 @@ const Shop = () => {
       // Category filter
       const matchesCategory = selectedCategories.length === 0 || 
                              selectedCategories.includes(product.category || '');
-      
-      // Rating filter
-      const matchesRating = selectedRating === 0 || 
-                           (product.rating && product.rating >= selectedRating);
 
-      return matchesSearch && matchesPrice && matchesCategory && matchesRating;
+      return matchesSearch && matchesPrice && matchesCategory;
     });
-  }, [products, searchTerm, priceRange, selectedCategories, selectedRating]);
+  }, [products, searchTerm, priceRange, selectedCategories]);
 
   const clearFilters = () => {
     setSearchTerm("");
-    setPriceRange([5, 50]);
+    setPriceRange([0, 1000]);
     setSelectedCategories([]);
     setSelectedRating(0);
   };
@@ -207,10 +123,23 @@ const Shop = () => {
           </div>
         </div>
 
+        {/* Mobile Filters */}
+        <div className="lg:hidden mb-6">
+          <MobileShopFilters
+            priceRange={priceRange}
+            onPriceChange={setPriceRange}
+            selectedCategories={selectedCategories}
+            onCategoryChange={setSelectedCategories}
+            selectedRating={selectedRating}
+            onRatingChange={setSelectedRating}
+            onClearFilters={clearFilters}
+            availableCategories={availableCategories}
+          />
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar - Desktop filters first, Mobile first */}
-          <div className="w-full lg:w-80 flex-shrink-0 space-y-6">
-            {/* Filters */}
+          {/* Filters Sidebar - Desktop only */}
+          <div className="hidden lg:block w-80 flex-shrink-0 space-y-6">
             <ShopFilters
               priceRange={priceRange}
               onPriceChange={setPriceRange}
@@ -219,6 +148,7 @@ const Shop = () => {
               selectedRating={selectedRating}
               onRatingChange={setSelectedRating}
               onClearFilters={clearFilters}
+              availableCategories={availableCategories}
             />
             
             {/* Recommended for You - Desktop */}
@@ -226,33 +156,9 @@ const Shop = () => {
               <Card>
                 <CardContent className="p-6">
                   <h3 className="font-semibold text-foreground mb-4">Recommended for You</h3>
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
                     {recommendedProducts.map((product) => (
-                      <div key={product.id} className="flex gap-3 pb-4 border-b border-border last:border-b-0 last:pb-0">
-                        <div className="w-16 h-16 bg-muted rounded flex-shrink-0">
-                          <img 
-                            src={product.image} 
-                            alt={product.title}
-                            className="w-full h-full object-cover rounded"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm text-foreground truncate">
-                            {product.title}
-                          </h4>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {product.author}
-                          </p>
-                          <div className="flex items-center justify-between mt-1">
-                            <span className="text-sm font-semibold text-foreground">
-                              ${product.price}
-                            </span>
-                            <Button size="sm" variant="outline" className="text-xs h-6 px-2">
-                              Add
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
+                      <ProductCard key={product.id} product={product} />
                     ))}
                   </div>
                 </CardContent>
@@ -263,60 +169,43 @@ const Shop = () => {
           {/* Main Content */}
           <div className="flex-1">
             {/* Products Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-12">
-                  <p className="text-muted-foreground">No products found matching your criteria.</p>
-                  <Button 
-                    onClick={clearFilters}
-                    variant="outline"
-                    className="mt-4"
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
-              )}
-            </div>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading products...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12">
+                    <p className="text-muted-foreground">No products found matching your criteria.</p>
+                    <Button 
+                      onClick={clearFilters}
+                      variant="outline"
+                      className="mt-4"
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
             
             {/* Recommended for You - Mobile */}
             <div className="lg:hidden">
               <Card>
                 <CardContent className="p-6">
                   <h3 className="font-semibold text-foreground mb-4">Recommended for You</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {recommendedProducts.map((product) => (
-                      <div key={product.id} className="flex gap-3 p-4 border border-border rounded-lg">
-                        <div className="w-16 h-16 bg-muted rounded flex-shrink-0">
-                          <img 
-                            src={product.image} 
-                            alt={product.title}
-                            className="w-full h-full object-cover rounded"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm text-foreground truncate">
-                            {product.title}
-                          </h4>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {product.author}
-                          </p>
-                          <div className="flex items-center justify-between mt-2">
-                            <span className="text-sm font-semibold text-foreground">
-                              ${product.price}
-                            </span>
-                            <Button size="sm" variant="outline" className="text-xs h-6 px-2">
-                              Add
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
+                      <ProductCard key={product.id} product={product} />
                     ))}
                   </div>
                 </CardContent>

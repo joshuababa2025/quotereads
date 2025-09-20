@@ -6,25 +6,52 @@ import { Search, Filter, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Quote, searchQuotes, getPopularCategories, getPopularAuthors } from "@/data/quotes";
+import { Quote, getPopularCategories, getPopularAuthors } from "@/data/quotes";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [results, setResults] = useState<Quote[]>([]);
+  const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [visibleResults, setVisibleResults] = useState(12);
 
   useEffect(() => {
     if (searchQuery.trim()) {
-      setIsLoading(true);
-      const searchResults = searchQuotes(searchQuery);
-      setResults(searchResults);
-      setIsLoading(false);
+      performSearch();
     } else {
       setResults([]);
     }
   }, [searchQuery]);
+
+  const performSearch = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('quotes')
+        .select('*')
+        .or(`content.ilike.%${searchQuery}%,author.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`);
+      
+      if (data && !error) {
+        const formattedResults = data.map((quote: any) => ({
+          id: quote.id,
+          quote: quote.content,
+          author: quote.author,
+          category: quote.category,
+          backgroundImage: quote.background_image,
+          likes: 0
+        }));
+        setResults(formattedResults);
+      } else {
+        setResults([]);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,14 +120,14 @@ export default function SearchPage() {
                 {results.length > 0 ? (
                   <>
                     <div className="grid md:grid-cols-2 gap-6 mb-8">
-                       {results.slice(0, visibleResults).map((quote) => (
+                       {results.slice(0, visibleResults).map((quote: any) => (
                          <QuoteCard
                            key={quote.id}
                            id={quote.id}
                            quote={quote.quote}
                            author={quote.author}
                            category={quote.category}
-                           variant={quote.variant}
+                           backgroundImage={quote.backgroundImage}
                            likes={quote.likes}
                          />
                        ))}

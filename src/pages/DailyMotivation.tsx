@@ -4,60 +4,73 @@ import { QuoteCard } from "@/components/QuoteCard";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Zap, Target } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-
-const motivationQuotes = [
-  {
-    quote: "The only way to do great work is to love what you do.",
-    author: "Steve Jobs",
-    category: "Success",
-    variant: "green" as const,
-    likes: 1247
-  },
-  {
-    quote: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-    author: "Winston Churchill",
-    category: "Perseverance",
-    variant: "orange" as const,
-    likes: 892
-  },
-  {
-    quote: "The future belongs to those who believe in the beauty of their dreams.",
-    author: "Eleanor Roosevelt",
-    category: "Dreams",
-    variant: "purple" as const,
-    likes: 634
-  },
-  {
-    quote: "It is during our darkest moments that we must focus to see the light.",
-    author: "Aristotle",
-    category: "Hope",
-    variant: "blue" as const,
-    likes: 567
-  },
-  {
-    quote: "Believe you can and you're halfway there.",
-    author: "Theodore Roosevelt", 
-    category: "Confidence",
-    variant: "pink" as const,
-    likes: 789
-  },
-  {
-    quote: "Don't watch the clock; do what it does. Keep going.",
-    author: "Sam Levenson",
-    category: "Persistence",
-    variant: "green" as const,
-    likes: 445
-  }
-];
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { assignBackgroundImages } from "@/utils/assignBackgroundImages";
 
 export default function DailyMotivation() {
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleQuotes, setVisibleQuotes] = useState(6);
+  const [motivationQuotes, setMotivationQuotes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDailyMotivation();
+  }, []);
+
+  const loadDailyMotivation = async () => {
+    try {
+      // Get yesterday's date
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+      const yesterdayEnd = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate() + 1);
+
+      // Load quotes with "Motivation" category from yesterday
+      const { data } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('category', 'Motivation')
+        .eq('is_hidden', false)
+        .gte('created_at', yesterdayStart.toISOString())
+        .lt('created_at', yesterdayEnd.toISOString())
+        .order('created_at', { ascending: false });
+      
+      // If no quotes from yesterday, get recent motivation quotes
+      if (!data || data.length === 0) {
+        const { data: fallbackData } = await supabase
+          .from('quotes')
+          .select('*')
+          .eq('category', 'Motivation')
+          .eq('is_hidden', false)
+          .order('created_at', { ascending: false })
+          .limit(20);
+        
+        if (fallbackData) {
+          const quotesWithImages = await assignBackgroundImages(fallbackData);
+          setMotivationQuotes(quotesWithImages);
+        } else {
+          setMotivationQuotes([]);
+        }
+      } else {
+        const quotesWithImages = await assignBackgroundImages(data);
+        setMotivationQuotes(quotesWithImages);
+      }
+    } catch (error) {
+      console.error('Error loading daily motivation:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getQuoteVariant = (index: number) => {
+    const variants = ["green", "orange", "purple", "blue", "pink"] as const;
+    return variants[index % variants.length];
+  };
 
   const filteredQuotes = motivationQuotes.filter(quote =>
-    quote.quote.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    quote.author.toLowerCase().includes(searchQuery.toLowerCase())
+    (quote.content?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+    (quote.author?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
 
   const loadMore = () => {
@@ -85,8 +98,8 @@ export default function DailyMotivation() {
               </div>
               <div className="bg-gradient-to-r from-green-100 to-green-50 rounded-lg p-4 border-l-4 border-green-500">
                 <p className="text-green-800 text-sm">
-                  <span className="font-semibold">89 quotes</span> to fuel your daily motivation • 
-                  Updated every morning
+                  <span className="font-semibold">{motivationQuotes.length} quotes</span> to fuel your daily motivation • 
+                  Updated every morning with yesterday's submissions
                 </p>
               </div>
             </div>
@@ -109,19 +122,31 @@ export default function DailyMotivation() {
             </div>
 
             {/* Quotes Grid */}
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
-               {filteredQuotes.slice(0, visibleQuotes).map((quote, index) => (
-                 <QuoteCard
-                   key={`motivation-${index}`}
-                   id={`motivation-${index}`}
-                   quote={quote.quote}
-                   author={quote.author}
-                   category={quote.category}
-                   variant={quote.variant}
-                   likes={quote.likes}
-                 />
-               ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-pulse">Loading today's motivation...</div>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                {filteredQuotes.slice(0, visibleQuotes).map((quote, index) => (
+                  <QuoteCard
+                    key={quote.id}
+                    id={quote.id}
+                    quote={quote.content}
+                    author={quote.author || 'Anonymous'}
+                    category={quote.category}
+                    backgroundImage={quote.background_image}
+                    likes={0}
+                  />
+                ))}
+                {filteredQuotes.length === 0 && (
+                  <div className="col-span-full text-center py-12 text-muted-foreground">
+                    <p>No motivation quotes available for today.</p>
+                    <p className="text-sm mt-2">Check back tomorrow for fresh motivation!</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Load More */}
             {visibleQuotes < filteredQuotes.length && (

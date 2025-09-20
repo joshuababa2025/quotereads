@@ -1,29 +1,106 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { QuoteCard } from "@/components/QuoteCard";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Calendar, Download, Heart, Share2, BookmarkPlus, MessageCircle } from "lucide-react";
-import { getQuotesByCategory } from "@/data/quotes";
 import { useQuoteInteraction } from "@/contexts/QuoteInteractionContext";
 import { useQuotes } from "@/contexts/QuotesContext";
 import { useComments } from "@/contexts/CommentsContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { downloadQuoteImage } from "@/lib/quoteDownload";
+import { supabase } from "@/integrations/supabase/client";
+import { assignBackgroundImages } from "@/utils/assignBackgroundImages";
+
+interface Quote {
+  id: string;
+  content: string;
+  author: string;
+  category: string;
+  tags: string[];
+  is_quote_of_day: boolean;
+  quote_of_day_date: string;
+  background_image?: string;
+  created_at: string;
+}
 
 const QuoteOfTheDay = () => {
-  const quotesOfTheDay = getQuotesByCategory("Quote of the Day");
+  const [todayQuote, setTodayQuote] = useState<Quote | null>(null);
+  const [previousQuotes, setPreviousQuotes] = useState<Quote[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
-  const currentQuote = quotesOfTheDay[currentQuoteIndex];
   const { toggleLike, toggleFavorite, getInteraction } = useQuoteInteraction();
   const { dispatch } = useQuotes();
   const { state: commentsState } = useComments();
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchQuoteOfTheDay();
+    fetchPreviousQuotes();
+  }, []);
+
+  const fetchQuoteOfTheDay = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('is_quote_of_day', true)
+        .eq('quote_of_day_date', today)
+        .single();
+      
+      if (!error && data) {
+        const [quoteWithImage] = await assignBackgroundImages([data]);
+        setTodayQuote(quoteWithImage);
+      } else {
+        // Fallback: get a random quote if no quote of the day is set
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('quotes')
+          .select('*')
+          .limit(1)
+          .order('created_at', { ascending: false });
+        
+        if (!fallbackError && fallbackData?.[0]) {
+          const [quoteWithImage] = await assignBackgroundImages([fallbackData[0]]);
+          setTodayQuote(quoteWithImage);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching quote of the day:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPreviousQuotes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('is_quote_of_day', true)
+        .neq('quote_of_day_date', new Date().toISOString().split('T')[0])
+        .order('quote_of_day_date', { ascending: false })
+        .limit(9);
+      
+      if (!error && data) {
+        const quotesWithImages = await assignBackgroundImages(data);
+        setPreviousQuotes(quotesWithImages);
+      }
+    } catch (error) {
+      console.error('Error fetching previous quotes:', error);
+    }
+  };
+
   const getNextQuote = () => {
-    setCurrentQuoteIndex((prev) => (prev + 1) % quotesOfTheDay.length);
+    if (previousQuotes.length > 0) {
+      setCurrentQuoteIndex((prev) => (prev + 1) % previousQuotes.length);
+    }
+  };
+
+  const getCurrentQuote = () => {
+    return todayQuote || previousQuotes[currentQuoteIndex];
   };
 
   const formatDate = () => {
@@ -35,12 +112,13 @@ const QuoteOfTheDay = () => {
     });
   };
 
-  const downloadQuote = (quote: any) => {
+  const downloadQuote = (quote: Quote) => {
     downloadQuoteImage({
-      quote: quote.quote,
+      quote: quote.content,
       author: quote.author,
       category: quote.category,
-      variant: quote.variant
+      variant: 'purple',
+      backgroundImage: quote.background_image
     });
 
     toast({
@@ -49,7 +127,7 @@ const QuoteOfTheDay = () => {
     });
   };
 
-  const handleInteraction = (action: string, quote: any) => {
+  const handleInteraction = (action: string, quote: Quote) => {
     const interaction = getInteraction(quote.id);
     
     switch (action) {
@@ -58,7 +136,7 @@ const QuoteOfTheDay = () => {
         if (!interaction.isLiked) {
           dispatch({ 
             type: 'ADD_TO_LOVED', 
-            quote: { ...quote, variant: 'purple' } 
+            quote: { ...quote, quote: quote.content, variant: 'purple' } 
           });
           toast({
             title: "Added to loved quotes",
@@ -71,7 +149,7 @@ const QuoteOfTheDay = () => {
         if (!interaction.isFavorited) {
           dispatch({ 
             type: 'ADD_TO_FAVORITES', 
-            quote: { ...quote, variant: 'purple' } 
+            quote: { ...quote, quote: quote.content, variant: 'purple' } 
           });
           toast({
             title: "Added to favorites",
@@ -80,7 +158,7 @@ const QuoteOfTheDay = () => {
         }
         break;
       case 'share':
-        const shareText = `"${quote.quote}" - ${quote.author}`;
+        const shareText = `"${quote.content}" - ${quote.author}`;
         if (navigator.share) {
           navigator.share({
             title: `Quote by ${quote.author}`,
@@ -101,6 +179,21 @@ const QuoteOfTheDay = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading today's quote...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const currentQuote = getCurrentQuote();
+  
   if (!currentQuote) {
     return (
       <div className="min-h-screen bg-background">
@@ -153,7 +246,7 @@ const QuoteOfTheDay = () => {
                   
                   {/* Quote Text */}
                   <blockquote className="text-2xl md:text-3xl font-medium text-foreground mb-8 leading-relaxed">
-                    {currentQuote.quote}
+                    {currentQuote.content}
                   </blockquote>
                   
                   {/* Author */}
@@ -247,26 +340,23 @@ const QuoteOfTheDay = () => {
               </div>
               
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {quotesOfTheDay
-                  .filter((_, index) => index !== currentQuoteIndex)
-                  .slice(0, 9)
-                  .map((quote, index) => (
-                    <div key={quote.id} className="group hover-scale">
-                      <div className="relative">
-                        <div className="absolute -inset-0.5 bg-primary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                        <QuoteCard
-                          id={quote.id}
-                          quote={quote.quote}
-                          author={quote.author}
-                          category={quote.category}
-                          variant={["purple", "blue", "green", "orange", "pink"][index % 5] as any}
-                        />
-                      </div>
+                {previousQuotes.map((quote, index) => (
+                  <div key={quote.id} className="group hover-scale">
+                    <div className="relative">
+                      <div className="absolute -inset-0.5 bg-primary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                      <QuoteCard
+                        id={quote.id}
+                        quote={quote.content}
+                        author={quote.author}
+                        category={quote.category}
+                        backgroundImage={quote.background_image}
+                      />
                     </div>
-                  ))}
+                  </div>
+                ))}
               </div>
               
-              {quotesOfTheDay.length > 10 && (
+              {previousQuotes.length >= 9 && (
                 <div className="text-center">
                   <Button variant="outline" size="lg" className="hover-scale">
                     View All Previous Quotes

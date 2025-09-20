@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -13,10 +13,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useCategoryImages } from "@/hooks/useCategoryImages";
 
 interface AddQuoteDialogProps {
   children: React.ReactNode;
@@ -27,18 +28,51 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
   const [quote, setQuote] = useState("");
   const [author, setAuthor] = useState("");
   const [category, setCategory] = useState("");
-  const [theme, setTheme] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [categoryImages, setCategoryImages] = useState<any[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState("");
+  const [specialCollection, setSpecialCollection] = useState("none");
   const { toast } = useToast();
   const { user } = useAuth();
+  const { getCategoryImages, getRandomImageByCategory } = useCategoryImages();
 
-  const themes = ["purple", "orange", "green", "pink", "blue"];
-  const categories = ["Love", "Motivation", "Wisdom", "Happiness", "Life", "Hope", "Dreams", "Success"];
+  const categories = [
+    "Love", "Anger", "Joy", "Sadness", "Fear", "Surprise", "Disgust", "Trust",
+    "Anticipation", "Motivation", "Wisdom", "Happiness", "Life", "Hope", "Dreams", 
+    "Success", "Healing", "Peace", "Gratitude", "Courage", "Strength", "Faith",
+    "Inspiration", "Growth", "Mindfulness"
+  ];
+  const specialCollections = [
+    { value: "none", label: "None" },
+    { value: "wisdom-of-ages", label: "Wisdom of the Ages" },
+    { value: "daily-motivation", label: "Daily Motivation Pool" }
+  ];
+
+  useEffect(() => {
+    if (category && category !== "custom") {
+      loadCategoryImages(category);
+    }
+  }, [category]);
+
+  const loadCategoryImages = async (selectedCategory: string) => {
+    const images = await getCategoryImages(selectedCategory);
+    setCategoryImages(images);
+    
+    // Auto-select random image if available
+    if (images.length > 0) {
+      const randomImage = await getRandomImageByCategory(selectedCategory);
+      setSelectedImage(randomImage?.image_url || null);
+    } else {
+      setSelectedImage(null);
+    }
+  };
 
   const handleAddTag = () => {
-    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
-      setTags([...tags, currentTag.trim()]);
+    if (currentTag.trim()) {
+      const newTags = currentTag.split(',').map(tag => tag.trim()).filter(tag => tag && !tags.includes(tag));
+      setTags([...tags, ...newTags]);
       setCurrentTag("");
     }
   };
@@ -48,7 +82,9 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
   };
 
   const handleSubmit = async () => {
-    if (!quote.trim() || !author.trim() || !category || !theme) {
+    const finalCategory = category === "custom" ? customCategory.trim() : category;
+    
+    if (!quote.trim() || !author.trim() || !finalCategory) {
       toast({
         title: "Please fill all required fields",
         variant: "destructive",
@@ -70,7 +106,10 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
         .insert({
           content: quote.trim(),
           author: author.trim(),
-          category,
+          category: finalCategory,
+          tags: tags.length > 0 ? tags : null,
+          special_collection: specialCollection === "none" || !specialCollection ? null : specialCollection,
+          background_image: selectedImage,
           user_id: user.id
         });
 
@@ -85,9 +124,12 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
       setQuote("");
       setAuthor("");
       setCategory("");
-      setTheme("");
+      setCustomCategory("");
+      setSelectedImage(null);
+      setCategoryImages([]);
       setTags([]);
       setCurrentTag("");
+      setSpecialCollection("none");
       setOpen(false);
     } catch (error) {
       console.error('Error adding quote:', error);
@@ -147,36 +189,73 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
                       {cat}
                     </SelectItem>
                   ))}
+                  <SelectItem value="custom">Custom Category</SelectItem>
                 </SelectContent>
               </Select>
+              {category === "custom" && (
+                <Input
+                  placeholder="Enter custom category"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                />
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="theme">Theme *</Label>
-              <Select value={theme} onValueChange={setTheme}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select theme" />
-                </SelectTrigger>
-                <SelectContent>
-                  {themes.map((themeOption) => (
-                    <SelectItem key={themeOption} value={themeOption}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className={`w-4 h-4 rounded ${
-                            themeOption === 'purple' ? 'bg-purple-500' :
-                            themeOption === 'orange' ? 'bg-orange-500' :
-                            themeOption === 'green' ? 'bg-green-500' :
-                            themeOption === 'pink' ? 'bg-pink-500' :
-                            'bg-blue-500'
-                          }`}
+              <Label>Background Image</Label>
+              {categoryImages.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto">
+                    {categoryImages.map((image) => (
+                      <div
+                        key={image.id}
+                        className={`relative aspect-video rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                          selectedImage === image.image_url ? 'border-primary' : 'border-transparent'
+                        }`}
+                        onClick={() => setSelectedImage(image.image_url)}
+                      >
+                        <img
+                          src={image.image_url}
+                          alt={image.image_name}
+                          className="w-full h-full object-cover"
                         />
-                        {themeOption.charAt(0).toUpperCase() + themeOption.slice(1)}
                       </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </div>
+                  {selectedImage && (
+                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4" />
+                      Selected background image
+                    </div>
+                  )}
+                </div>
+              ) : category && category !== "custom" ? (
+                <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg text-center">
+                  No images available for {category} category.
+                  <br />Will use default color background.
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg text-center">
+                  Select a category to see available background images
+                </div>
+              )}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="special-collection">Special Collection</Label>
+            <Select value={specialCollection} onValueChange={setSpecialCollection}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select collection (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {specialCollections.map((collection) => (
+                  <SelectItem key={collection.value} value={collection.value}>
+                    {collection.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -188,6 +267,7 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                placeholder="Add tags (separate with commas)"
               />
               <Button type="button" onClick={handleAddTag} size="sm">
                 <Plus className="w-4 h-4" />

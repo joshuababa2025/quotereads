@@ -18,173 +18,143 @@ import {
   Clock
 } from "lucide-react";
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LatestBlogPosts } from "@/components/LatestBlogPosts";
-import { NestedCommentSection } from "@/components/NestedCommentSection";
+
+import { supabase } from "@/integrations/supabase/client";
+
+interface BlogPost {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  category: string;
+  status: string;
+  views: number;
+  comments: number;
+  featured_image?: string;
+  additional_images?: string[];
+  published_at: string;
+  created_at: string;
+}
 
 const BlogPost = () => {
   const { id } = useParams();
+  const [blogPost, setBlogPost] = useState<BlogPost | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(142);
+  const [likes, setLikes] = useState(0);
   const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      author: "Emma Wilson",
-      avatar: "EW",
-      content: "This is such an insightful piece! I've been looking for ways to incorporate more reflection into my daily routine.",
-      time: "2 hours ago",
-      likes: 5,
-      liked: false,
-      replies: [
-        {
-          id: 1,
-          author: "Sarah Johnson",
-          avatar: "SJ",
-          content: "I completely agree! The morning routine suggestions are particularly helpful.",
-          time: "1 hour ago",
-          likes: 2,
-          liked: false,
-          replies: []
-        }
-      ]
-    },
-    {
-      id: 2,
-      author: "Michael Chen",
-      avatar: "MC",
-      content: "Great article! The quote selection process you described really resonates with my own journey.",
-      time: "4 hours ago",
-      likes: 8,
-      liked: false,
-      replies: []
-    }
-  ]);
-  const [replyingTo, setReplyingTo] = useState<{commentId: number, replyId?: number, username: string} | null>(null);
-  const [replyText, setReplyText] = useState("");
+  const [comments, setComments] = useState([]);
   const [following, setFollowing] = useState(false);
 
-  const handleLike = () => {
-    setLiked(!liked);
-    setLikes(liked ? likes - 1 : likes + 1);
+  useEffect(() => {
+    if (id) {
+      fetchBlogPost();
+    }
+  }, [id]);
+
+  const fetchBlogPost = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (!error && data) {
+        setBlogPost(data);
+        setLikes(data.views || 0);
+        // Increment view count
+        const newViewCount = (data.views || 0) + 1;
+        await supabase
+          .from('blog_posts')
+          .update({ views: newViewCount })
+          .eq('id', id);
+        // Update local state with new view count
+        setBlogPost({...data, views: newViewCount});
+      }
+    } catch (error) {
+      console.error('Error fetching blog post:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCommentLike = (commentId: number, replyId?: number) => {
-    setComments(comments.map(comment => {
-      if (comment.id === commentId) {
-        if (replyId) {
-          return {
-            ...comment,
-            replies: comment.replies.map(reply => 
-              reply.id === replyId 
-                ? { ...reply, liked: !reply.liked, likes: reply.liked ? reply.likes - 1 : reply.likes + 1 }
-                : reply
-            )
-          };
-        } else {
-          return { ...comment, liked: !comment.liked, likes: comment.liked ? comment.likes - 1 : comment.likes + 1 };
-        }
-      }
-      return comment;
-    }));
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const calculateReadTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const wordCount = content.split(' ').length;
+    const readTime = Math.ceil(wordCount / wordsPerMinute);
+    return `${readTime} min read`;
+  };
+
+  const handleLike = async () => {
+    if (!blogPost) return;
+    
+    const newLikeState = !liked;
+    const newLikeCount = newLikeState ? likes + 1 : likes - 1;
+    
+    setLiked(newLikeState);
+    setLikes(newLikeCount);
+    
+    // Update database - you may want to track this in a separate likes table
+    // For now, we'll use views as a proxy for engagement
   };
 
   const handleCommentSubmit = () => {
     if (newComment.trim()) {
-      const newCommentObj = {
-        id: comments.length + 1,
-        author: "You",
-        avatar: "YU",
-        content: newComment,
-        time: "just now",
-        likes: 0,
-        liked: false,
-        replies: []
-      };
-      setComments([...comments, newCommentObj]);
+      // This would integrate with a real comment system
+      console.log('Comment submitted:', newComment);
       setNewComment("");
     }
   };
 
-  const handleReplySubmit = () => {
-    if (replyText.trim() && replyingTo) {
-      const newReply = {
-        id: Date.now(),
-        author: "You",
-        avatar: "YU",
-        content: `@${replyingTo.username} ${replyText}`,
-        time: "just now",
-        likes: 0,
-        liked: false,
-        replies: []
-      };
 
-      setComments(comments.map(comment => {
-        if (comment.id === replyingTo.commentId) {
-          if (replyingTo.replyId) {
-            // Reply to a reply - add to nested replies
-            return {
-              ...comment,
-              replies: comment.replies.map(reply => 
-                reply.id === replyingTo.replyId
-                  ? { ...reply, replies: [...(reply.replies || []), newReply] }
-                  : reply
-              )
-            };
-          } else {
-            // Reply to main comment
-            return { ...comment, replies: [...comment.replies, newReply] };
-          }
-        }
-        return comment;
-      }));
-      
-      setReplyText("");
-      setReplyingTo(null);
-    }
-  };
+
+
 
   const handleTagClick = (tag: string) => {
     // Navigate to blog posts filtered by tag
     console.log("Filtering by tag:", tag);
   };
 
-  // Mock blog post data - in real app, this would be fetched based on ID
-  const blogPost = {
-    id: 1,
-    title: "The Power of Daily Reflection",
-    content: `
-      <p>In our fast-paced world, taking time for daily reflection can seem like a luxury we can't afford. However, integrating meaningful quotes into your daily routine can transform not just your mindset, but your entire approach to life's challenges and opportunities.</p>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading blog post...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
-      <h2>The Science Behind Reflection</h2>
-      <p>Research in cognitive psychology shows that regular reflection enhances self-awareness, improves decision-making, and increases emotional intelligence. When we pair this practice with carefully chosen quotes, we create a powerful tool for personal growth.</p>
-
-      <blockquote>"The unexamined life is not worth living." - Socrates</blockquote>
-
-      <p>This ancient wisdom remains as relevant today as it was over two millennia ago. But how do we practically apply this in our modern lives?</p>
-
-      <h2>Building Your Daily Practice</h2>
-      <p>Start small. Choose one quote that resonates with your current life situation. Spend just five minutes each morning contemplating its meaning and how it applies to your day ahead.</p>
-
-      <p>Here are some practical steps to get started:</p>
-      <ul>
-        <li>Keep a reflection journal next to your bed</li>
-        <li>Set a daily reminder on your phone</li>
-        <li>Choose quotes that challenge your current thinking</li>
-        <li>Write down one insight from each reflection session</li>
-      </ul>
-
-      <h2>The Transformation</h2>
-      <p>After just a few weeks of consistent practice, you'll notice subtle but profound changes. Decision-making becomes clearer, stress levels decrease, and you develop a deeper understanding of your values and priorities.</p>
-
-      <p>Remember, the goal isn't to become a different person overnight, but to gradually align your actions with your highest aspirations through the wisdom of those who came before us.</p>
-    `,
-    author: "Sarah Johnson",
-    date: "January 15, 2024",
-    readTime: "5 min read",
-    category: "Mindfulness",
-    excerpt: "Discover how integrating meaningful quotes into your daily routine can transform your mindset and unlock deeper self-awareness."
-  };
+  if (!blogPost) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8 text-center">
+          <h1 className="text-4xl font-bold text-foreground mb-4">Blog Post Not Found</h1>
+          <p className="text-muted-foreground mb-6">The blog post you're looking for doesn't exist.</p>
+          <Link to="/blog">
+            <Button>← Back to Blog</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -216,34 +186,58 @@ const BlogPost = () => {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback>SJ</AvatarFallback>
+                      <AvatarFallback>{blogPost.author.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span>By {blogPost.author}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    <span>{blogPost.date}</span>
+                    <span>{formatDate(blogPost.published_at)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    <span>{blogPost.readTime}</span>
+                    <span>{calculateReadTime(blogPost.content)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Featured Image */}
               <div className="aspect-video bg-muted rounded-lg mb-8 overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
-                  <BookOpen className="h-16 w-16 text-muted-foreground/50" />
-                </div>
+                {blogPost.featured_image ? (
+                  <img 
+                    src={blogPost.featured_image} 
+                    alt={blogPost.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
+                    <BookOpen className="h-16 w-16 text-muted-foreground/50" />
+                  </div>
+                )}
               </div>
 
               {/* Article Content */}
-              <div 
-                className="prose prose-lg max-w-none mb-8"
-                dangerouslySetInnerHTML={{ __html: blogPost.content }}
-              />
+              <div className="prose prose-lg max-w-none mb-8">
+                {blogPost.content.split('\n').map((paragraph, index) => (
+                  <p key={index} className="mb-4">{paragraph}</p>
+                ))}
+              </div>
+              
+              {/* Additional Images */}
+              {blogPost.additional_images && blogPost.additional_images.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                  {blogPost.additional_images.map((image, index) => (
+                    <img 
+                      key={index}
+                      src={image} 
+                      alt={`${blogPost.title} - Image ${index + 1}`}
+                      className="w-full rounded-lg"
+                    />
+                  ))}
+                </div>
+              )}
 
+              {/* Article Footer */}
               {/* Article Footer */}
               <div className="flex items-center justify-between py-6 border-t border-b">
                 <div className="flex items-center gap-4">
@@ -256,10 +250,13 @@ const BlogPost = () => {
                     <Heart className={`h-4 w-4 mr-2 ${liked ? 'fill-current' : ''}`} />
                     {likes}
                   </Button>
-                  <Button variant="ghost" size="sm">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    {comments.length}
-                  </Button>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <MessageCircle className="h-4 w-4" />
+                    <span>{blogPost.comments} comments</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <span>{blogPost.views} views</span>
+                  </div>
                   <Button variant="ghost" size="sm">
                     <Share2 className="h-4 w-4 mr-2" />
                     Share
@@ -269,7 +266,7 @@ const BlogPost = () => {
 
               {/* Comments Section */}
               <div className="mt-8">
-                <h3 className="text-2xl font-semibold mb-6">Comments ({comments.length})</h3>
+                <h3 className="text-2xl font-semibold mb-6">Comments ({blogPost.comments})</h3>
                 
                 {/* Add Comment */}
                 <div className="mb-8">
@@ -279,55 +276,40 @@ const BlogPost = () => {
                     onChange={(e) => setNewComment(e.target.value)}
                     className="mb-4"
                   />
-                  <Button onClick={handleCommentSubmit}>Post Comment</Button>
+                  <Button onClick={handleCommentSubmit} disabled={!newComment.trim()}>
+                    Post Comment
+                  </Button>
                 </div>
 
                 {/* Comments List */}
-                <div className="space-y-6">
-                  {comments.map((comment) => (
-                    <NestedCommentSection
-                      key={comment.id}
-                      comment={comment}
-                      level={0}
-                      onLike={handleCommentLike}
-                      onReply={(commentId, replyId, username) => setReplyingTo({commentId, replyId, username})}
-                      replyingTo={replyingTo}
-                      replyText={replyText}
-                      setReplyText={setReplyText}
-                      onReplySubmit={handleReplySubmit}
-                      onCancelReply={() => {setReplyingTo(null); setReplyText("");}}
-                    />
-                  ))}
-                </div>
+                {blogPost.comments === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No comments yet. Be the first to share your thoughts!</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>Comments will load here when the comment system is integrated.</p>
+                  </div>
+                )}
               </div>
             </article>
           </div>
 
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Author Bio */}
+            {/* Author Info */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4 mb-4">
                   <Avatar>
-                    <AvatarFallback>SJ</AvatarFallback>
+                    <AvatarFallback>{blogPost.author.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <h4 className="font-semibold">{blogPost.author}</h4>
-                    <p className="text-sm text-muted-foreground">Content Writer</p>
+                    <p className="text-sm text-muted-foreground">Author</p>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Sarah is a mindfulness coach and writer who specializes in helping people find meaning through daily reflection and quote practices.
-                </p>
-                <Button 
-                  variant={following ? "default" : "outline"} 
-                  size="sm" 
-                  className="w-full"
-                  onClick={() => setFollowing(!following)}
-                >
-                  {following ? "Following" : "Follow"}
-                </Button>
               </CardContent>
             </Card>
 

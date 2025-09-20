@@ -4,59 +4,41 @@ import { CategoryButtons } from '@/components/CategoryButtons';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, Heart, Share, Bookmark } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Quotes = () => {
-  // Sample quotes data
-  const quotes = [
-    {
-      text: "The only way to do great work is to love what you do.",
-      author: "Steve Jobs",
-      category: "Motivation",
-      likes: 1247,
-      isLiked: false,
-      isSaved: true,
-    },
-    {
-      text: "In the middle of difficulty lies opportunity.",
-      author: "Albert Einstein",
-      category: "Wisdom",
-      likes: 892,
-      isLiked: true,
-      isSaved: false,
-    },
-    {
-      text: "Life is what happens to you while you're busy making other plans.",
-      author: "John Lennon",
-      category: "Life",
-      likes: 2156,
-      isLiked: false,
-      isSaved: true,
-    },
-    {
-      text: "The future belongs to those who believe in the beauty of their dreams.",
-      author: "Eleanor Roosevelt",
-      category: "Dreams",
-      likes: 1834,
-      isLiked: true,
-      isSaved: false,
-    },
-    {
-      text: "It is during our darkest moments that we must focus to see the light.",
-      author: "Aristotle",
-      category: "Hope",
-      likes: 956,
-      isLiked: false,
-      isSaved: false,
-    },
-    {
-      text: "The way to get started is to quit talking and begin doing.",
-      author: "Walt Disney",
-      category: "Action",
-      likes: 1445,
-      isLiked: true,
-      isSaved: true,
-    },
-  ];
+  const [quotes, setQuotes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadQuotes();
+  }, []);
+
+  const loadQuotes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('quotes')
+        .select('*')
+        .limit(20);
+      
+      if (data && !error) {
+        const formattedQuotes = data.map(quote => ({
+          id: quote.id,
+          text: quote.content,
+          author: quote.author,
+          category: quote.category,
+          backgroundImage: quote.background_image,
+          likes: 0
+        }));
+        setQuotes(formattedQuotes);
+      }
+    } catch (error) {
+      console.error('Error loading quotes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -95,25 +77,27 @@ const Quotes = () => {
         </div>
 
         {/* Quotes Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-           {quotes.map((quote, index) => {
-             const variants = ['purple', 'green', 'orange', 'pink', 'blue'] as const;
-             const variant = variants[index % variants.length];
-             
-             return (
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground mt-2">Loading quotes...</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+             {quotes.map((quote) => (
                <QuoteCard
-                 key={`quote-${index}`}
-                 id={`quote-${index}`}
+                 key={quote.id}
+                 id={quote.id}
                  quote={quote.text}
                  author={quote.author}
                  category={quote.category}
-                 variant={variant}
+                 backgroundImage={quote.backgroundImage}
                  likes={quote.likes}
                  className="h-full"
                />
-             );
-           })}
-        </div>
+             ))}
+          </div>
+        )}
 
         {/* Load More Button */}
         <div className="text-center mt-12">

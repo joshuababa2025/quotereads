@@ -4,60 +4,50 @@ import { QuoteCard } from "@/components/QuoteCard";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Sparkles, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-
-const wisdomQuotes = [
-  {
-    quote: "The only true wisdom is in knowing you know nothing.",
-    author: "Socrates",
-    category: "Philosophy",
-    variant: "purple" as const,
-    likes: 567
-  },
-  {
-    quote: "It is during our darkest moments that we must focus to see the light.",
-    author: "Aristotle",
-    category: "Philosophy", 
-    variant: "blue" as const,
-    likes: 423
-  },
-  {
-    quote: "The unexamined life is not worth living.",
-    author: "Socrates",
-    category: "Philosophy",
-    variant: "orange" as const,
-    likes: 789
-  },
-  {
-    quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
-    author: "Aristotle",
-    category: "Philosophy",
-    variant: "green" as const,
-    likes: 612
-  },
-  {
-    quote: "The journey of a thousand miles begins with one step.",
-    author: "Lao Tzu",
-    category: "Wisdom",
-    variant: "pink" as const,
-    likes: 834
-  },
-  {
-    quote: "Yesterday is history, tomorrow is a mystery, today is a gift.",
-    author: "Eleanor Roosevelt",
-    category: "Wisdom",
-    variant: "purple" as const,
-    likes: 456
-  }
-];
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { assignBackgroundImages } from "@/utils/assignBackgroundImages";
 
 export default function WisdomOfAges() {
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleQuotes, setVisibleQuotes] = useState(6);
+  const [wisdomQuotes, setWisdomQuotes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadWisdomQuotes();
+  }, []);
+
+  const loadWisdomQuotes = async () => {
+    try {
+      const { data } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('special_collection', 'wisdom-of-ages')
+        .eq('is_hidden', false)
+        .order('created_at', { ascending: false });
+      
+      if (data) {
+        const quotesWithImages = await assignBackgroundImages(data);
+        setWisdomQuotes(quotesWithImages);
+      } else {
+        setWisdomQuotes([]);
+      }
+    } catch (error) {
+      console.error('Error loading wisdom quotes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getQuoteVariant = (index: number) => {
+    const variants = ["purple", "blue", "orange", "green", "pink"] as const;
+    return variants[index % variants.length];
+  };
 
   const filteredQuotes = wisdomQuotes.filter(quote =>
-    quote.quote.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    quote.author.toLowerCase().includes(searchQuery.toLowerCase())
+    (quote.content?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+    (quote.author?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
 
   const loadMore = () => {
@@ -85,8 +75,8 @@ export default function WisdomOfAges() {
               </div>
               <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg p-4 border-l-4 border-purple-500">
                 <p className="text-purple-800 text-sm">
-                  <span className="font-semibold">396 quotes</span> from history's greatest minds • 
-                  Last updated 2 hours ago
+                  <span className="font-semibold">{wisdomQuotes.length} quotes</span> from history's greatest minds • 
+                  Curated collection of timeless wisdom
                 </p>
               </div>
             </div>
@@ -109,19 +99,31 @@ export default function WisdomOfAges() {
             </div>
 
             {/* Quotes Grid */}
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
-               {filteredQuotes.slice(0, visibleQuotes).map((quote, index) => (
-                 <QuoteCard
-                   key={`wisdom-${index}`}
-                   id={`wisdom-${index}`}
-                   quote={quote.quote}
-                   author={quote.author}
-                   category={quote.category}
-                   variant={quote.variant}
-                   likes={quote.likes}
-                 />
-               ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-pulse">Loading wisdom quotes...</div>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                {filteredQuotes.slice(0, visibleQuotes).map((quote, index) => (
+                  <QuoteCard
+                    key={quote.id}
+                    id={quote.id}
+                    quote={quote.content || quote.quote || ''}
+                    author={quote.author || 'Anonymous'}
+                    category={quote.category || 'Wisdom'}
+                    backgroundImage={quote.background_image}
+                    likes={0}
+                  />
+                ))}
+                {filteredQuotes.length === 0 && (
+                  <div className="col-span-full text-center py-12 text-muted-foreground">
+                    <p>No wisdom quotes in this collection yet.</p>
+                    <p className="text-sm mt-2">Be the first to contribute to Wisdom of the Ages!</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Load More */}
             {visibleQuotes < filteredQuotes.length && (
@@ -146,7 +148,7 @@ export default function WisdomOfAges() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Total Quotes:</span>
-                  <span className="font-medium">396</span>
+                  <span className="font-medium">{wisdomQuotes.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Contributors:</span>

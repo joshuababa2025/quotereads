@@ -91,12 +91,19 @@ const Checkout = () => {
                       <span>Total:</span>
                       <span className="text-primary">${total.toFixed(2)}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {preOrderItems.length > 0 
-                        ? "Pre-orders will be charged immediately. Regular items will ship within 2-3 business days."
-                        : "Taxes may apply at final confirmation"
-                      }
-                    </p>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      {preOrderItems.length > 0 && (
+                        <p className="text-orange-600 dark:text-orange-400 font-medium">
+                          ⚡ Pre-orders will be charged immediately and shipped on release date.
+                        </p>
+                      )}
+                      {regularItems.length > 0 && (
+                        <p>
+                          Regular items will ship within 2-3 business days.
+                        </p>
+                      )}
+                      <p>Taxes may apply at final confirmation</p>
+                    </div>
                   </div>
                 )}
               </CardContent>

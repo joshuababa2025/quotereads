@@ -31,6 +31,7 @@ const MyQuotesStats = lazy(() => import("./pages/MyQuotesStats"));
 const MyQuotesBatchEdit = lazy(() => import("./pages/MyQuotesBatchEdit"));
 const MyQuotesPrint = lazy(() => import("./pages/MyQuotesPrint"));
 const Shop = lazy(() => import("./pages/Shop"));
+const ProductDetails = lazy(() => import("./pages/ProductDetails"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const Blog = lazy(() => import("./pages/Blog"));
@@ -110,6 +111,7 @@ const App = () => (
                         <Route path="/my-quotes/batch-edit" element={<MyQuotesBatchEdit />} />
                         <Route path="/my-quotes/print" element={<MyQuotesPrint />} />
                         <Route path="/shop" element={<Shop />} />
+                        <Route path="/product/:id" element={<ProductDetails />} />
                         <Route path="/cart" element={<Cart />} />
                         <Route path="/checkout" element={<Checkout />} />
                         <Route path="/payment-success" element={<PaymentSuccess />} />
@@ -130,6 +132,7 @@ const App = () => (
                         <Route path="/category/:category" element={<CategoryQuotes />} />
                         <Route path="/quote-themes" element={<QuoteThemes />} />
                         <Route path="/quote/:quoteId" element={<QuoteDetails />} />
+                        <Route path="/quote/:friendlyUrl" element={<QuoteDetails />} />
                         <Route path="/book/:bookId" element={<BookDetails />} />
                         <Route path="/search" element={<Search />} />
                         <Route path="/quote-of-the-day" element={<QuoteOfTheDay />} />

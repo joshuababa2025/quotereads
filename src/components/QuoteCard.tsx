@@ -14,7 +14,7 @@ interface QuoteCardProps {
   quote: string;
   author: string;
   category: string;
-  variant: "purple" | "green" | "orange" | "pink" | "blue";
+  backgroundImage?: string;
   likes?: number;
   className?: string;
   id?: string;
@@ -32,7 +32,7 @@ export const QuoteCard = ({
   quote, 
   author, 
   category, 
-  variant, 
+  backgroundImage,
   likes = 0, 
   className,
   id = `${quote.slice(0, 20)}-${author}` 
@@ -55,7 +55,7 @@ export const QuoteCard = ({
     if (!interaction.isFavorited) {
       dispatch({ 
         type: 'ADD_TO_FAVORITES', 
-        quote: { id, quote, author, category, variant } 
+        quote: { id, quote, author, category } 
       });
       toast({
         title: "Added to favorites",
@@ -71,7 +71,7 @@ export const QuoteCard = ({
     if (!interaction.isLiked) {
       dispatch({ 
         type: 'ADD_TO_LOVED', 
-        quote: { id, quote, author, category, variant } 
+        quote: { id, quote, author, category } 
       });
       toast({
         title: "Added to loved quotes",
@@ -83,7 +83,7 @@ export const QuoteCard = ({
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const shareText = `"${quote}" - ${author}`;
-    const shareUrl = window.location.href;
+    const shareUrl = window.location.origin + createFriendlyUrl(quote, author, id);
     
     if (navigator.share) {
       try {
@@ -110,16 +110,32 @@ export const QuoteCard = ({
     }
   };
 
+  // Create friendly URL from quote content
+  const createFriendlyUrl = (quote: string, author: string, id: string) => {
+    const words = quote.split(' ').slice(0, 4).join(' ');
+    const slug = words.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+    const authorSlug = author.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+    return `/quote/${slug}-${authorSlug}-${id}`;
+  };
+
   return (
     <div 
       className={cn(
-        "rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative group",
-        variantStyles[variant],
+        "rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative group overflow-hidden text-white",
         className
       )}
+      style={{
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url(${backgroundImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop'})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
       onClick={() => {
         startTransition(() => {
-          navigate(`/quote/${id}`);
+          navigate(createFriendlyUrl(quote, author, id));
         });
       }}
     >
@@ -185,15 +201,15 @@ export const QuoteCard = ({
             onClick={(e) => {
               e.stopPropagation();
               startTransition(() => {
-                navigate(`/quote/${id}`);
+                navigate(createFriendlyUrl(quote, author, id));
               });
             }}
-            title="View comments"
+            title={commentCount > 0 ? `${commentCount} comments` : "Be the first to comment"}
           >
             <MessageCircle className="h-3.5 w-3.5" />
             {commentCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                {commentCount > 9 ? '9+' : commentCount}
+              <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                {commentCount > 99 ? '99+' : commentCount}
               </span>
             )}
           </Button>
@@ -202,17 +218,36 @@ export const QuoteCard = ({
             quote={quote}
             author={author}
             category={category}
-            variant={variant}
+            variant="purple"
+            isOwner={false}
           />
         </div>
       </div>
       
-      {displayLikes > 0 && (
-        <div className="absolute top-4 right-4 flex items-center space-x-1 bg-white/20 rounded-full px-2 py-1 text-xs">
-          <Heart className="h-3 w-3 fill-current" />
-          <span>{displayLikes}</span>
+      {/* Social Media Style Interaction Bar */}
+      <div className="mt-4 pt-3 border-t border-white/20 flex items-center justify-between text-xs opacity-90">
+        <div className="flex items-center space-x-4">
+          {displayLikes > 0 && (
+            <div className="flex items-center space-x-1">
+              <Heart className="h-3 w-3 fill-current" />
+              <span>{displayLikes} {displayLikes === 1 ? 'like' : 'likes'}</span>
+            </div>
+          )}
+          {commentCount > 0 && (
+            <div className="flex items-center space-x-1 cursor-pointer hover:underline" 
+                 onClick={(e) => {
+                   e.stopPropagation();
+                   startTransition(() => {
+                     navigate(createFriendlyUrl(quote, author, id));
+                   });
+                 }}>
+              <MessageCircle className="h-3 w-3" />
+              <span>{commentCount} {commentCount === 1 ? 'comment' : 'comments'}</span>
+            </div>
+          )}
         </div>
-      )}
+
+      </div>
     </div>
   );
 };

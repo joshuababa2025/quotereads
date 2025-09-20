@@ -1,4 +1,4 @@
-import { MoreVertical, FolderPlus, Palette, Download, Share2 } from "lucide-react";
+import { MoreVertical, FolderPlus, Palette, Download, Share2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,6 +20,8 @@ interface QuoteOptionsMenuProps {
   author: string;
   category: string;
   variant: "purple" | "green" | "orange" | "pink" | "blue";
+  isOwner?: boolean;
+  onDelete?: () => void;
 }
 
 export const QuoteOptionsMenu = ({ 
@@ -27,7 +29,9 @@ export const QuoteOptionsMenu = ({
   quote, 
   author, 
   category, 
-  variant 
+  variant,
+  isOwner = false,
+  onDelete
 }: QuoteOptionsMenuProps) => {
   const { state, dispatch } = useQuotes();
   const { toast } = useToast();
@@ -162,6 +166,19 @@ export const QuoteOptionsMenu = ({
           <Share2 className="mr-2 h-4 w-4" />
           Share Quote
         </DropdownMenuItem>
+        
+        {isOwner && onDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={onDelete}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Quote
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -1,5 +1,6 @@
 import { Navigation } from '@/components/Navigation';
 import { QuoteCard } from '@/components/QuoteCard';
+import { UserQuoteCard } from '@/components/UserQuoteCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,11 +13,14 @@ import { Grid3X3, List, Plus, Settings, BarChart3, Printer, Rss, Trash2 } from '
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { assignBackgroundImages } from '@/utils/assignBackgroundImages';
 
 const MyQuotes = () => {
   console.log('MyQuotes component rendering...');
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   console.log('User from useAuth:', user);
   
   // Add error handling for useQuotes
@@ -62,28 +66,67 @@ const MyQuotes = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
-      // Load favorited quotes  
+      // Assign background images to user quotes
+      const quotesWithImages = quotes ? await assignBackgroundImages(quotes) : [];
+      console.log('Quotes with images:', quotesWithImages);
+      console.log('First quote background_image:', quotesWithImages[0]?.background_image);
+      
+      // Load favorited quotes with background images
       const { data: favorites } = await supabase
         .from('favorited_quotes')
-        .select('*')
+        .select(`
+          *,
+          quotes(background_image)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      // Load liked/loved quotes
+      // Load liked/loved quotes with background images  
       const { data: loved } = await supabase
         .from('liked_quotes')
-        .select('*')
+        .select(`
+          *,
+          quotes(background_image)
+        `)
         .eq('user_id', user.id)
         .eq('interaction_type', 'love')
         .order('created_at', { ascending: false });
 
-      setUserQuotes(quotes || []);
+      setUserQuotes(quotesWithImages);
       setFavoriteQuotes(favorites || []);
       setLovedQuotes(loved || []);
     } catch (error) {
       console.error('Error loading user data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteQuote = async (quoteId: string) => {
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .delete()
+        .eq('id', quoteId)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setUserQuotes(prev => prev.filter(q => q.id !== quoteId));
+      
+      // Show success message
+      toast({
+        title: "Quote deleted",
+        description: "Your quote has been successfully deleted."
+      });
+    } catch (error) {
+      console.error('Error deleting quote:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete quote. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -146,11 +189,6 @@ const MyQuotes = () => {
 
   const getShelfQuotes = (shelfId: string) => {
     return quotesState.shelfQuotes[shelfId] || [];
-  };
-
-  const getQuoteVariant = (index: number) => {
-    const variants = ["purple", "green", "orange", "pink", "blue"] as const;
-    return variants[index % variants.length];
   };
 
   const tools = [
@@ -341,14 +379,38 @@ const MyQuotes = () => {
                   </h2>
                    {selectedShelf === 'all' ? (
                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                       {[...userQuotes, ...favoriteQuotes, ...lovedQuotes].map((quote, index) => (
+                       {userQuotes.map((quote, index) => (
+                         <UserQuoteCard
+                           key={quote.id}
+                           id={quote.id}
+                           quote={quote.content}
+                           author={quote.author}
+                           category={quote.category}
+                           backgroundImage={quote.background_image}
+                           className="h-full"
+                           isOwner={true}
+                           onDelete={() => handleDeleteQuote(quote.id)}
+                         />
+                       ))}
+                       {favoriteQuotes.map((quote, index) => (
                          <QuoteCard
-                           key={quote.id || index}
-                           id={quote.id || `quote-${index}`}
-                           quote={quote.content || quote.quote_content}
-                           author={quote.author || quote.quote_author}
-                           category={quote.category || quote.quote_category}
-                           variant={getQuoteVariant(index)}
+                           key={quote.id}
+                           id={quote.quote_id}
+                           quote={quote.quote_content}
+                           author={quote.quote_author}
+                           category={quote.quote_category}
+                           backgroundImage={quote.quotes?.background_image}
+                           className="h-full"
+                         />
+                       ))}
+                       {lovedQuotes.map((quote, index) => (
+                         <QuoteCard
+                           key={quote.id}
+                           id={quote.quote_id}
+                           quote={quote.quote_content}
+                           author={quote.quote_author}
+                           category={quote.quote_category}
+                           backgroundImage={quote.quotes?.background_image}
                            className="h-full"
                          />
                        ))}
@@ -356,14 +418,16 @@ const MyQuotes = () => {
                    ) : selectedShelf === 'posted' ? (
                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
                        {userQuotes.map((quote, index) => (
-                         <QuoteCard
+                         <UserQuoteCard
                            key={quote.id}
                            id={quote.id}
                            quote={quote.content}
                            author={quote.author}
                            category={quote.category}
-                           variant={getQuoteVariant(index)}
+                           backgroundImage={quote.background_image}
                            className="h-full"
+                           isOwner={true}
+                           onDelete={() => handleDeleteQuote(quote.id)}
                          />
                        ))}
                      </div>
@@ -376,7 +440,7 @@ const MyQuotes = () => {
                            quote={quote.quote_content}
                            author={quote.quote_author}
                            category={quote.quote_category}
-                           variant={getQuoteVariant(index)}
+                           backgroundImage={quote.quotes?.background_image}
                            className="h-full"
                          />
                        ))}
@@ -390,7 +454,7 @@ const MyQuotes = () => {
                            quote={quote.quote_content}
                            author={quote.quote_author}
                            category={quote.quote_category}
-                           variant={getQuoteVariant(index)}
+                           backgroundImage={quote.quotes?.background_image}
                            className="h-full"
                          />
                        ))}
@@ -404,7 +468,7 @@ const MyQuotes = () => {
                           quote={quote.quote}
                           author={quote.author}
                           category={quote.category}
-                          variant={quote.variant}
+                          backgroundImage={quote.backgroundImage}
                           className="h-full"
                         />
                       ))}
@@ -422,14 +486,38 @@ const MyQuotes = () => {
                 
                   <TabsContent value="all" className="mt-6">
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                      {[...userQuotes, ...favoriteQuotes, ...lovedQuotes].map((quote, index) => (
+                      {userQuotes.map((quote, index) => (
+                        <UserQuoteCard
+                          key={quote.id}
+                          id={quote.id}
+                          quote={quote.content}
+                          author={quote.author}
+                          category={quote.category}
+                          backgroundImage={quote.background_image}
+                          className="h-full"
+                          isOwner={true}
+                          onDelete={() => handleDeleteQuote(quote.id)}
+                        />
+                      ))}
+                      {favoriteQuotes.map((quote, index) => (
                         <QuoteCard
-                          key={quote.id || index}
-                          id={quote.id || `quote-${index}`}
-                          quote={quote.content || quote.quote_content}
-                          author={quote.author || quote.quote_author}
-                          category={quote.category || quote.quote_category}
-                          variant={getQuoteVariant(index)}
+                          key={quote.id}
+                          id={quote.quote_id}
+                          quote={quote.quote_content}
+                          author={quote.quote_author}
+                          category={quote.quote_category}
+                          backgroundImage={quote.quotes?.background_image}
+                          className="h-full"
+                        />
+                      ))}
+                      {lovedQuotes.map((quote, index) => (
+                        <QuoteCard
+                          key={quote.id}
+                          id={quote.quote_id}
+                          quote={quote.quote_content}
+                          author={quote.quote_author}
+                          category={quote.quote_category}
+                          backgroundImage={quote.quotes?.background_image}
                           className="h-full"
                         />
                       ))}
@@ -445,14 +533,16 @@ const MyQuotes = () => {
                     ) : (
                       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
                         {userQuotes.map((quote, index) => (
-                          <QuoteCard
+                          <UserQuoteCard
                             key={quote.id}
                             id={quote.id}
                             quote={quote.content}
                             author={quote.author}
                             category={quote.category}
-                            variant={getQuoteVariant(index)}
+                            backgroundImage={quote.background_image}
                             className="h-full"
+                            isOwner={true}
+                            onDelete={() => handleDeleteQuote(quote.id)}
                           />
                         ))}
                       </div>
@@ -474,7 +564,7 @@ const MyQuotes = () => {
                           quote={quote.quote_content}
                           author={quote.quote_author}
                           category={quote.quote_category}
-                          variant={getQuoteVariant(index)}
+                          backgroundImage={quote.quotes?.background_image}
                           className="h-full"
                         />
                       ))}
@@ -497,7 +587,7 @@ const MyQuotes = () => {
                           quote={quote.quote_content}
                           author={quote.quote_author}
                           category={quote.quote_category}
-                          variant={getQuoteVariant(index)}
+                          backgroundImage={quote.quotes?.background_image}
                           className="h-full"
                         />
                       ))}

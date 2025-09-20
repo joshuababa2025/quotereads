@@ -1,23 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { QuoteCountDisplay } from "@/components/QuoteCountDisplay";
 
 const collections = [
   {
     title: "Wisdom of the Ages",
     description: "Ancient philosophers and modern thinkers share their greatest insights",
-    quotes: "396 quotes",
     color: "bg-gradient-to-br from-purple-100 to-purple-200",
     textColor: "text-purple-900",
-    path: "/wisdom-of-ages"
+    path: "/wisdom-of-ages",
+    specialCollection: "wisdom-of-ages"
   },
   {
     title: "Daily Motivation",
     description: "Start your day with powerful quotes that inspire action",
-    quotes: "89 quotes",
     color: "bg-gradient-to-br from-green-100 to-green-200", 
     textColor: "text-green-900",
-    path: "/daily-motivation"
+    path: "/daily-motivation",
+    category: "Motivation"
   }
 ];
 
@@ -45,7 +46,10 @@ export const FeaturedCollections = () => {
               </p>
               <div className="flex items-center justify-between">
                 <span className={`text-sm ${collection.textColor} opacity-70`}>
-                  {collection.quotes}
+                  <QuoteCountDisplay 
+                    category={collection.category}
+                    specialCollection={collection.specialCollection}
+                  /> quotes
                 </span>
                 <Button 
                   variant="ghost" 

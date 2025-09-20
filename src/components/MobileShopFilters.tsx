@@ -18,18 +18,10 @@ interface MobileShopFiltersProps {
   selectedRating: number;
   onRatingChange: (rating: number) => void;
   onClearFilters: () => void;
+  availableCategories: string[];
 }
 
-const categories = [
-  'Electronics',
-  'Clothing & Fashion', 
-  'Home & Garden',
-  'Books & Media',
-  'Sports & Fitness',
-  'Health & Beauty',
-  'Toys & Games',
-  'Office Supplies'
-];
+
 
 export function MobileShopFilters({
   priceRange,
@@ -38,7 +30,8 @@ export function MobileShopFilters({
   onCategoryChange,
   selectedRating,
   onRatingChange,
-  onClearFilters
+  onClearFilters,
+  availableCategories
 }: MobileShopFiltersProps) {
   const handleCategoryToggle = (category: string) => {
     if (selectedCategories.includes(category)) {
@@ -68,14 +61,14 @@ export function MobileShopFilters({
               <Slider
                 value={priceRange}
                 onValueChange={(value) => onPriceChange(value as [number, number])}
-                max={50}
-                min={5}
-                step={1}
+                max={1000}
+                min={0}
+                step={5}
                 className="mb-2"
               />
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>${priceRange[0]}</span>
-                <span>${priceRange[1]}</span>
+                <span>${priceRange[1] >= 1000 ? '1000+' : priceRange[1]}</span>
               </div>
             </div>
           </div>
@@ -84,7 +77,7 @@ export function MobileShopFilters({
           <div>
             <h4 className="font-medium text-foreground mb-3">Categories</h4>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {categories.map((category) => (
+              {availableCategories.map((category) => (
                 <div key={category} className="flex items-center space-x-2">
                   <Checkbox
                     id={category}

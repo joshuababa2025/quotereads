@@ -49,39 +49,8 @@ export const QuoteDetailDialog: React.FC<QuoteDetailDialogProps> = ({ quote, isO
   const { toast } = useToast();
   const { toggleLike, toggleFavorite, getInteraction } = useQuoteInteraction();
 
-  // Mock comments data
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: "1",
-      user: "Sarah Johnson",
-      avatar: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      content: "This quote really speaks to me. It's amazing how simple words can carry such profound meaning.",
-      timestamp: "2 hours ago",
-      likes: 12,
-      isLiked: false,
-      replies: [
-        {
-          id: "r1",
-          user: "Mike Chen",
-          avatar: "/lovable-uploads/d6ef49b8-d427-4023-8085-e6fd9a0aacf9.png",
-          content: "I completely agree! The simplicity makes it even more powerful.",
-          timestamp: "1 hour ago",
-          likes: 3,
-          isLiked: true,
-        }
-      ]
-    },
-    {
-      id: "2",
-      user: "David Wilson",
-      avatar: "/lovable-uploads/e76eef9f-2251-4b0a-93ae-8d95962f9b68.png",
-      content: "Added this to my daily affirmations. Thank you for sharing!",
-      timestamp: "4 hours ago",
-      likes: 8,
-      isLiked: true,
-      replies: []
-    }
-  ]);
+  // Real comments data - empty initially
+  const [comments, setComments] = useState<Comment[]>([]);
 
   if (!quote) return null;
 
@@ -257,7 +226,13 @@ export const QuoteDetailDialog: React.FC<QuoteDetailDialogProps> = ({ quote, isO
           {/* Comments */}
           <div className="space-y-4">
             <h3 className="font-semibold">Comments ({comments.length})</h3>
-            {comments.map((comment) => (
+            {comments.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No comments yet. Be the first to share your thoughts!</p>
+              </div>
+            ) : (
+              comments.map((comment) => (
               <div key={comment.id} className="space-y-3">
                 <div className="flex gap-3">
                   <Avatar className="w-8 h-8">
@@ -340,7 +315,8 @@ export const QuoteDetailDialog: React.FC<QuoteDetailDialogProps> = ({ quote, isO
                   </div>
                 )}
               </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </DialogContent>

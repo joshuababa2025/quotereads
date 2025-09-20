@@ -175,7 +175,6 @@ export default function Topics() {
                      quote={quote.quote}
                      author={quote.author}
                      category={quote.category}
-                     variant={quote.variant}
                    />
                  ))}
               </div>

@@ -1,32 +1,48 @@
 import { QuoteCard } from "./QuoteCard";
 import { useNavigate } from "react-router-dom";
-
-const personalizedQuotes = [
-  {
-    id: "personal-1",
-    quote: "Success is not final, failure is not fatal.",
-    author: "Winston Churchill",
-    category: "Motivation",
-    variant: "green" as const
-  },
-  {
-    id: "personal-2",
-    quote: "The future belongs to those who believe in the beauty of their dreams.",
-    author: "Eleanor Roosevelt",
-    category: "Dreams",
-    variant: "pink" as const
-  },
-  {
-    id: "personal-3",
-    quote: "It is during our darkest moments that we must focus to see the light.",
-    author: "Aristotle",
-    category: "Hope",
-    variant: "blue" as const
-  }
-];
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const PersonalizedQuotes = () => {
   const navigate = useNavigate();
+  const [quotes, setQuotes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadPersonalizedQuotes();
+  }, []);
+
+  const loadPersonalizedQuotes = async () => {
+    try {
+      const { data } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('is_hidden', false)
+        .order('created_at', { ascending: false })
+        .limit(3);
+      
+      setQuotes(data || []);
+    } catch (error) {
+      console.error('Error loading quotes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getQuoteVariant = (index: number) => {
+    const variants = ["green", "pink", "blue", "purple", "orange"] as const;
+    return variants[index % variants.length];
+  };
+
+  if (loading) {
+    return (
+      <section className="py-12 bg-background">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-pulse">Loading personalized quotes...</div>
+        </div>
+      </section>
+    );
+  }
   
   return (
     <section className="py-12 bg-background">
@@ -41,16 +57,23 @@ export const PersonalizedQuotes = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {personalizedQuotes.map((quote, index) => (
-            <QuoteCard
-              key={quote.id}
-              id={quote.id}
-              quote={quote.quote}
-              author={quote.author}
-              category={quote.category}
-              variant={quote.variant}
-            />
-          ))}
+          {quotes.length > 0 ? (
+            quotes.map((quote, index) => (
+              <QuoteCard
+                key={quote.id}
+                id={quote.id}
+                quote={quote.content}
+                author={quote.author || 'Anonymous'}
+                category={quote.category || 'General'}
+                backgroundImage={quote.background_image}
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center text-muted-foreground py-8">
+              <p>No personalized quotes available yet.</p>
+              <p className="text-sm mt-2">Start interacting with quotes to see personalized recommendations!</p>
+            </div>
+          )}
         </div>
       </div>
     </section>
