@@ -42,7 +42,7 @@ export function ProductCard({ product, onPreOrder }: ProductCardProps) {
       image: product.featured_image || '',
       author: '',
       isPreOrder: product.launch_date ? new Date(product.launch_date) > new Date() : false,
-      releaseDate: product.launch_date
+      releaseDate: product.launch_date ? new Date(product.launch_date) : new Date()
     };
     dispatch({ type: 'ADD_TO_CART', item: cartItem });
     toast.success(`${product.name} added to cart!`);

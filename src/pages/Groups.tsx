@@ -25,6 +25,7 @@ const Groups = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [tagQuery, setTagQuery] = useState('');
   const [groups, setGroups] = useState<GroupData[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -94,9 +95,18 @@ const Groups = () => {
     toast.success(`Link copied: ${groupName}`);
   };
 
+  const handleTagSearch = () => {
+    // Tag search functionality - could be enhanced later
+    console.log('Tag search:', tagQuery);
+  };
+
   const filteredGroups = groups.filter(group => 
     group.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     (group.description && group.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const filteredTags = availableTags.filter(tag => 
+    tag.toLowerCase().includes(tagQuery.toLowerCase())
   );
   return (
     <div className="min-h-screen bg-background">

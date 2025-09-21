@@ -33,9 +33,19 @@ export function PreOrderProductModal({ product, isOpen, onClose }: PreOrderProdu
   const timeLeft = usePreOrderTimer(product.launch_date ? new Date(product.launch_date) : undefined);
 
   const handlePreOrder = () => {
+    const cartItem = {
+      id: parseInt(product.id),
+      title: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.featured_image || '',
+      author: '',
+      isPreOrder: true,
+      releaseDate: product.launch_date ? new Date(product.launch_date) : new Date()
+    };
     dispatch({ 
       type: 'ADD_TO_CART', 
-      item: product
+      item: cartItem
     });
     toast.success(`${product.name} pre-order added to cart!`);
     onClose();
@@ -43,9 +53,19 @@ export function PreOrderProductModal({ product, isOpen, onClose }: PreOrderProdu
   };
 
   const handleAddToCart = () => {
+    const cartItem = {
+      id: parseInt(product.id),
+      title: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.featured_image || '',
+      author: '',
+      isPreOrder: false,
+      releaseDate: new Date()
+    };
     dispatch({ 
       type: 'ADD_TO_CART', 
-      item: product
+      item: cartItem
     });
     toast.success(`${product.name} added to cart!`);
     onClose();

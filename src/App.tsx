@@ -17,6 +17,7 @@ const CampaignPayment = lazy(() => import("./pages/CampaignPayment"));
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Groups = lazy(() => import("./pages/Groups"));
+const GroupDetailPage = lazy(() => import("./pages/GroupDetail"));
 const CommunityQuotes = lazy(() => import("./pages/CommunityQuotes"));
 const NewGiveaway = lazy(() => import("./pages/NewGiveaway"));
 const PackageDetails = lazy(() => import("./pages/PackageDetails"));
@@ -96,6 +97,7 @@ const App = () => (
                         <Route path="/" element={<Index />} />
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/groups" element={<Groups />} />
+                        <Route path="/groups/:groupId" element={<GroupDetailPage />} />
                         <Route path="/community-quotes" element={<CommunityQuotes />} />
                         <Route path="/giveaway" element={<Giveaway />} />
                         <Route path="/giveaway/package/:id" element={<PackageDetails />} />
