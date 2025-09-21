@@ -16,6 +16,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { GroupMemberManagement } from "@/components/GroupMemberManagement";
+import { DiscussionCard } from "@/components/DiscussionCard";
+import { MeetingCard } from "@/components/MeetingCard";
+import { CreateMeetingDialog } from "@/components/CreateMeetingDialog";
 
 interface GroupData {
   id: string;
@@ -52,6 +55,20 @@ interface GroupDiscussion {
   comments_count: number;
 }
 
+interface GroupMeeting {
+  id: string;
+  title: string;
+  description: string | null;
+  meeting_type: string;
+  start_time: string;
+  end_time: string | null;
+  meeting_link: string | null;
+  address: string | null;
+  google_maps_link: string | null;
+  user_id: string;
+  created_at: string;
+}
+
 const GroupDetail = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
@@ -61,10 +78,12 @@ const GroupDetail = () => {
   const [group, setGroup] = useState<GroupData | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [discussions, setDiscussions] = useState<GroupDiscussion[]>([]);
+  const [meetings, setMeetings] = useState<GroupMeeting[]>([]);
   const [userMembership, setUserMembership] = useState<GroupMember | null>(null);
   const [loading, setLoading] = useState(true);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showCreateDiscussion, setShowCreateDiscussion] = useState(false);
+  const [showCreateMeeting, setShowCreateMeeting] = useState(false);
   
   const [editForm, setEditForm] = useState({
     name: '',
@@ -127,6 +146,16 @@ const GroupDetail = () => {
 
       if (discussionsError) throw discussionsError;
       setDiscussions(discussionsData || []);
+
+      // Fetch meetings
+      const { data: meetingsData, error: meetingsError } = await supabase
+        .from('group_meetings')
+        .select('*')
+        .eq('group_id', groupId)
+        .order('start_time', { ascending: true });
+
+      if (meetingsError) throw meetingsError;
+      setMeetings(meetingsData || []);
 
     } catch (error: any) {
       console.error('Error fetching group data:', error);
@@ -462,29 +491,29 @@ const GroupDetail = () => {
       <Navigation />
       
       {/* Cover Photo Banner */}
-      <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 overflow-hidden">
+      <div className="relative bg-gradient-to-r from-primary/20 to-primary/10 overflow-hidden min-h-[300px]">
         {group.cover_image && (
           <div className="absolute inset-0">
             <img 
               src={group.cover_image} 
               alt="Group cover" 
-              className="w-full h-full object-cover opacity-40"
+              className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black/10" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40" />
           </div>
         )}
         <div className="relative container mx-auto px-4 py-8">
           <Button
             variant="ghost"
             onClick={() => navigate('/groups')}
-            className="mb-4 bg-white/10 backdrop-blur-sm hover:bg-white/20"
+            className="mb-4 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-white/20"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Groups
           </Button>
           
-          <div className="flex items-center gap-6">
-            <div className="w-24 h-24 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center relative z-10">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+            <div className="w-24 h-24 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center relative z-10 flex-shrink-0">
               {group.profile_image ? (
                 <img src={group.profile_image} alt="Group" className="w-24 h-24 rounded-lg object-cover" />
               ) : (
@@ -494,8 +523,8 @@ const GroupDetail = () => {
               )}
             </div>
             <div className="flex-1 relative z-10">
-              <h1 className="text-3xl font-bold mb-2 text-foreground">{group.name}</h1>
-              <div className="flex items-center gap-6 text-muted-foreground mb-3">
+              <h1 className="text-3xl font-bold mb-2 text-white">{group.name}</h1>
+              <div className="flex flex-wrap items-center gap-4 text-white/90 mb-3">
                 <span className="flex items-center gap-1">
                   <Users className="w-4 h-4" />
                   {members.length} {members.length === 1 ? 'member' : 'members'}
@@ -505,38 +534,40 @@ const GroupDetail = () => {
                   Created {format(new Date(group.created_at), 'MMMM yyyy')}
                 </span>
                 {group.type && (
-                  <Badge variant="secondary">{group.type}</Badge>
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                    {group.type}
+                  </Badge>
                 )}
               </div>
-              <p className="text-muted-foreground">{group.description}</p>
+              <p className="text-white/90 font-medium">{group.description}</p>
               {group.bio && (
-                <p className="text-muted-foreground mt-2 font-medium">{group.bio}</p>
+                <p className="text-white/80 mt-2">{group.bio}</p>
               )}
             </div>
-            <div className="flex gap-2 relative z-10">
+            <div className="flex flex-wrap gap-2 relative z-10">
               {isAdmin && (
                 <>
-                  <Button variant="outline" onClick={() => setShowEditDialog(true)}>
+                  <Button variant="outline" onClick={() => setShowEditDialog(true)} className="bg-white/10 text-white border-white/30 hover:bg-white/20">
                     <Settings className="w-4 h-4 mr-2" />
                     Edit Group
                   </Button>
                   <Button 
                     variant="destructive" 
                     onClick={handleDeleteGroup}
-                    className="text-white"
+                    className="bg-red-600/80 hover:bg-red-600 text-white border-0"
                   >
                     Delete Group
                   </Button>
                 </>
               )}
-              <Button variant="outline" onClick={shareGroup}>
+              <Button variant="outline" onClick={shareGroup} className="bg-white/10 text-white border-white/30 hover:bg-white/20">
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
               </Button>
               {!isMember ? (
-                <Button onClick={handleJoinGroup}>Join Group</Button>
+                <Button onClick={handleJoinGroup} className="bg-primary hover:bg-primary/90">Join Group</Button>
               ) : (
-                <Button variant="outline" onClick={handleLeaveGroup}>
+                <Button variant="outline" onClick={handleLeaveGroup} className="bg-white/10 text-white border-white/30 hover:bg-white/20">
                   Leave Group
                 </Button>
               )}
@@ -548,14 +579,44 @@ const GroupDetail = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            {/* Create Discussion Button */}
+            {/* Action Buttons */}
             {isMember && (
-              <div className="mb-6">
-                <Button onClick={() => setShowCreateDiscussion(true)} className="w-full">
+              <div className="flex gap-3 mb-6">
+                <Button onClick={() => setShowCreateDiscussion(true)} className="flex-1">
                   <Plus className="w-4 h-4 mr-2" />
-                  {isAdmin ? 'Create Announcement / Discussion' : 'Create New Discussion'}
+                  {isAdmin ? 'Create Announcement' : 'New Discussion'}
+                </Button>
+                <Button onClick={() => setShowCreateMeeting(true)} variant="outline" className="flex-1">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Schedule Meeting
                 </Button>
               </div>
+            )}
+
+            {/* Upcoming Meetings */}
+            {meetings.length > 0 && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Upcoming Meetings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {meetings
+                      .filter(meeting => new Date(meeting.start_time) > new Date())
+                      .slice(0, 3)
+                      .map((meeting) => (
+                        <MeetingCard 
+                          key={meeting.id} 
+                          meeting={meeting} 
+                          groupId={groupId!}
+                        />
+                      ))}
+                    {meetings.filter(meeting => new Date(meeting.start_time) > new Date()).length === 0 && (
+                      <p className="text-center text-muted-foreground py-4">No upcoming meetings</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             {/* Discussions */}
@@ -583,66 +644,13 @@ const GroupDetail = () => {
                 ) : (
                   <div className="space-y-4">
                     {discussions.map((discussion) => (
-                      <div key={discussion.id} className="p-4 border rounded-lg">
-                        <div className="flex items-center gap-3 mb-3">
-                          <Avatar className="w-8 h-8">
-                            <AvatarFallback>
-                              {discussion.user_id.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-sm">
-                              {discussion.user_id === group?.created_by ? 'Group Admin' : 'Member'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {format(new Date(discussion.created_at), 'MMM dd, yyyy • HH:mm')}
-                            </p>
-                          </div>
-                          {isAdmin && (
-                            <div className="ml-auto">
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                        <h4 className="font-semibold mb-2">{discussion.title}</h4>
-                        <p className="text-sm text-muted-foreground mb-3">{discussion.content}</p>
-                         {discussion.image_urls && discussion.image_urls.length > 0 && (
-                           <div className="flex gap-2 mb-3">
-                             {discussion.image_urls.map((url, index) => (
-                               <img 
-                                 key={index} 
-                                 src={url} 
-                                 alt={`Discussion image ${index + 1}`}
-                                 className="w-20 h-20 object-cover rounded"
-                               />
-                             ))}
-                           </div>
-                         )}
-                         {discussion.video_urls && discussion.video_urls.length > 0 && (
-                           <div className="flex gap-2 mb-3">
-                             {discussion.video_urls.map((url, index) => (
-                               <video 
-                                 key={index} 
-                                 src={url} 
-                                 controls
-                                 className="w-40 h-24 object-cover rounded"
-                               />
-                             ))}
-                           </div>
-                         )}
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <button className="flex items-center gap-1 hover:text-primary">
-                            <Heart className="w-4 h-4" />
-                            {discussion.likes_count} likes
-                          </button>
-                          <button className="flex items-center gap-1 hover:text-primary">
-                            <MessageCircle className="w-4 h-4" />
-                            {discussion.comments_count} comments
-                          </button>
-                        </div>
-                      </div>
+                      <DiscussionCard
+                        key={discussion.id}
+                        discussion={discussion}
+                        isAdmin={isAdmin}
+                        groupCreatedBy={group?.created_by || ''}
+                        onRefresh={fetchGroupData}
+                      />
                     ))}
                   </div>
                 )}
@@ -830,6 +838,15 @@ const GroupDetail = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Create Meeting Dialog */}
+      <CreateMeetingDialog
+        isOpen={showCreateMeeting}
+        onClose={() => setShowCreateMeeting(false)}
+        groupId={groupId!}
+        userId={user?.id || ''}
+        onMeetingCreated={fetchGroupData}
+      />
 
       <Footer />
     </div>
