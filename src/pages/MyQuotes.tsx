@@ -379,19 +379,20 @@ const MyQuotes = () => {
                   </h2>
                    {selectedShelf === 'all' ? (
                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                       {userQuotes.map((quote, index) => (
-                         <UserQuoteCard
-                           key={quote.id}
-                           id={quote.id}
-                           quote={quote.content}
-                           author={quote.author}
-                           category={quote.category}
-                           backgroundImage={quote.background_image}
-                           className="h-full"
-                           isOwner={true}
-                           onDelete={() => handleDeleteQuote(quote.id)}
-                         />
-                       ))}
+                        {userQuotes.map((quote, index) => (
+                          <UserQuoteCard
+                            key={quote.id}
+                            id={quote.id}
+                            quote={quote.content}
+                            author={quote.author}
+                            category={quote.category}
+                            variant="blue"
+                            backgroundImage={quote.background_image}
+                            className="h-full"
+                            isOwner={true}
+                            onDelete={() => handleDeleteQuote(quote.id)}
+                          />
+                        ))}
                        {favoriteQuotes.map((quote, index) => (
                          <QuoteCard
                            key={quote.id}
@@ -417,19 +418,20 @@ const MyQuotes = () => {
                      </div>
                    ) : selectedShelf === 'posted' ? (
                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                       {userQuotes.map((quote, index) => (
-                         <UserQuoteCard
-                           key={quote.id}
-                           id={quote.id}
-                           quote={quote.content}
-                           author={quote.author}
-                           category={quote.category}
-                           backgroundImage={quote.background_image}
-                           className="h-full"
-                           isOwner={true}
-                           onDelete={() => handleDeleteQuote(quote.id)}
-                         />
-                       ))}
+                        {userQuotes.map((quote, index) => (
+                          <UserQuoteCard
+                            key={quote.id}
+                            id={quote.id}
+                            quote={quote.content}
+                            author={quote.author}
+                            category={quote.category}
+                            variant="purple"
+                            backgroundImage={quote.background_image}
+                            className="h-full"
+                            isOwner={true}
+                            onDelete={() => handleDeleteQuote(quote.id)}
+                          />
+                        ))}
                      </div>
                    ) : selectedShelf === 'favorites' ? (
                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
@@ -486,19 +488,20 @@ const MyQuotes = () => {
                 
                   <TabsContent value="all" className="mt-6">
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                      {userQuotes.map((quote, index) => (
-                        <UserQuoteCard
-                          key={quote.id}
-                          id={quote.id}
-                          quote={quote.content}
-                          author={quote.author}
-                          category={quote.category}
-                          backgroundImage={quote.background_image}
-                          className="h-full"
-                          isOwner={true}
-                          onDelete={() => handleDeleteQuote(quote.id)}
-                        />
-                      ))}
+                       {userQuotes.map((quote, index) => (
+                         <UserQuoteCard
+                           key={quote.id}
+                           id={quote.id}
+                           quote={quote.content}
+                           author={quote.author}
+                           category={quote.category}
+                           variant="green"
+                           backgroundImage={quote.background_image}
+                           className="h-full"
+                           isOwner={true}
+                           onDelete={() => handleDeleteQuote(quote.id)}
+                         />
+                       ))}
                       {favoriteQuotes.map((quote, index) => (
                         <QuoteCard
                           key={quote.id}
@@ -532,19 +535,20 @@ const MyQuotes = () => {
                       </div>
                     ) : (
                       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-                        {userQuotes.map((quote, index) => (
-                          <UserQuoteCard
-                            key={quote.id}
-                            id={quote.id}
-                            quote={quote.content}
-                            author={quote.author}
-                            category={quote.category}
-                            backgroundImage={quote.background_image}
-                            className="h-full"
-                            isOwner={true}
-                            onDelete={() => handleDeleteQuote(quote.id)}
-                          />
-                        ))}
+                         {userQuotes.map((quote, index) => (
+                           <UserQuoteCard
+                             key={quote.id}
+                             id={quote.id}
+                             quote={quote.content}
+                             author={quote.author}
+                             category={quote.category}
+                             variant="orange"
+                             backgroundImage={quote.background_image}
+                             className="h-full"
+                             isOwner={true}
+                             onDelete={() => handleDeleteQuote(quote.id)}
+                           />
+                         ))}
                       </div>
                     )}
                   </TabsContent>

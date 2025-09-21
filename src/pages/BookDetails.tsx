@@ -200,7 +200,10 @@ const BookDetails = () => {
             .single();
             
           if (bookData) {
-            setBook(bookData);
+            setBook({
+              ...bookData,
+              categories: typeof bookData.categories === 'string' ? [bookData.categories] : bookData.categories || []
+            });
           }
         }
       } else {
@@ -212,7 +215,10 @@ const BookDetails = () => {
           .maybeSingle();
 
         if (bookData) {
-          setBook(bookData);
+          setBook({
+            ...bookData,
+            categories: typeof bookData.categories === 'string' ? [bookData.categories] : bookData.categories || []
+          });
         }
       }
     } catch (error) {

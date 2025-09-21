@@ -100,7 +100,10 @@ const AdminBooks = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setBooks(data || []);
+      setBooks((data || []).map(book => ({
+        ...book,
+        categories: typeof book.categories === 'string' ? [book.categories] : book.categories || []
+      })));
     } catch (error) {
       console.error('Error fetching books:', error);
       toast({
@@ -133,7 +136,7 @@ const AdminBooks = () => {
     try {
       const bookData = {
         ...bookForm,
-        categories: bookForm.categories.split(',').map(c => c.trim()),
+        categories: bookForm.categories, // Keep as string since DB expects string
         pages: parseInt(bookForm.pages) || 0,
         price: bookForm.price ? parseFloat(bookForm.price) : null,
         published_date: bookForm.published_date || new Date().toISOString().split('T')[0]

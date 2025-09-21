@@ -6,34 +6,45 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, Clock, Search, Upload, Plus, Share2, MessageCircle, Calendar } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Users, Search, Plus, Share2, Calendar } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 interface GroupData {
   id: string;
   name: string;
   description: string | null;
+  type: string | null;
+  tags: string[] | null;
   created_at: string;
+  created_by: string;
+  member_count?: number;
 }
 
 const Groups = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [tagQuery, setTagQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('');
   const [groups, setGroups] = useState<GroupData[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Create Group Form State
   const [formData, setFormData] = useState({
     name: '',
-    description: ''
+    description: '',
+    type: '',
+    tags: ''
   });
 
   const availableTags = ['bookclub', 'fun', 'fantasy', 'science-fiction', 'romance', 'mystery', 'fiction', 'young-adult', 'books', 'horror', 'sports', 'tech', 'javascript', 'programming'];
@@ -44,17 +55,31 @@ const Groups = () => {
 
   const fetchGroups = async () => {
     try {
+      // Get groups with member counts
       const { data, error } = await supabase
         .from('groups')
-        .select('*')
+        .select(`
+          *,
+          group_members!inner(count)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      setGroups(data || []);
+      // Process the data to get member counts
+      const groupsWithCounts = data?.map(group => ({
+        ...group,
+        member_count: group.group_members?.[0]?.count || 0
+      })) || [];
+
+      setGroups(groupsWithCounts);
     } catch (error: any) {
       console.error('Error fetching groups:', error);
-      toast.error('Failed to load groups');
+      toast({
+        title: "Error",
+        description: "Failed to load groups",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -62,52 +87,144 @@ const Groups = () => {
 
   const createGroup = async () => {
     if (!user) {
-      toast.error('Please sign in to create a group');
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to create a group.",
+        variant: "destructive"
+      });
       navigate('/auth');
       return;
     }
 
+    if (!formData.name.trim() || !formData.description.trim()) {
+      toast({
+        title: "Required fields missing",
+        description: "Please fill in the group name and description.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
+      // Create the group
       const { data: group, error } = await supabase
         .from('groups')
         .insert({
           name: formData.name,
-          description: formData.description
+          description: formData.description,
+          type: formData.type || 'General',
+          tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
+          created_by: user.id
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      toast.success('Group created successfully!');
+      // Add creator as admin member
+      await supabase
+        .from('group_members')
+        .insert({
+          group_id: group.id,
+          user_id: user.id,
+          role: 'admin',
+          joined_at: new Date().toISOString()
+        });
+
+      toast({
+        title: "Success!",
+        description: "Group created successfully!"
+      });
+      
       setIsCreateDialogOpen(false);
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', type: '', tags: '' });
       fetchGroups();
     } catch (error: any) {
       console.error('Error creating group:', error);
-      toast.error('Failed to create group');
+      toast({
+        title: "Error",
+        description: "Failed to create group",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const joinGroup = async (groupId: string) => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to join groups.",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('group_members')
+        .insert({
+          group_id: groupId,
+          user_id: user.id,
+          role: 'member',
+          joined_at: new Date().toISOString()
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast({
+            title: "Already a member",
+            description: "You're already a member of this group.",
+            variant: "destructive"
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Success!",
+          description: "You've joined the group!"
+        });
+        fetchGroups(); // Refresh to update member counts
+      }
+    } catch (error: any) {
+      console.error('Error joining group:', error);
+      toast({
+        title: "Error",
+        description: "Failed to join group",
+        variant: "destructive"
+      });
     }
   };
 
   const shareGroup = (groupId: string, groupName: string) => {
     const groupUrl = `${window.location.origin}/groups/${groupId}`;
     navigator.clipboard.writeText(groupUrl);
-    toast.success(`Link copied: ${groupName}`);
+    toast({
+      title: "Link copied!",
+      description: `${groupName} link copied to clipboard`
+    });
   };
 
   const handleTagSearch = () => {
-    // Tag search functionality - could be enhanced later
-    console.log('Tag search:', tagQuery);
+    setSearchQuery(tagQuery);
   };
 
-  const filteredGroups = groups.filter(group => 
-    group.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (group.description && group.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredGroups = groups.filter(group => {
+    const matchesSearch = group.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (group.description && group.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesType = !selectedType || group.type === selectedType;
+    return matchesSearch && matchesType;
+  });
 
   const filteredTags = availableTags.filter(tag => 
     tag.toLowerCase().includes(tagQuery.toLowerCase())
   );
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -117,50 +234,42 @@ const Groups = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-foreground mb-2">Groups</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Community Groups</h1>
               <p className="text-muted-foreground">
-                Reading Challenge Faves: The most-read books by 2025 participants (so far).
+                Connect with like-minded people, share experiences, and build lasting friendships.
               </p>
             </div>
 
             <div className="flex items-center gap-4 mb-8">
-              <Input 
-                placeholder="Search groups by name or description..." 
-                className="flex-1"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input 
+                  placeholder="Search groups by name or description..." 
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="Book Club">Book Club</SelectItem>
+                  <SelectItem value="Sports Club">Sports Club</SelectItem>
+                  <SelectItem value="Tech Meetup">Tech Meetup</SelectItem>
+                  <SelectItem value="Study Group">Study Group</SelectItem>
+                  <SelectItem value="Social Club">Social Club</SelectItem>
+                  <SelectItem value="Professional">Professional</SelectItem>
+                  <SelectItem value="General">General</SelectItem>
+                </SelectContent>
+              </Select>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create Group
               </Button>
             </div>
-
-            {/* Featured Groups */}
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Featured groups</h2>
-              <Card className="mb-4 cursor-pointer hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <Link to="/read-with-jenna" className="flex gap-4">
-                    <img 
-                      src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" 
-                      alt="Group avatar" 
-                      className="w-16 h-16 rounded object-cover"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors">Read With Jenna (Official)</h3>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        39649 members • Active a month ago
-                      </p>
-                      <p className="text-sm">
-                        When anyone on the TODAY team is looking for a book recommendation, there is only 
-                        one person to turn to: Jenna Bush Hager. Jenna selects a book...
-                      </p>
-                    </div>
-                  </Link>
-                </CardContent>
-              </Card>
-            </section>
 
             {/* All Groups */}
             <section className="mb-8">
@@ -202,9 +311,16 @@ const Groups = () => {
                               </h3>
                               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                                 <span className="flex items-center gap-1">
+                                  <Users className="w-4 h-4" />
+                                  {group.member_count || 0} members
+                                </span>
+                                <span className="flex items-center gap-1">
                                   <Calendar className="w-4 h-4" />
                                   Created {format(new Date(group.created_at), 'MMMM yyyy')}
                                 </span>
+                                {group.type && (
+                                  <Badge variant="secondary">{group.type}</Badge>
+                                )}
                               </div>
                             </div>
                             <div className="flex gap-2">
@@ -215,18 +331,37 @@ const Groups = () => {
                               >
                                 <Share2 className="w-4 h-4" />
                               </Button>
-                              {user && (
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={() => navigate(`/groups/${group.id}`)}
-                                >
-                                  View Group
-                                </Button>
-                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => joinGroup(group.id)}
+                              >
+                                Join
+                              </Button>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => navigate(`/groups/${group.id}`)}
+                              >
+                                View Group
+                              </Button>
                             </div>
                           </div>
                           <p className="text-sm mb-3">{group.description}</p>
+                          {group.tags && group.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {group.tags.slice(0, 5).map((tag, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {group.tags.length > 5 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{group.tags.length - 5}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -324,26 +459,57 @@ const Groups = () => {
 
       {/* Create Group Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Create New Group</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              Create New Group
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Group Name</label>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Group Name *</Label>
               <Input 
+                id="name"
                 placeholder="Enter group name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
-            <div>
-              <label className="text-sm font-medium">Description</label>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description *</Label>
               <Textarea 
-                placeholder="Describe your group..."
+                id="description"
+                placeholder="Describe your group and its purpose..."
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="type">Group Type</Label>
+              <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Book Club">Book Club</SelectItem>
+                  <SelectItem value="Sports Club">Sports Club</SelectItem>
+                  <SelectItem value="Tech Meetup">Tech Meetup</SelectItem>
+                  <SelectItem value="Study Group">Study Group</SelectItem>
+                  <SelectItem value="Social Club">Social Club</SelectItem>
+                  <SelectItem value="Professional">Professional</SelectItem>
+                  <SelectItem value="General">General</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tags">Tags</Label>
+              <Input 
+                id="tags"
+                placeholder="Enter tags separated by commas"
+                value={formData.tags}
+                onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
               />
             </div>
             <div className="flex gap-2 pt-4">
@@ -353,9 +519,9 @@ const Groups = () => {
               <Button 
                 onClick={createGroup} 
                 className="flex-1"
-                disabled={!formData.name.trim()}
+                disabled={!formData.name.trim() || !formData.description.trim() || isSubmitting}
               >
-                Create Group
+                {isSubmitting ? 'Creating...' : 'Create Group'}
               </Button>
             </div>
           </div>
