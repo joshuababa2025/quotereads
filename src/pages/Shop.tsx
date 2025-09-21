@@ -48,7 +48,12 @@ const Shop = () => {
         .order('created_at', { ascending: false });
       
       if (!error && data) {
-        setProducts(data);
+        // Type assertion to fix status type mismatch
+        const productsWithCorrectTypes = data.map(item => ({
+          ...item,
+          status: item.status as "active" | "inactive" | "coming_soon"
+        })) as Product[];
+        setProducts(productsWithCorrectTypes);
       }
     } catch (error) {
       console.error('Error fetching products:', error);

@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { assignBackgroundImages } from "@/utils/assignBackgroundImages";
 
 
-interface Quote {
+interface CommunityQuote {
   id: string;
   content: string;
   author: string;
@@ -32,14 +32,14 @@ interface Quote {
 }
 
 const CommunityQuotes = () => {
-  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [quotes, setQuotes] = useState<CommunityQuote[]>([]);
   const [quoteLikes, setQuoteLikes] = useState<{[key: string]: number}>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [tagQuery, setTagQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
   const [activeTab, setActiveTab] = useState("popular");
-  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [selectedQuote, setSelectedQuote] = useState<CommunityQuote | null>(null);
   const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -68,7 +68,7 @@ const CommunityQuotes = () => {
       
       if (!quotesError && quotesData) {
         // Assign background images to quotes that don't have them
-        const quotesWithImages = await assignBackgroundImages(quotesData);
+        const quotesWithImages = await assignBackgroundImages(quotesData) as CommunityQuote[];
         
         if (append) {
           setQuotes(prev => [...prev, ...quotesWithImages]);
@@ -170,7 +170,7 @@ const CommunityQuotes = () => {
     ).slice(0, 20);
   }, [allTags, tagQuery]);
 
-  const handleLike = async (quote: Quote) => {
+  const handleLike = async (quote: CommunityQuote) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast({
@@ -227,7 +227,7 @@ const CommunityQuotes = () => {
     }
   };
 
-  const handleFavorite = async (quote: Quote) => {
+  const handleFavorite = async (quote: CommunityQuote) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast({
@@ -265,9 +265,9 @@ const CommunityQuotes = () => {
           .insert({
             quote_id: quote.id,
             user_id: user.id,
-            content: quote.content,
-            author: quote.author,
-            category: quote.category
+            quote_content: quote.content,
+            quote_author: quote.author,
+            quote_category: quote.category
           });
         
         toast({
@@ -287,7 +287,7 @@ const CommunityQuotes = () => {
     }
   };
 
-  const handleShare = async (quote: Quote) => {
+  const handleShare = async (quote: CommunityQuote) => {
     const shareText = `"${quote.content}" - ${quote.author}`;
     const shareUrl = `${window.location.origin}/quote/${quote.id}`;
     
@@ -310,7 +310,7 @@ const CommunityQuotes = () => {
     }
   };
 
-  const handleDiscuss = (quote: Quote) => {
+  const handleDiscuss = (quote: CommunityQuote) => {
     setSelectedQuote(quote);
     setIsQuoteDialogOpen(true);
   };
@@ -545,7 +545,10 @@ const CommunityQuotes = () => {
       </main>
 
       <QuoteDetailDialog 
-        quote={selectedQuote}
+        quote={selectedQuote ? {
+          ...selectedQuote,
+          quote: selectedQuote.content
+        } : null}
         isOpen={isQuoteDialogOpen}
         onClose={() => setIsQuoteDialogOpen(false)}
       />

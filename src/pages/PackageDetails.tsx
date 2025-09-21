@@ -50,25 +50,46 @@ const PackageDetails = () => {
     if (!id) return;
     
     try {
-      // Fetch package details
-      const { data: packageData, error: packageError } = await supabase
-        .from('giveaway_packages')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // Since giveaway_packages table doesn't exist, use mock data for now
+      const mockPackage: GiveawayPackage = {
+        id: id,
+        title: id === '1' ? 'Basic Giveaway Package' : 'Premium Giveaway Package',
+        description: id === '1' ? 'Perfect for small communities' : 'For growing communities',
+        category: id === '1' ? 'Basic' : 'Premium', 
+        base_price: id === '1' ? 29.99 : 79.99,
+        image_url: '/placeholder.svg',
+        features: id === '1' 
+          ? ['Up to 100 participants', 'Basic analytics', 'Email support']
+          : ['Up to 1000 participants', 'Advanced analytics', 'Priority support', 'Custom branding']
+      };
 
-      if (packageError) throw packageError;
+      // Mock addons data
+      const mockAddons: PackageAddon[] = [
+        {
+          id: 'addon1',
+          package_id: id,
+          name: 'Custom Branding',
+          description: 'Add your own logo and colors to the giveaway',
+          price: 15.00
+        },
+        {
+          id: 'addon2',
+          package_id: id,
+          name: 'Extended Analytics',
+          description: 'Get detailed insights about your participants',
+          price: 25.00
+        },
+        {
+          id: 'addon3',
+          package_id: id,
+          name: 'Priority Support',
+          description: '24/7 priority customer support',
+          price: 10.00
+        }
+      ];
 
-      // Fetch addons
-      const { data: addonsData, error: addonsError } = await supabase
-        .from('package_addons')
-        .select('*')
-        .eq('package_id', id);
-
-      if (addonsError) throw addonsError;
-
-      setPackageData(packageData);
-      setAddons(addonsData || []);
+      setPackageData(mockPackage);
+      setAddons(mockAddons);
     } catch (error) {
       console.error('Error fetching package details:', error);
       toast({

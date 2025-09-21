@@ -47,7 +47,12 @@ const ProductDetails = () => {
         .single();
       
       if (!error && data) {
-        setProduct(data);
+        // Type assertion to fix status type mismatch
+        const product = {
+          ...data,
+          status: data.status as "active" | "inactive" | "coming_soon"
+        } as Product;
+        setProduct(product);
       } else {
         toast.error("Product not found");
         navigate('/shop');
@@ -62,14 +67,32 @@ const ProductDetails = () => {
 
   const handleAddToCart = () => {
     if (product) {
-      dispatch({ type: 'ADD_TO_CART', item: product });
+      const cartItem = {
+        id: parseInt(product.id) || 0,
+        name: product.name,
+        price: product.price,
+        image: product.featured_image || '/placeholder.svg',
+        title: product.name,
+        author: 'Store',
+        quantity: 1
+      };
+      dispatch({ type: 'ADD_TO_CART', item: cartItem });
       toast.success(`${product.name} added to cart!`);
     }
   };
 
   const handleBuyNow = () => {
     if (product) {
-      dispatch({ type: 'ADD_TO_CART', item: product });
+      const cartItem = {
+        id: parseInt(product.id) || 0,
+        name: product.name,
+        price: product.price,
+        image: product.featured_image || '/placeholder.svg',
+        title: product.name,
+        author: 'Store',
+        quantity: 1
+      };
+      dispatch({ type: 'ADD_TO_CART', item: cartItem });
       navigate('/checkout');
     }
   };

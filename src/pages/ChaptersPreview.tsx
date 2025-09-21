@@ -206,7 +206,10 @@ const ChaptersPreview = () => {
                         onError={(e) => {
                           console.error('Chapter image failed to load:', e.currentTarget.src);
                           e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.style.setProperty('display', 'flex');
+                          const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (nextElement) {
+                            nextElement.style.setProperty('display', 'flex');
+                          }
                         }}
                       />
                     ) : (

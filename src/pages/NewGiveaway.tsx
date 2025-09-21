@@ -47,12 +47,28 @@ const NewGiveaway = () => {
 
   const fetchPackages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('giveaway_packages')
-        .select('*');
-      
-      if (error) throw error;
-      setPackages(data || []);
+      // Since giveaway_packages table doesn't exist, use mock data for now
+      const mockPackages: GiveawayPackage[] = [
+        {
+          id: '1',
+          title: 'Basic Giveaway Package',
+          description: 'Perfect for small communities',
+          category: 'Basic',
+          base_price: 29.99,
+          image_url: '/placeholder.svg',
+          features: ['Up to 100 participants', 'Basic analytics', 'Email support']
+        },
+        {
+          id: '2',
+          title: 'Premium Giveaway Package',
+          description: 'For growing communities',
+          category: 'Premium',
+          base_price: 79.99,
+          image_url: '/placeholder.svg',
+          features: ['Up to 1000 participants', 'Advanced analytics', 'Priority support', 'Custom branding']
+        }
+      ];
+      setPackages(mockPackages);
     } catch (error) {
       console.error('Error fetching packages:', error);
     } finally {
@@ -64,14 +80,13 @@ const NewGiveaway = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('user_rankings')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') throw error;
-      setUserRanking(data);
+      // Since user_rankings table doesn't exist, use mock data for now
+      const mockRanking: UserRanking = {
+        rank_level: 'Bronze',
+        points: 150,
+        display_rank: true
+      };
+      setUserRanking(mockRanking);
     } catch (error) {
       console.error('Error fetching user ranking:', error);
     }

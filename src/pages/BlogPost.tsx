@@ -36,6 +36,7 @@ interface BlogPost {
   additional_images?: string[];
   published_at: string;
   created_at: string;
+  excerpt?: string;
 }
 
 const BlogPost = () => {
@@ -180,7 +181,7 @@ const BlogPost = () => {
                 </h1>
                 
                 <p className="text-xl text-muted-foreground mb-6">
-                  {blogPost.excerpt}
+                  {blogPost.excerpt || blogPost.content.substring(0, 200) + '...'}
                 </p>
                 
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
