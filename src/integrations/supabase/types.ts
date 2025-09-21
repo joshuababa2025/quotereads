@@ -559,6 +559,8 @@ export type Database = {
       }
       group_discussions: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           comments_count: number | null
           content: string
           created_at: string | null
@@ -566,11 +568,15 @@ export type Database = {
           id: string
           image_urls: string[] | null
           likes_count: number | null
+          status: string | null
           title: string
           updated_at: string | null
           user_id: string
+          video_urls: string[] | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           comments_count?: number | null
           content: string
           created_at?: string | null
@@ -578,11 +584,15 @@ export type Database = {
           id?: string
           image_urls?: string[] | null
           likes_count?: number | null
+          status?: string | null
           title: string
           updated_at?: string | null
           user_id: string
+          video_urls?: string[] | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           comments_count?: number | null
           content?: string
           created_at?: string | null
@@ -590,9 +600,11 @@ export type Database = {
           id?: string
           image_urls?: string[] | null
           likes_count?: number | null
+          status?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string
+          video_urls?: string[] | null
         }
         Relationships: [
           {
@@ -639,37 +651,103 @@ export type Database = {
           },
         ]
       }
+      group_notifications: {
+        Row: {
+          created_at: string | null
+          discussion_id: string | null
+          group_id: string
+          id: string
+          message: string
+          read: boolean | null
+          sender_id: string
+          title: string
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          discussion_id?: string | null
+          group_id: string
+          id?: string
+          message: string
+          read?: boolean | null
+          sender_id: string
+          title: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          discussion_id?: string | null
+          group_id?: string
+          id?: string
+          message?: string
+          read?: boolean | null
+          sender_id?: string
+          title?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_notifications_discussion_id_fkey"
+            columns: ["discussion_id"]
+            isOneToOne: false
+            referencedRelation: "group_discussions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_notifications_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
+          auto_approve_posts: boolean | null
           bio: string | null
+          cover_image: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
           id: string
           name: string
           profile_image: string | null
+          require_post_approval: boolean | null
           tags: string[] | null
           type: string | null
         }
         Insert: {
+          auto_approve_posts?: boolean | null
           bio?: string | null
+          cover_image?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           id?: string
           name: string
           profile_image?: string | null
+          require_post_approval?: boolean | null
           tags?: string[] | null
           type?: string | null
         }
         Update: {
+          auto_approve_posts?: boolean | null
           bio?: string | null
+          cover_image?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           id?: string
           name?: string
           profile_image?: string | null
+          require_post_approval?: boolean | null
           tags?: string[] | null
           type?: string | null
         }
