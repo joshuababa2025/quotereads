@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { useSearch } from "@/contexts/SearchContext";
 import { useNotifications } from "@/hooks/useNotifications";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { NotificationPopup } from "@/components/NotificationPopup";
 import { MessagesPopup } from "@/components/MessagesPopup";
@@ -43,34 +43,18 @@ export const Navigation = () => {
     );
   };
 
+  const navigate = useNavigate();
+
   const toggleNotifications = () => {
-    const newState = !showNotifications;
-    setShowNotifications(newState);
-    if (newState) {
-      setShowMessages(false);
-      setShowProfile(false);
-    }
-    handlePopupStateChange(newState || showMessages || showProfile);
+    navigate('/notifications');
   };
 
   const toggleMessages = () => {
-    const newState = !showMessages;
-    setShowMessages(newState);
-    if (newState) {
-      setShowNotifications(false);
-      setShowProfile(false);
-    }
-    handlePopupStateChange(showNotifications || newState || showProfile);
+    navigate('/messages');
   };
 
   const toggleProfile = () => {
-    const newState = !showProfile;
-    setShowProfile(newState);
-    if (newState) {
-      setShowNotifications(false);
-      setShowMessages(false);
-    }
-    handlePopupStateChange(showNotifications || showMessages || newState);
+    navigate(`/profile/${user?.id || 'me'}`);
   };
 
   const closeAllPopups = () => {
@@ -320,21 +304,6 @@ export const Navigation = () => {
           </div>
         </div>
       </div>
-      
-      <NotificationPopup 
-        isOpen={showNotifications} 
-        onClose={closeAllPopups} 
-      />
-      
-      <MessagesPopup 
-        isOpen={showMessages} 
-        onClose={closeAllPopups} 
-      />
-      
-      <ProfileDropdown 
-        isOpen={showProfile} 
-        onClose={closeAllPopups} 
-      />
     </header>
   );
 };

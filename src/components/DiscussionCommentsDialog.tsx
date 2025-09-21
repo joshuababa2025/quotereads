@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { UserProfile } from '@/components/UserProfile';
 
 interface Comment {
   id: string;
@@ -124,6 +125,10 @@ export const DiscussionCommentsDialog = ({
     }
   };
 
+  const getSenderName = (comment: Comment) => {
+    return comment.profiles?.full_name || 'Anonymous';
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
@@ -153,9 +158,11 @@ export const DiscussionCommentsDialog = ({
                 </Avatar>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm">
-                      {comment.profiles?.full_name || 'Anonymous'}
-                    </span>
+                    <UserProfile 
+                      userId={comment.user_id}
+                      showFollowButton={false}
+                      className="text-sm"
+                    />
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(comment.created_at), 'MMM dd, HH:mm')}
                     </span>

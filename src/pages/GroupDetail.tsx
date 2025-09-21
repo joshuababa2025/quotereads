@@ -65,6 +65,7 @@ interface GroupMeeting {
   meeting_link: string | null;
   address: string | null;
   google_maps_link: string | null;
+  status: string;
   user_id: string;
   created_at: string;
 }

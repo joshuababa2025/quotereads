@@ -23,7 +23,7 @@ interface Message {
   sender_profile?: {
     full_name: string | null;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 export const Messages = () => {
@@ -43,17 +43,32 @@ export const Messages = () => {
     
     setLoading(true);
     try {
+      // Fetch messages without profiles for now to avoid foreign key issues
       const { data, error } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender_profile:profiles!messages_sender_id_fkey(full_name, avatar_url)
-        `)
+        .select('*')
         .eq('recipient_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Fetch sender profiles separately
+      const messagesWithProfiles = await Promise.all(
+        (data || []).map(async (message) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('user_id', message.sender_id)
+            .single();
+          
+          return {
+            ...message,
+            sender_profile: profile
+          };
+        })
+      );
+      
+      setMessages(messagesWithProfiles);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -197,3 +212,5 @@ export const Messages = () => {
     </div>
   );
 };
+
+export default Messages;

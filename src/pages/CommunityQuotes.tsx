@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { ClickableUsername } from "@/components/ClickableUsername";
 import { supabase } from "@/integrations/supabase/client";
 import { assignBackgroundImages } from "@/utils/assignBackgroundImages";
+import { useAuth } from "@/hooks/useAuth";
 
 
 interface CommunityQuote {
@@ -49,6 +50,7 @@ const CommunityQuotes = () => {
   const { toggleLike: persistentToggleLike, toggleFavorite: persistentToggleFavorite } = usePersistentQuoteInteractions();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchQuotes();
@@ -156,8 +158,9 @@ const CommunityQuotes = () => {
       case "recent":
         return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       case "friends":
-        // TODO: Implement real friends filtering when user relationships are added
-        return filtered.filter(() => false); // Empty for now
+        // For friends tab, we need to fetch and filter differently
+        // This is a placeholder - we'll implement proper friends filtering
+        return [];
       default:
         return filtered;
     }
