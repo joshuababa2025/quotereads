@@ -49,16 +49,19 @@ export const NewMessage = () => {
         .from('profiles')
         .select('user_id, full_name, avatar_url, username')
         .eq('username', recipientUsername)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
       
       if (data) {
         setRecipient(data);
       } else {
         toast({
           title: "User not found",
-          description: "The user you're trying to message doesn't exist",
+          description: "The user you're trying to message doesn't exist or may not have completed their profile setup",
           variant: "destructive"
         });
         navigate('/messages');
@@ -67,7 +70,7 @@ export const NewMessage = () => {
       console.error('Error fetching recipient:', error);
       toast({
         title: "Error",
-        description: "Failed to load user information",
+        description: "Failed to load user information. Please try again.",
         variant: "destructive"
       });
       navigate('/messages');
