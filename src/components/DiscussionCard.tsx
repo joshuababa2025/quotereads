@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { DiscussionCommentsDialog } from '@/components/DiscussionCommentsDialog';
 
 interface DiscussionCardProps {
   discussion: {
@@ -35,6 +36,7 @@ export const DiscussionCard = ({ discussion, isAdmin, groupCreatedBy, onRefresh 
   const [commentsCount, setCommentsCount] = useState(discussion.comments_count);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [showCommentsDialog, setShowCommentsDialog] = useState(false);
 
   const canEditOrDelete = user && (user.id === discussion.user_id || isAdmin || user.id === groupCreatedBy);
 
@@ -303,7 +305,10 @@ export const DiscussionCard = ({ discussion, isAdmin, groupCreatedBy, onRefresh 
             <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
             {likesCount} likes
           </button>
-          <button className="flex items-center gap-1 hover:text-primary transition-colors">
+          <button 
+            className="flex items-center gap-1 hover:text-primary transition-colors"
+            onClick={() => setShowCommentsDialog(true)}
+          >
             <MessageCircle className="w-4 h-4" />
             {commentsCount} comments
           </button>
@@ -342,6 +347,14 @@ export const DiscussionCard = ({ discussion, isAdmin, groupCreatedBy, onRefresh 
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Comments Dialog */}
+      <DiscussionCommentsDialog
+        isOpen={showCommentsDialog}
+        onClose={() => setShowCommentsDialog(false)}
+        discussionId={discussion.id}
+        discussionTitle={discussion.title}
+      />
     </>
   );
 };

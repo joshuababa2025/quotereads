@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, MapPin, Video, Clock, Users, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, MapPin, Link as LinkIcon, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { MeetingDetailsDialog } from '@/components/MeetingDetailsDialog';
 
-interface MeetingData {
+interface Meeting {
   id: string;
   title: string;
   description: string | null;
@@ -19,26 +19,24 @@ interface MeetingData {
   meeting_link: string | null;
   address: string | null;
   google_maps_link: string | null;
-  user_id: string;
-  created_at: string;
-}
-
-interface AttendanceData {
-  user_id: string;
-  status: 'going' | 'interested' | 'not_going';
+  status?: string;
 }
 
 interface MeetingCardProps {
-  meeting: MeetingData;
+  meeting: Meeting;
   groupId: string;
 }
 
 export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [attendance, setAttendance] = useState<AttendanceData[]>([]);
-  const [userAttendance, setUserAttendance] = useState<string | null>(null);
-  const [showAttendees, setShowAttendees] = useState(false);
+  const [userStatus, setUserStatus] = useState<string>('');
+  const [attendeeCounts, setAttendeeCounts] = useState({
+    going: 0,
+    not_going: 0,
+    interested: 0
+  });
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   useEffect(() => {
     fetchAttendance();
@@ -66,19 +64,39 @@ export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
   }, [meeting.id, user]);
 
   const fetchAttendance = async () => {
-    const { data } = await supabase
-      .from('meeting_attendance')
-      .select('user_id, status')
-      .eq('meeting_id', meeting.id);
+    try {
+      // Get user's status
+      if (user) {
+        const { data: userAttendance } = await supabase
+          .from('meeting_attendance')
+          .select('status')
+          .eq('meeting_id', meeting.id)
+          .eq('user_id', user.id)
+          .single();
+        
+        setUserStatus(userAttendance?.status || '');
+      }
 
-    if (data) {
-      setAttendance(data as AttendanceData[]);
-      const userStatus = data.find(a => a.user_id === user?.id);
-      setUserAttendance(userStatus?.status || null);
+      // Get attendance counts
+      const { data: allAttendance } = await supabase
+        .from('meeting_attendance')
+        .select('status')
+        .eq('meeting_id', meeting.id);
+
+      if (allAttendance) {
+        const counts = {
+          going: allAttendance.filter(a => a.status === 'going').length,
+          not_going: allAttendance.filter(a => a.status === 'not_going').length,
+          interested: allAttendance.filter(a => a.status === 'interested').length
+        };
+        setAttendeeCounts(counts);
+      }
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
     }
   };
 
-  const handleAttendanceUpdate = async (status: 'going' | 'interested' | 'not_going') => {
+  const handleAttendance = async (status: 'going' | 'not_going' | 'interested') => {
     if (!user) {
       toast({
         title: "Sign in required",
@@ -101,7 +119,6 @@ export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
 
       if (error) throw error;
 
-      setUserAttendance(status);
       toast({
         title: "Success",
         description: `Marked as ${status.replace('_', ' ')}`
@@ -116,157 +133,112 @@ export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
     }
   };
 
-  const getAttendanceCount = (status: string) => {
-    return attendance.filter(a => a.status === status).length;
-  };
-
-  const isUpcoming = new Date(meeting.start_time) > new Date();
+  const isOnline = meeting.meeting_type.toLowerCase() === 'online';
+  const isPhysical = meeting.meeting_type.toLowerCase() === 'physical';
 
   return (
-    <Card className="mb-4 max-w-full">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg flex-wrap">
-              {meeting.meeting_type === 'online' ? (
-                <Video className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-              ) : (
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-              )}
-              <span className="break-words">{meeting.title}</span>
-              {isUpcoming && <Badge variant="outline" className="text-xs">Upcoming</Badge>}
-            </CardTitle>
-            {meeting.description && (
-              <p className="text-xs sm:text-sm text-muted-foreground mt-2 break-words">{meeting.description}</p>
-            )}
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="pt-0">
-        <div className="space-y-3">
-          {/* Date and Time */}
-          <div className="flex items-center gap-2 text-xs sm:text-sm">
-            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-            <span className="break-words">{format(new Date(meeting.start_time), 'PPP')}</span>
-          </div>
-          
-          <div className="flex items-center gap-2 text-xs sm:text-sm">
-            <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-            <span className="break-words">
-              {format(new Date(meeting.start_time), 'p')}
-              {meeting.end_time && ` - ${format(new Date(meeting.end_time), 'p')}`}
-            </span>
-          </div>
-
-          {/* Meeting Details */}
-          {meeting.meeting_type === 'online' && meeting.meeting_link && (
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.open(meeting.meeting_link!, '_blank')}
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Join Meeting
-              </Button>
-            </div>
-          )}
-
-          {meeting.meeting_type === 'physical' && (
-            <div className="space-y-2">
-              {meeting.address && (
-                <div className="flex items-start gap-2 text-sm">
-                  <MapPin className="w-4 h-4 mt-0.5" />
-                  <span>{meeting.address}</span>
+    <>
+      <Card className="mb-4">
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <div className="flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                <h4 className="font-semibold text-lg">{meeting.title}</h4>
+                <div className="flex gap-2">
+                  <Badge variant={isOnline ? "secondary" : "outline"} className="text-xs">
+                    {meeting.meeting_type}
+                  </Badge>
+                  <Badge variant={meeting.status === 'scheduled' ? "default" : "secondary"} className="text-xs">
+                    {meeting.status || 'scheduled'}
+                  </Badge>
                 </div>
-              )}
-              {meeting.google_maps_link && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => window.open(meeting.google_maps_link!, '_blank')}
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Get Directions
-                </Button>
-              )}
-            </div>
-          )}
-
-          {/* Attendance for Physical Meetings */}
-          {meeting.meeting_type === 'physical' && isUpcoming && (
-            <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button
-                  variant={userAttendance === 'going' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleAttendanceUpdate('going')}
-                  className="flex-1 text-xs sm:text-sm px-2"
-                >
-                  Going ({getAttendanceCount('going')})
-                </Button>
-                <Button
-                  variant={userAttendance === 'interested' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleAttendanceUpdate('interested')}
-                  className="flex-1 text-xs sm:text-sm px-2"
-                >
-                  Interested ({getAttendanceCount('interested')})
-                </Button>
-                <Button
-                  variant={userAttendance === 'not_going' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleAttendanceUpdate('not_going')}
-                  className="flex-1 text-xs sm:text-sm px-2"
-                >
-                  Can't Go ({getAttendanceCount('not_going')})
-                </Button>
               </div>
 
-              {attendance.length > 0 && (
-                <div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowAttendees(!showAttendees)}
-                    className="text-xs sm:text-sm h-8"
-                  >
-                    <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                    View Attendees ({attendance.length})
-                  </Button>
-                  
-                  {showAttendees && (
-                    <div className="mt-2 space-y-2 text-xs">
-                      {['going', 'interested', 'not_going'].map(status => {
-                        const statusAttendees = attendance.filter(a => a.status === status);
-                        if (statusAttendees.length === 0) return null;
-                        
-                        return (
-                          <div key={status} className="p-2 bg-muted/30 rounded-md">
-                            <p className="font-medium capitalize mb-1 text-xs">
-                              {status.replace('_', ' ')} ({statusAttendees.length})
-                            </p>
-                            <div className="flex flex-wrap gap-1">
-                              {statusAttendees.map(attendee => (
-                                <Avatar key={attendee.user_id} className="w-5 h-5 sm:w-6 sm:h-6">
-                                  <AvatarFallback className="text-xs">
-                                    {attendee.user_id.charAt(0).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+              {meeting.description && (
+                <p className="text-sm text-muted-foreground mb-3">{meeting.description}</p>
               )}
+
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="w-4 h-4" />
+                  <span>{format(new Date(meeting.start_time), 'PPP')}</span>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="w-4 h-4" />
+                  <span>
+                    {format(new Date(meeting.start_time), 'p')}
+                    {meeting.end_time && ` - ${format(new Date(meeting.end_time), 'p')}`}
+                  </span>
+                </div>
+
+                {isOnline && meeting.meeting_link && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <LinkIcon className="w-4 h-4" />
+                    <span className="text-primary">Online Meeting</span>
+                  </div>
+                )}
+
+                {isPhysical && meeting.address && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-muted-foreground truncate">{meeting.address}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDetailsDialog(true)}
+                  size="sm"
+                  className="flex-1 sm:flex-none"
+                >
+                  View Details
+                </Button>
+                
+                <Button
+                  variant={userStatus === 'going' ? 'default' : 'outline'}
+                  onClick={() => handleAttendance('going')}
+                  size="sm"
+                  className="flex-1 sm:flex-none"
+                >
+                  Going ({attendeeCounts.going})
+                </Button>
+                
+                {isPhysical && (
+                  <Button
+                    variant={userStatus === 'interested' ? 'default' : 'outline'}
+                    onClick={() => handleAttendance('interested')}
+                    size="sm"
+                    className="flex-1 sm:flex-none"
+                  >
+                    Interested ({attendeeCounts.interested})
+                  </Button>
+                )}
+                
+                <Button
+                  variant={userStatus === 'not_going' ? 'destructive' : 'outline'}
+                  onClick={() => handleAttendance('not_going')}
+                  size="sm"
+                  className="flex-1 sm:flex-none"
+                >
+                  Not Going ({attendeeCounts.not_going})
+                </Button>
+              </div>
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+
+      <MeetingDetailsDialog
+        isOpen={showDetailsDialog}
+        onClose={() => setShowDetailsDialog(false)}
+        meeting={meeting}
+        onAttendanceAction={handleAttendance}
+        currentUserStatus={userStatus}
+      />
+    </>
   );
 };

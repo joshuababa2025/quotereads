@@ -49,10 +49,12 @@ const Groups = () => {
     tags: ''
   });
 
-  const availableTags = ['bookclub', 'fun', 'fantasy', 'science-fiction', 'romance', 'mystery', 'fiction', 'young-adult', 'books', 'horror', 'sports', 'tech', 'javascript', 'programming'];
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [popularTags, setPopularTags] = useState<{ tag: string; count: number }[]>([]);
 
   useEffect(() => {
     fetchGroups();
+    fetchTags();
   }, []);
 
   const fetchGroups = async () => {
@@ -90,6 +92,44 @@ const Groups = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTags = async () => {
+    try {
+      const { data: groupsData, error } = await supabase
+        .from('groups')
+        .select('tags')
+        .not('tags', 'is', null);
+
+      if (error) throw error;
+
+      // Extract all tags and count their usage
+      const tagCounts: { [key: string]: number } = {};
+      const allTags = new Set<string>();
+
+      groupsData?.forEach(group => {
+        if (group.tags && Array.isArray(group.tags)) {
+          group.tags.forEach(tag => {
+            const normalizedTag = tag.toLowerCase().trim();
+            if (normalizedTag) {
+              allTags.add(normalizedTag);
+              tagCounts[normalizedTag] = (tagCounts[normalizedTag] || 0) + 1;
+            }
+          });
+        }
+      });
+
+      setAvailableTags(Array.from(allTags));
+      
+      // Sort tags by popularity
+      const sortedTags = Object.entries(tagCounts)
+        .map(([tag, count]) => ({ tag, count }))
+        .sort((a, b) => b.count - a.count);
+      
+      setPopularTags(sortedTags);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
     }
   };
 
@@ -224,7 +264,8 @@ const Groups = () => {
 
   const filteredGroups = groups.filter(group => {
     const matchesSearch = group.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      (group.description && group.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      (group.description && group.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (group.tags && group.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
     const matchesType = selectedType === 'all' || group.type === selectedType;
     return matchesSearch && matchesType;
   });
@@ -454,14 +495,15 @@ const Groups = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {availableTags.slice(0, 15).map(tag => (
+                  {popularTags.slice(0, 15).map(({ tag, count }) => (
                     <Badge 
                       key={tag} 
                       variant="outline" 
                       className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
                       onClick={() => setSearchQuery(tag)}
+                      title={`${count} groups`}
                     >
-                      {tag}
+                      {tag} ({count})
                     </Badge>
                   ))}
                 </div>

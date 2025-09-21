@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -12,89 +12,59 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CreateCampaignDialog } from '@/components/CreateCampaignDialog';
 import { Heart, Users, Calendar, MapPin, DollarSign, TrendingUp, Clock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Donations = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [campaigns, setCampaigns] = useState([
-    {
-      id: 1,
-      title: "Support Through Tough Times",
-      organization: "Community Care Foundation",
-      description: "Help families facing unexpected financial hardships get back on their feet with emergency support for rent, utilities, and basic necessities.",
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      goal: 25000,
-      raised: 18500,
-      supporters: 245,
-      timeLeft: "45 days left",
-      location: "Worldwide",
-      tags: ["Emergency Relief", "Family Support"],
-      category: "Emergency",
-      urgency: "High"
-    },
-    {
-      id: 2,
-      title: "Educational Resources for Children",
-      organization: "Learning Together Initiative",
-      description: "Providing books, school supplies, and learning materials to underprivileged children in rural communities to ensure they have equal educational opportunities.",
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      goal: 15000,
-      raised: 8750,
-      supporters: 156,
-      timeLeft: "60 days left",
-      location: "Rural Communities",
-      tags: ["Education", "Children"],
-      category: "Education",
-      urgency: "Medium"
-    },
-    {
-      id: 3,
-      title: "Clean Water Project",
-      organization: "Water for Life",
-      description: "Building wells and water purification systems in communities that lack access to clean drinking water, improving health and quality of life.",
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      goal: 50000,
-      raised: 32100,
-      supporters: 398,
-      timeLeft: "30 days left",
-      location: "Sub-Saharan Africa",
-      tags: ["Water", "Health", "Infrastructure"],
-      category: "Health",
-      urgency: "High"
-    },
-    {
-      id: 4,
-      title: "Mental Health Support Services",
-      organization: "Mind Wellness Center",
-      description: "Expanding free mental health counseling and support services for individuals struggling with depression, anxiety, and other mental health challenges.",
-      image: "/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png",
-      goal: 20000,
-      raised: 12400,
-      supporters: 187,
-      timeLeft: "75 days left",
-      location: "Urban Areas",
-      tags: ["Mental Health", "Counseling", "Support"],
-      category: "Health",
-      urgency: "Medium"
-    }
-  ]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleCampaignCreated = (newCampaign: any) => {
-    setCampaigns(prev => [newCampaign, ...prev]);
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
+
+  const fetchCampaigns = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setCampaigns(data || []);
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load campaigns",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCampaignClick = (campaignId: number) => {
+  const handleCampaignCreated = (newCampaign: any) => {
+    fetchCampaigns(); // Refresh the list instead of manually adding
+  };
+
+  const handleCampaignClick = (campaignId: string) => {
     navigate(`/campaign/${campaignId}`);
   };
 
   const filteredCampaigns = campaigns.filter(campaign =>
     campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    campaign.organization.toLowerCase().includes(searchQuery.toLowerCase()) ||
     campaign.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    campaign.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    campaign.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalRaised = campaigns.reduce((sum, campaign) => sum + (campaign.raised || 0), 0);
+  const totalSupporters = campaigns.reduce((sum, campaign) => sum + (campaign.supporters || 0), 0);
 
   const donationAmounts = [25, 50, 100, 250, 500];
 
@@ -132,7 +102,7 @@ const Donations = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Total Raised</p>
-                    <p className="text-2xl font-bold text-foreground">$71,750</p>
+                    <p className="text-2xl font-bold text-foreground">${totalRaised.toLocaleString()}</p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-muted-foreground" />
                 </div>
@@ -144,7 +114,7 @@ const Donations = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
-                    <p className="text-2xl font-bold text-foreground">4</p>
+                    <p className="text-2xl font-bold text-foreground">{campaigns.length}</p>
                   </div>
                   <Heart className="w-8 h-8 text-muted-foreground" />
                 </div>
@@ -156,7 +126,7 @@ const Donations = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Total Supporters</p>
-                    <p className="text-2xl font-bold text-foreground">986</p>
+                    <p className="text-2xl font-bold text-foreground">{totalSupporters.toLocaleString()}</p>
                   </div>
                   <Users className="w-8 h-8 text-muted-foreground" />
                 </div>
@@ -176,7 +146,18 @@ const Donations = () => {
             
             <TabsContent value="all" className="mt-6">
               <div className="space-y-6">
-                {filteredCampaigns.map((campaign) => (
+                {loading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="text-muted-foreground">Loading campaigns...</div>
+                  </div>
+                ) : filteredCampaigns.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">
+                      {searchQuery ? 'No campaigns found matching your search.' : 'No campaigns available yet.'}
+                    </p>
+                  </div>
+                ) : (
+                  filteredCampaigns.map((campaign) => (
                   <Card 
                     key={campaign.id} 
                     className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
@@ -184,11 +165,17 @@ const Donations = () => {
                   >
                     <div className="flex">
                       <div className="w-48 h-32 bg-muted flex-shrink-0">
-                        <img 
-                          src={campaign.image} 
-                          alt={campaign.title}
-                          className="w-full h-full object-cover"
-                        />
+                        {campaign.image_url ? (
+                          <img 
+                            src={campaign.image_url} 
+                            alt={campaign.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                            <Heart className="w-8 h-8 text-white" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 p-6">
                         <div className="flex justify-between items-start mb-4">
@@ -198,42 +185,30 @@ const Donations = () => {
                               <h3 className="text-xl font-semibold text-foreground">
                                 {campaign.title}
                               </h3>
-                              {campaign.urgency === 'High' && (
-                                <Badge variant="destructive" className="text-xs">Urgent</Badge>
-                              )}
+                              <Badge variant="secondary" className="text-xs">
+                                {campaign.category}
+                              </Badge>
                             </div>
-                            <p className="text-sm text-muted-foreground mb-3">
-                              by {campaign.organization}
-                            </p>
                             <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-4">
                               <span className="flex items-center">
-                                <Clock className="w-3 h-3 mr-1" />
-                                {campaign.timeLeft}
+                                <Calendar className="w-3 h-3 mr-1" />
+                                {new Date(campaign.created_at).toLocaleDateString()}
                               </span>
                               <span className="flex items-center">
                                 <Users className="w-3 h-3 mr-1" />
-                                {campaign.supporters} supporters
-                              </span>
-                              <span className="flex items-center">
-                                <MapPin className="w-3 h-3 mr-1" />
-                                {campaign.location}
+                                {campaign.user_id}
                               </span>
                             </div>
                           </div>
                           <div className="text-right ml-4">
-                            <div className="text-2xl font-bold text-foreground">
-                              ${campaign.raised.toLocaleString()}
+                            <div className="text-lg font-bold text-foreground">
+                              New Campaign
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              raised of ${campaign.goal.toLocaleString()} goal
-                            </div>
-                            <div className="text-sm text-green-600 font-medium">
-                              {Math.round((campaign.raised / campaign.goal) * 100)}% funded
+                              Status: {campaign.status}
                             </div>
                           </div>
                         </div>
-                        
-                        <Progress value={(campaign.raised / campaign.goal) * 100} className="h-2 mb-4" />
                         
                         <p className="text-sm text-muted-foreground mb-4">
                           {campaign.description}
@@ -241,9 +216,7 @@ const Donations = () => {
                         
                         <div className="flex items-center justify-between">
                           <div className="flex space-x-2">
-                            {campaign.tags.map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
-                            ))}
+                            <Badge variant="outline" className="text-xs">{campaign.category}</Badge>
                           </div>
                           
                           <div className="flex items-center gap-2">
@@ -260,24 +233,19 @@ const Donations = () => {
                             <Button 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/payment/${campaign.id}`);
+                                navigate(`/campaign/${campaign.id}`);
                               }}
                               className="bg-primary hover:bg-primary/90"
                             >
                               <Heart className="w-4 h-4 mr-1" />
-                              Donate Now
+                              Support Campaign
                             </Button>
                           </div>
                         </div>
                       </div>
                     </div>
                   </Card>
-                ))}
-                
-                {searchQuery && filteredCampaigns.length === 0 && (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No campaigns found matching "{searchQuery}"</p>
-                  </div>
+                  ))
                 )}
               </div>
             </TabsContent>
