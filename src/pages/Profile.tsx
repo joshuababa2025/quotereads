@@ -186,9 +186,20 @@ export default function Profile() {
     }
   };
 
-  const handleSendMessage = () => {
-    if (!userId) return;
-    navigate(`/messages/new?to=${userId}`);
+  const handleSendMessage = async () => {
+    if (!profileData?.username) return;
+    
+    try {
+      // Use username instead of user ID for better security
+      navigate(`/messages/new?to=${profileData.username}`);
+    } catch (error) {
+      console.error('Error navigating to message page:', error);
+      toast({
+        title: "Error",
+        description: "Could not open messaging. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const fetchUserStats = async () => {

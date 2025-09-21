@@ -1566,6 +1566,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_unique_username: {
+        Args: { base_name: string }
+        Returns: string
+      }
       get_category_images: {
         Args: { category_name: string }
         Returns: {
