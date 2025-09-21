@@ -62,8 +62,8 @@ export const Messages = () => {
             .eq('user_id', payload.new.sender_id)
             .single();
           
-          const messageWithProfile = {
-            ...payload.new,
+          const messageWithProfile: Message = {
+            ...(payload.new as Message),
             sender_profile: profile
           };
           
@@ -83,7 +83,7 @@ export const Messages = () => {
           
           setMessages(prev => 
             prev.map(msg => 
-              msg.id === payload.new.id ? { ...msg, ...payload.new } : msg
+              msg.id === payload.new.id ? { ...msg, ...(payload.new as Message) } : msg
             )
           );
         }
