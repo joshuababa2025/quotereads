@@ -45,11 +45,16 @@ export const NewMessage = () => {
     
     setRecipientLoading(true);
     try {
+      // Add a small delay to ensure database consistency
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('user_id, full_name, avatar_url, username')
         .eq('username', recipientUsername)
         .maybeSingle();
+
+      console.log('Fetching user with username:', recipientUsername, 'Result:', { data, error });
 
       if (error) {
         console.error('Database error:', error);
@@ -59,21 +64,32 @@ export const NewMessage = () => {
       if (data) {
         setRecipient(data);
       } else {
-        toast({
-          title: "User not found",
-          description: "The user you're trying to message doesn't exist or may not have completed their profile setup",
-          variant: "destructive"
-        });
-        navigate('/messages');
+        // Try with a case-insensitive search as fallback
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, avatar_url, username')
+          .ilike('username', recipientUsername)
+          .maybeSingle();
+          
+        if (fallbackData) {
+          setRecipient(fallbackData);
+        } else {
+          toast({
+            title: "User not found",
+            description: "Could not find the user. They may need to refresh their profile or try again in a moment.",
+            variant: "destructive"
+          });
+          // Don't navigate away immediately, let user try again
+        }
       }
     } catch (error) {
       console.error('Error fetching recipient:', error);
       toast({
-        title: "Error",
-        description: "Failed to load user information. Please try again.",
+        title: "Loading error", 
+        description: "There was an issue loading the user. Please try again in a moment.",
         variant: "destructive"
       });
-      navigate('/messages');
+      // Don't navigate away, let user retry
     } finally {
       setRecipientLoading(false);
     }
