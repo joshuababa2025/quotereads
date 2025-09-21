@@ -522,9 +522,12 @@ const GroupDetail = () => {
               </CardContent>
             </Card>
 
-            {/* Member Management */}
+            {/* Member Management - pass simplified data */}
             <GroupMemberManagement
-              members={members}
+              members={members.map(member => ({
+                ...member,
+                profiles: null // Simplified for now
+              }))}
               groupId={groupId!}
               currentUserId={user?.id || ''}
               isAdmin={isAdmin}

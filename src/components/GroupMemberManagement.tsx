@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface GroupMember {
+interface GroupMemberForManagement {
   id: string;
   user_id: string;
   role: string;
@@ -22,7 +22,7 @@ interface GroupMember {
 }
 
 interface GroupMemberManagementProps {
-  members: GroupMember[];
+  members: GroupMemberForManagement[];
   groupId: string;
   currentUserId: string;
   isAdmin: boolean;
