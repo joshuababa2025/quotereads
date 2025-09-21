@@ -15,6 +15,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { GroupMemberManagement } from "@/components/GroupMemberManagement";
 
 interface GroupData {
   id: string;
@@ -33,10 +34,6 @@ interface GroupMember {
   user_id: string;
   role: string;
   joined_at: string;
-  profiles: {
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
 }
 
 interface GroupDiscussion {
@@ -48,10 +45,6 @@ interface GroupDiscussion {
   user_id: string;
   likes_count: number;
   comments_count: number;
-  profiles: {
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
 }
 
 const GroupDetail = () => {
@@ -103,16 +96,10 @@ const GroupDetail = () => {
         bio: groupData.bio || ''
       });
 
-      // Fetch members with profiles
+      // Fetch members
       const { data: membersData, error: membersError } = await supabase
         .from('group_members')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('group_id', groupId)
         .order('joined_at', { ascending: false });
 
@@ -128,13 +115,7 @@ const GroupDetail = () => {
       // Fetch discussions
       const { data: discussionsData, error: discussionsError } = await supabase
         .from('group_discussions')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('group_id', groupId)
         .order('created_at', { ascending: false });
 
@@ -260,10 +241,28 @@ const GroupDetail = () => {
   };
 
   const handleCreateDiscussion = async () => {
-    if (!user || !userMembership) {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to create discussions.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!userMembership && group?.created_by !== user.id) {
       toast({
         title: "Access denied",
         description: "You must be a member to create discussions.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!discussionForm.title.trim() || !discussionForm.content.trim()) {
+      toast({
+        title: "Required fields missing",
+        description: "Please fill in both title and content.",
         variant: "destructive"
       });
       return;
@@ -311,8 +310,8 @@ const GroupDetail = () => {
     });
   };
 
-  const isAdmin = userMembership?.role === 'admin';
-  const isMember = !!userMembership;
+  const isAdmin = userMembership?.role === 'admin' || group?.created_by === user?.id;
+  const isMember = !!userMembership || group?.created_by === user?.id;
 
   if (loading) {
     return (
@@ -414,7 +413,7 @@ const GroupDetail = () => {
               <div className="mb-6">
                 <Button onClick={() => setShowCreateDiscussion(true)} className="w-full">
                   <Plus className="w-4 h-4 mr-2" />
-                  Create New Discussion
+                  {isAdmin ? 'Create Announcement / Discussion' : 'Create New Discussion'}
                 </Button>
               </div>
             )}
@@ -447,19 +446,25 @@ const GroupDetail = () => {
                       <div key={discussion.id} className="p-4 border rounded-lg">
                         <div className="flex items-center gap-3 mb-3">
                           <Avatar className="w-8 h-8">
-                            <AvatarImage src={discussion.profiles?.avatar_url || ''} />
                             <AvatarFallback>
-                              {(discussion.profiles?.full_name || 'User').charAt(0).toUpperCase()}
+                              {discussion.user_id.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="font-medium text-sm">
-                              {discussion.profiles?.full_name || 'Anonymous User'}
+                              {discussion.user_id === group?.created_by ? 'Group Admin' : 'Member'}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {format(new Date(discussion.created_at), 'MMM dd, yyyy • HH:mm')}
                             </p>
                           </div>
+                          {isAdmin && (
+                            <div className="ml-auto">
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                         <h4 className="font-semibold mb-2">{discussion.title}</h4>
                         <p className="text-sm text-muted-foreground mb-3">{discussion.content}</p>
@@ -517,44 +522,14 @@ const GroupDetail = () => {
               </CardContent>
             </Card>
 
-            {/* Members */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Members ({members.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {members.slice(0, 10).map((member) => (
-                    <div key={member.id} className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={member.profiles?.avatar_url || ''} />
-                        <AvatarFallback>
-                          {(member.profiles?.full_name || 'User').charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">
-                          {member.profiles?.full_name || 'Anonymous User'}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          {member.role === 'admin' && (
-                            <Badge variant="secondary" className="text-xs">Admin</Badge>
-                          )}
-                          <span className="text-xs text-muted-foreground">
-                            Joined {format(new Date(member.joined_at), 'MMM yyyy')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {members.length > 10 && (
-                    <p className="text-sm text-muted-foreground text-center pt-2">
-                      +{members.length - 10} more members
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Member Management */}
+            <GroupMemberManagement
+              members={members}
+              groupId={groupId!}
+              currentUserId={user?.id || ''}
+              isAdmin={isAdmin}
+              onMemberAction={fetchGroupData}
+            />
 
             {/* Tags */}
             {group.tags && group.tags.length > 0 && (
