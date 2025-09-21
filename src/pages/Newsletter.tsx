@@ -31,23 +31,7 @@ const newsletterFeatures = [
   }
 ];
 
-const testimonials = [
-  {
-    quote: "The QuoteReads newsletter has become an essential part of my morning routine. The quotes are always perfectly timed with what I need to hear.",
-    author: "Sarah Johnson",
-    role: "Life Coach"
-  },
-  {
-    quote: "I love how the newsletter introduces me to new authors and perspectives. It's like having a personal wisdom curator.",
-    author: "Michael Chen",
-    role: "Entrepreneur"
-  },
-  {
-    quote: "The community highlights section helps me discover amazing quotes I might have missed. It's my favorite part!",
-    author: "Emma Williams",
-    role: "Teacher"
-  }
-];
+const testimonials: any[] = [];
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
@@ -169,25 +153,27 @@ export default function Newsletter() {
               </div>
             </div>
 
-            {/* Testimonials */}
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-6">What Our Subscribers Say</h2>
-              <div className="space-y-6">
-                {testimonials.map((testimonial, index) => (
-                  <Card key={index}>
-                    <CardContent className="pt-6">
-                      <blockquote className="text-muted-foreground mb-4 italic">
-                        "{testimonial.quote}"
-                      </blockquote>
-                      <div>
-                        <p className="font-semibold text-foreground">{testimonial.author}</p>
-                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+            {/* Testimonials - Coming Soon */}
+            {testimonials.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-foreground mb-6">What Our Subscribers Say</h2>
+                <div className="space-y-6">
+                  {testimonials.map((testimonial, index) => (
+                    <Card key={index}>
+                      <CardContent className="pt-6">
+                        <blockquote className="text-muted-foreground mb-4 italic">
+                          "{testimonial.quote}"
+                        </blockquote>
+                        <div>
+                          <p className="font-semibold text-foreground">{testimonial.author}</p>
+                          <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -200,17 +186,8 @@ export default function Newsletter() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">12,453</div>
-                  <div className="text-sm text-muted-foreground">Newsletter Subscribers</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">98.2%</div>
-                  <div className="text-sm text-muted-foreground">Open Rate</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">4.9★</div>
-                  <div className="text-sm text-muted-foreground">Average Rating</div>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Newsletter statistics coming soon</p>
                 </div>
               </CardContent>
             </Card>

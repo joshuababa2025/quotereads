@@ -54,16 +54,33 @@ const CommunityQuotes = () => {
 
   useEffect(() => {
     fetchQuotes();
-  }, []);
+  }, [activeTab]); // Add activeTab dependency
 
   const fetchQuotes = async (pageNum = 1, append = false) => {
     try {
       setLoading(pageNum === 1);
       
-      // Fetch quotes with pagination
-      const { data: quotesData, error: quotesError } = await supabase
-        .from('quotes')
-        .select('*')
+      let query = supabase.from('quotes').select('*');
+      
+      if (activeTab === 'friends' && user) {
+        // Fetch quotes from followed users
+        const { data: followedUsers } = await supabase
+          .from('user_follows')
+          .select('following_id')
+          .eq('follower_id', user.id);
+        
+        if (followedUsers && followedUsers.length > 0) {
+          const followedUserIds = followedUsers.map(f => f.following_id);
+          query = query.in('user_id', followedUserIds);
+        } else {
+          // No followed users, return empty
+          setQuotes([]);
+          setLoading(false);
+          return;
+        }
+      }
+      
+      const { data: quotesData, error: quotesError } = await query
         .eq('is_hidden', false)
         .order('created_at', { ascending: false })
         .range((pageNum - 1) * QUOTES_PER_PAGE, pageNum * QUOTES_PER_PAGE - 1);
@@ -128,9 +145,10 @@ const CommunityQuotes = () => {
 
   // Filter quotes based on search, tag selection, and active tab
   const filteredQuotes = useMemo(() => {
+    // Filter by active tab - when friends is selected, use original quotes
     let filtered = quotes;
-
-    // Filter by search query
+    
+    // Apply search and tag filters first
     if (searchQuery.trim()) {
       filtered = filtered.filter(quote => 
         quote.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -140,7 +158,6 @@ const CommunityQuotes = () => {
       );
     }
 
-    // Filter by selected tag
     if (selectedTag) {
       filtered = filtered.filter(quote => 
         quote.tags?.some(tag => tag.toLowerCase() === selectedTag.toLowerCase())
@@ -158,13 +175,12 @@ const CommunityQuotes = () => {
       case "recent":
         return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       case "friends":
-        // For friends tab, we need to fetch and filter differently
-        // This is a placeholder - we'll implement proper friends filtering
-        return [];
+        // Friends tab quotes are already filtered at fetch level
+        return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       default:
         return filtered;
     }
-  }, [quotes, searchQuery, selectedTag, activeTab]);
+  }, [quotes, searchQuery, selectedTag, activeTab, quoteLikes]);
 
   // Filter tags based on tag search
   const filteredTags = useMemo(() => {
@@ -421,12 +437,9 @@ const CommunityQuotes = () => {
                                 </blockquote>
                               </div>
                             </div>
-                            <ClickableUsername 
-                              username={quote.author}
-                              className="text-muted-foreground mb-3"
-                            >
+                            <p className="text-muted-foreground mb-3">
                               — {quote.author}
-                            </ClickableUsername>
+                            </p>
                             
                             <div className="flex flex-wrap gap-1 mb-4">
                               <Badge 

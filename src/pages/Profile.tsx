@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ShareDialog } from "@/components/ShareDialog";
+import { ProfileTabsContent } from "@/components/ProfileTabsContent";
 import { RankingBadge } from "@/components/RankingBadge";
 import { UserPlus, Users, Calendar, MapPin, Edit, Share, Mail, Trophy, Star } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -31,6 +33,7 @@ interface ProfileData {
 
 export default function Profile() {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const { ranking, loading: rankingLoading, updateDisplayRank, getRankDisplay } = useRanking();
@@ -44,7 +47,16 @@ export default function Profile() {
   const [editForm, setEditForm] = useState({
     full_name: '',
     username: '',
-    bio: ''
+    bio: '',
+    avatar_url: ''
+  });
+  
+  // Stats state
+  const [stats, setStats] = useState({
+    quotes: 0,
+    followers: 0,
+    following: 0,
+    favorites: 0
   });
 
   const isCurrentUser = user?.id === userId;
@@ -69,8 +81,12 @@ export default function Profile() {
       setEditForm({
         full_name: data.full_name || '',
         username: data.username || '',
-        bio: data.bio || ''
+        bio: data.bio || '',
+        avatar_url: data.avatar_url || ''
       });
+
+      // Fetch user stats
+      await fetchUserStats();
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -87,7 +103,8 @@ export default function Profile() {
         .update({
           full_name: editForm.full_name,
           username: editForm.username,
-          bio: editForm.bio
+          bio: editForm.bio,
+          avatar_url: editForm.avatar_url
         })
         .eq('user_id', user.id);
 
@@ -110,17 +127,120 @@ export default function Profile() {
     }
   };
 
-  const handleFollowToggle = () => {
-    setIsFollowing(!isFollowing);
-    toast({
-      title: isFollowing ? 'Unfollowed' : 'Following',
-      description: `You are ${isFollowing ? 'no longer following' : 'now following'} ${profileData?.full_name || 'this user'}`
-    });
+  const handleFollowToggle = async () => {
+    if (!user || !userId) return;
+
+    try {
+      if (isFollowing) {
+        // Unfollow
+        await supabase
+          .from('user_follows')
+          .delete()
+          .eq('follower_id', user.id)
+          .eq('following_id', userId);
+        
+        setIsFollowing(false);
+        toast({
+          title: 'Unfollowed',
+          description: `You are no longer following ${profileData?.full_name || 'this user'}`
+        });
+      } else {
+        // Follow
+        await supabase
+          .from('user_follows')
+          .insert({
+            follower_id: user.id,
+            following_id: userId
+          });
+        
+        setIsFollowing(true);
+        toast({
+          title: 'Following',
+          description: `You are now following ${profileData?.full_name || 'this user'}`
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update follow status',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const checkFollowStatus = async () => {
+    if (!user || !userId || user.id === userId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_follows')
+        .select('id')
+        .eq('follower_id', user.id)
+        .eq('following_id', userId)
+        .single();
+
+      setIsFollowing(!!data);
+    } catch (error) {
+      setIsFollowing(false);
+    }
+  };
+
+  const handleSendMessage = () => {
+    if (!userId) return;
+    navigate(`/messages/new?to=${userId}`);
+  };
+
+  const fetchUserStats = async () => {
+    if (!userId) return;
+
+    try {
+      // Count user's quotes
+      const { count: quotesCount } = await supabase
+        .from('quotes')
+        .select('id', { count: 'exact' })
+        .eq('user_id', userId)
+        .eq('is_hidden', false);
+
+      // Count followers
+      const { count: followersCount } = await supabase
+        .from('user_follows')
+        .select('id', { count: 'exact' })
+        .eq('following_id', userId);
+
+      // Count following
+      const { count: followingCount } = await supabase
+        .from('user_follows')
+        .select('id', { count: 'exact' })
+        .eq('follower_id', userId);
+
+      // Count favorites (only if current user)
+      let favoritesCount = 0;
+      if (isCurrentUser) {
+        const { count } = await supabase
+          .from('favorited_quotes')
+          .select('id', { count: 'exact' })
+          .eq('user_id', userId);
+        favoritesCount = count || 0;
+      }
+
+      setStats({
+        quotes: quotesCount || 0,
+        followers: followersCount || 0,
+        following: followingCount || 0,
+        favorites: favoritesCount
+      });
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+    }
   };
 
   useEffect(() => {
     fetchProfile();
-  }, [userId]);
+    if (user && userId) {
+      checkFollowStatus();
+    }
+  }, [userId, user]);
 
   if (loading) {
     return (
@@ -221,18 +341,31 @@ export default function Profile() {
                                   className="col-span-3"
                                 />
                               </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="bio" className="text-right">
-                                  Bio
-                                </Label>
-                                <Textarea
-                                  id="bio"
-                                  value={editForm.bio}
-                                  onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
-                                  className="col-span-3"
-                                  rows={3}
-                                />
-                              </div>
+                               <div className="grid grid-cols-4 items-center gap-4">
+                                 <Label htmlFor="avatar_url" className="text-right">
+                                   Avatar URL
+                                 </Label>
+                                 <Input
+                                   id="avatar_url"
+                                   value={editForm.avatar_url}
+                                   onChange={(e) => setEditForm(prev => ({ ...prev, avatar_url: e.target.value }))}
+                                   className="col-span-3"
+                                   placeholder="Profile picture URL"
+                                 />
+                               </div>
+                               <div className="grid grid-cols-4 items-center gap-4">
+                                 <Label htmlFor="bio" className="text-right">
+                                   Bio
+                                 </Label>
+                                 <Textarea
+                                   id="bio"
+                                   value={editForm.bio}
+                                   onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
+                                   className="col-span-3"
+                                   rows={3}
+                                   placeholder="Tell us about yourself"
+                                 />
+                               </div>
                             </div>
                             <DialogFooter>
                               <Button onClick={handleSaveProfile}>Save changes</Button>
@@ -240,14 +373,24 @@ export default function Profile() {
                           </DialogContent>
                         </Dialog>
                       ) : (
-                        <Button 
-                          onClick={handleFollowToggle}
-                          variant={isFollowing ? "outline" : "default"}
-                          className="flex items-center gap-2"
-                        >
-                          <UserPlus className="h-4 w-4" />
-                          {isFollowing ? "Following" : "Follow"}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={handleFollowToggle}
+                            variant={isFollowing ? "outline" : "default"}
+                            className="flex items-center gap-2"
+                          >
+                            <UserPlus className="h-4 w-4" />
+                            {isFollowing ? "Following" : "Follow"}
+                          </Button>
+                          <Button 
+                            onClick={handleSendMessage}
+                            variant="outline"
+                            className="flex items-center gap-2"
+                          >
+                            <Mail className="h-4 w-4" />
+                            Message
+                          </Button>
+                        </div>
                       )}
                       
                       <Button 
@@ -278,21 +421,23 @@ export default function Profile() {
                 
                 <div className="flex gap-6 text-center">
                   <div>
-                    <div className="text-2xl font-bold text-foreground">0</div>
+                    <div className="text-2xl font-bold text-foreground">{stats.quotes}</div>
                     <div className="text-sm text-muted-foreground">Quotes</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">0</div>
+                    <div className="text-2xl font-bold text-foreground">{stats.followers}</div>
                     <div className="text-sm text-muted-foreground">Followers</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">0</div>
+                    <div className="text-2xl font-bold text-foreground">{stats.following}</div>
                     <div className="text-sm text-muted-foreground">Following</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">0</div>
-                    <div className="text-sm text-muted-foreground">Favorites</div>
-                  </div>
+                  {isCurrentUser && (
+                    <div>
+                      <div className="text-2xl font-bold text-foreground">{stats.favorites}</div>
+                      <div className="text-sm text-muted-foreground">Favorites</div>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -314,26 +459,29 @@ export default function Profile() {
               <TabsTrigger value="about">About</TabsTrigger>
             </TabsList>
             
+            
             <TabsContent value="quotes" className="space-y-4">
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">
-                  {isCurrentUser ? "You haven't posted any quotes yet." : "This user hasn't posted any quotes yet."}
-                </p>
-              </div>
+              <ProfileTabsContent 
+                userId={userId!} 
+                activeTab="quotes" 
+                isCurrentUser={isCurrentUser}
+              />
             </TabsContent>
             
             <TabsContent value="favorites" className="space-y-4">
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">
-                  {isCurrentUser ? "You haven't favorited any quotes yet." : "This user hasn't shared their favorites."}
-                </p>
-              </div>
+              <ProfileTabsContent 
+                userId={userId!} 
+                activeTab="favorites" 
+                isCurrentUser={isCurrentUser}
+              />
             </TabsContent>
             
             <TabsContent value="activity" className="space-y-4">
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No recent activity to show.</p>
-              </div>
+              <ProfileTabsContent 
+                userId={userId!} 
+                activeTab="activity" 
+                isCurrentUser={isCurrentUser}
+              />
             </TabsContent>
             
             <TabsContent value="about" className="space-y-4">

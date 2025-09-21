@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserPlus, UserMinus, MessageCircle } from 'lucide-react';
+import { UserPlus, UserMinus, MessageCircle, Mail } from 'lucide-react';
+import { SendMessageDialog } from '@/components/SendMessageDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -182,24 +183,31 @@ export const UserProfile = ({ userId, className = "", showFollowButton = true }:
       </div>
       
       {showFollowButton && user && user.id !== userId && (
-        <Button
-          variant={isFollowing ? "outline" : "default"}
-          size="sm"
-          onClick={toggleFollow}
-          className="shrink-0"
-        >
-          {isFollowing ? (
-            <>
-              <UserMinus className="w-3 h-3 mr-1" />
-              Unfollow
-            </>
-          ) : (
-            <>
-              <UserPlus className="w-3 h-3 mr-1" />
-              Follow
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          <Button
+            variant={isFollowing ? "outline" : "default"}
+            size="sm"
+            onClick={toggleFollow}
+          >
+            {isFollowing ? (
+              <>
+                <UserMinus className="w-3 h-3 mr-1" />
+                Unfollow
+              </>
+            ) : (
+              <>
+                <UserPlus className="w-3 h-3 mr-1" />
+                Follow
+              </>
+            )}
+          </Button>
+          <SendMessageDialog recipientId={userId} recipientName={displayName}>
+            <Button variant="outline" size="sm">
+              <Mail className="w-3 h-3 mr-1" />
+              Message
+            </Button>
+          </SendMessageDialog>
+        </div>
       )}
     </div>
   );
