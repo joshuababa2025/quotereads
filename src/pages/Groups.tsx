@@ -55,22 +55,28 @@ const Groups = () => {
 
   const fetchGroups = async () => {
     try {
-      // Get groups with member counts
-      const { data, error } = await supabase
+      // Get all groups first
+      const { data: groupsData, error: groupsError } = await supabase
         .from('groups')
-        .select(`
-          *,
-          group_members!inner(count)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (groupsError) throw groupsError;
 
-      // Process the data to get member counts
-      const groupsWithCounts = data?.map(group => ({
-        ...group,
-        member_count: group.group_members?.[0]?.count || 0
-      })) || [];
+      // Get member counts for each group separately to avoid recursion
+      const groupsWithCounts = await Promise.all(
+        groupsData?.map(async (group) => {
+          const { count } = await supabase
+            .from('group_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('group_id', group.id);
+          
+          return {
+            ...group,
+            member_count: count || 0
+          };
+        }) || []
+      );
 
       setGroups(groupsWithCounts);
     } catch (error: any) {
@@ -459,13 +465,16 @@ const Groups = () => {
 
       {/* Create Group Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="create-group-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" />
               Create New Group
             </DialogTitle>
           </DialogHeader>
+          <p id="create-group-description" className="sr-only">
+            Create a new community group by filling out the form below. Provide a name, description, type, and tags for your group.
+          </p>
           <div className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name">Group Name *</Label>
