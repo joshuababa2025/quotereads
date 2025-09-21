@@ -33,7 +33,7 @@ const Groups = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [tagQuery, setTagQuery] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
   const [groups, setGroups] = useState<GroupData[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -217,7 +217,7 @@ const Groups = () => {
   const filteredGroups = groups.filter(group => {
     const matchesSearch = group.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
       (group.description && group.description.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesType = !selectedType || group.type === selectedType;
+    const matchesType = selectedType === 'all' || group.type === selectedType;
     return matchesSearch && matchesType;
   });
 
@@ -255,7 +255,7 @@ const Groups = () => {
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="Book Club">Book Club</SelectItem>
                   <SelectItem value="Sports Club">Sports Club</SelectItem>
                   <SelectItem value="Tech Meetup">Tech Meetup</SelectItem>
