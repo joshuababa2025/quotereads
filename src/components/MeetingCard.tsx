@@ -19,7 +19,7 @@ interface Meeting {
   meeting_link: string | null;
   address: string | null;
   google_maps_link: string | null;
-  status?: string;
+  status: string;
 }
 
 interface MeetingCardProps {
