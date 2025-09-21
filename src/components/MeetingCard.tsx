@@ -95,6 +95,8 @@ export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
           meeting_id: meeting.id,
           user_id: user.id,
           status: status
+        }, {
+          onConflict: 'meeting_id,user_id'
         });
 
       if (error) throw error;
@@ -121,37 +123,37 @@ export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
   const isUpcoming = new Date(meeting.start_time) > new Date();
 
   return (
-    <Card className="mb-4">
-      <CardHeader>
+    <Card className="mb-4 max-w-full">
+      <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="flex items-center gap-2 text-lg">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg flex-wrap">
               {meeting.meeting_type === 'online' ? (
-                <Video className="w-5 h-5 text-blue-500" />
+                <Video className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
               ) : (
-                <MapPin className="w-5 h-5 text-green-500" />
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
               )}
-              {meeting.title}
-              {isUpcoming && <Badge variant="outline" className="ml-2">Upcoming</Badge>}
+              <span className="break-words">{meeting.title}</span>
+              {isUpcoming && <Badge variant="outline" className="text-xs">Upcoming</Badge>}
             </CardTitle>
             {meeting.description && (
-              <p className="text-sm text-muted-foreground mt-2">{meeting.description}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-2 break-words">{meeting.description}</p>
             )}
           </div>
         </div>
       </CardHeader>
       
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="pt-0">
+        <div className="space-y-3">
           {/* Date and Time */}
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="w-4 h-4" />
-            <span>{format(new Date(meeting.start_time), 'PPP')}</span>
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span className="break-words">{format(new Date(meeting.start_time), 'PPP')}</span>
           </div>
           
-          <div className="flex items-center gap-2 text-sm">
-            <Clock className="w-4 h-4" />
-            <span>
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span className="break-words">
               {format(new Date(meeting.start_time), 'p')}
               {meeting.end_time && ` - ${format(new Date(meeting.end_time), 'p')}`}
             </span>
@@ -195,12 +197,12 @@ export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
           {/* Attendance for Physical Meetings */}
           {meeting.meeting_type === 'physical' && isUpcoming && (
             <div className="space-y-3">
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   variant={userAttendance === 'going' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleAttendanceUpdate('going')}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm px-2"
                 >
                   Going ({getAttendanceCount('going')})
                 </Button>
@@ -208,7 +210,7 @@ export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
                   variant={userAttendance === 'interested' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleAttendanceUpdate('interested')}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm px-2"
                 >
                   Interested ({getAttendanceCount('interested')})
                 </Button>
@@ -216,7 +218,7 @@ export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
                   variant={userAttendance === 'not_going' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleAttendanceUpdate('not_going')}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm px-2"
                 >
                   Can't Go ({getAttendanceCount('not_going')})
                 </Button>
@@ -228,9 +230,9 @@ export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowAttendees(!showAttendees)}
-                    className="text-xs"
+                    className="text-xs sm:text-sm h-8"
                   >
-                    <Users className="w-4 h-4 mr-1" />
+                    <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                     View Attendees ({attendance.length})
                   </Button>
                   
@@ -241,13 +243,13 @@ export const MeetingCard = ({ meeting, groupId }: MeetingCardProps) => {
                         if (statusAttendees.length === 0) return null;
                         
                         return (
-                          <div key={status}>
-                            <p className="font-medium capitalize mb-1">
+                          <div key={status} className="p-2 bg-muted/30 rounded-md">
+                            <p className="font-medium capitalize mb-1 text-xs">
                               {status.replace('_', ' ')} ({statusAttendees.length})
                             </p>
                             <div className="flex flex-wrap gap-1">
                               {statusAttendees.map(attendee => (
-                                <Avatar key={attendee.user_id} className="w-6 h-6">
+                                <Avatar key={attendee.user_id} className="w-5 h-5 sm:w-6 sm:h-6">
                                   <AvatarFallback className="text-xs">
                                     {attendee.user_id.charAt(0).toUpperCase()}
                                   </AvatarFallback>

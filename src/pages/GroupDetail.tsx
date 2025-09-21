@@ -581,12 +581,12 @@ const GroupDetail = () => {
           <div className="lg:col-span-2">
             {/* Action Buttons */}
             {isMember && (
-              <div className="flex gap-3 mb-6">
-                <Button onClick={() => setShowCreateDiscussion(true)} className="flex-1">
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <Button onClick={() => setShowCreateDiscussion(true)} className="flex-1 text-sm sm:text-base">
                   <Plus className="w-4 h-4 mr-2" />
                   {isAdmin ? 'Create Announcement' : 'New Discussion'}
                 </Button>
-                <Button onClick={() => setShowCreateMeeting(true)} variant="outline" className="flex-1">
+                <Button onClick={() => setShowCreateMeeting(true)} variant="outline" className="flex-1 text-sm sm:text-base">
                   <Calendar className="w-4 h-4 mr-2" />
                   Schedule Meeting
                 </Button>
@@ -596,11 +596,11 @@ const GroupDetail = () => {
             {/* Upcoming Meetings */}
             {meetings.length > 0 && (
               <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Upcoming Meetings</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base sm:text-lg">Upcoming Meetings</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                <CardContent className="pt-0">
+                  <div className="space-y-3 sm:space-y-4">
                     {meetings
                       .filter(meeting => new Date(meeting.start_time) > new Date())
                       .slice(0, 3)
@@ -612,7 +612,7 @@ const GroupDetail = () => {
                         />
                       ))}
                     {meetings.filter(meeting => new Date(meeting.start_time) > new Date()).length === 0 && (
-                      <p className="text-center text-muted-foreground py-4">No upcoming meetings</p>
+                      <p className="text-center text-muted-foreground py-4 text-sm">No upcoming meetings</p>
                     )}
                   </div>
                 </CardContent>

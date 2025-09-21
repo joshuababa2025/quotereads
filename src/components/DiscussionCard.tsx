@@ -199,7 +199,7 @@ export const DiscussionCard = ({ discussion, isAdmin, groupCreatedBy, onRefresh 
             <img 
               src={images[0]} 
               alt="Discussion image"
-              className="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              className="w-full max-w-[300px] md:max-w-[400px] aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => setSelectedImage(images[0])}
             />
           </div>
@@ -222,13 +222,13 @@ export const DiscussionCard = ({ discussion, isAdmin, groupCreatedBy, onRefresh 
     // Multiple media - grid layout
     return (
       <div className="mb-3">
-        <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:gap-2">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
           {images.map((url, index) => (
             <img 
               key={`img-${index}`}
               src={url} 
               alt={`Discussion image ${index + 1}`}
-              className="w-full md:w-48 aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              className="w-full max-w-[200px] md:max-w-[300px] aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => setSelectedImage(url)}
             />
           ))}
@@ -237,7 +237,7 @@ export const DiscussionCard = ({ discussion, isAdmin, groupCreatedBy, onRefresh 
               key={`vid-${index}`}
               src={url} 
               controls
-              className="w-full md:w-48 aspect-square object-cover rounded-lg cursor-pointer"
+              className="w-full max-w-[200px] md:max-w-[300px] aspect-square object-cover rounded-lg cursor-pointer"
               onClick={() => setSelectedVideo(url)}
             />
           ))}
