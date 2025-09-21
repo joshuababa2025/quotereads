@@ -240,77 +240,85 @@ const QuoteOfTheDay = () => {
             <div className="mb-12 animate-scale-in">
               <div className="relative group">
                 <div className="absolute -inset-1 bg-primary/20 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000"></div>
-                <div className="relative bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-8 md:p-12 shadow-2xl">
-                  {/* Quote Icon */}
-                  <div className="text-8xl font-serif mb-6 text-primary/20 leading-none">"</div>
-                  
-                  {/* Quote Text */}
-                  <blockquote className="text-2xl md:text-3xl font-medium text-foreground mb-8 leading-relaxed">
-                    {currentQuote.content}
-                  </blockquote>
-                  
-                  {/* Author */}
-                  <div className="flex items-center justify-between mb-8">
-                    <div>
-                      <p className="text-xl font-semibold text-foreground mb-2">— {currentQuote.author}</p>
-                      <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer"
+                <div 
+                  className="relative bg-card/90 border border-border/50 rounded-2xl p-8 md:p-12 shadow-2xl overflow-hidden"
+                  style={{
+                    backgroundImage: currentQuote.background_image ? `url("${currentQuote.background_image}")` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-black/40"></div>
+                  <div className="relative z-10 text-center">
+                    {/* Quote Icon */}
+                    <div className="text-8xl font-serif mb-6 text-white/30 leading-none">"</div>
+                    
+                    {/* Quote Text */}
+                    <blockquote className="text-2xl md:text-3xl font-medium text-white mb-8 leading-relaxed drop-shadow-lg">
+                      {currentQuote.content}
+                    </blockquote>
+                    
+                    {/* Author */}
+                    <div className="mb-8">
+                      <p className="text-xl font-semibold text-white mb-2 drop-shadow-md">— {currentQuote.author}</p>
+                      <span className="inline-block px-4 py-2 bg-white/20 text-white rounded-full text-sm font-medium hover:bg-white/30 transition-colors cursor-pointer"
                         onClick={() => navigate(`/category/${currentQuote.category.toLowerCase()}`)}>
                         {currentQuote.category}
                       </span>
                     </div>
-                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-3 justify-center">
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      className="gap-2 hover-scale"
-                      onClick={() => handleInteraction('like', currentQuote)}
-                    >
-                      <Heart className={`h-4 w-4 ${interaction.isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-                      Love ({interaction.likeCount})
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      className="gap-2 hover-scale"
-                      onClick={() => handleInteraction('favorite', currentQuote)}
-                    >
-                      <BookmarkPlus className={`h-4 w-4 ${interaction.isFavorited ? 'fill-yellow-500 text-yellow-500' : ''}`} />
-                      Favorite
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      className="gap-2 hover-scale"
-                      onClick={() => handleInteraction('share', currentQuote)}
-                    >
-                      <Share2 className="h-4 w-4" />
-                      Share
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      className="gap-2 hover-scale"
-                      onClick={() => handleInteraction('comment', currentQuote)}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Comment ({commentCount})
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      className="gap-2 hover-scale"
-                      onClick={() => downloadQuote(currentQuote)}
-                    >
-                      <Download className="h-4 w-4" />
-                      Download
-                    </Button>
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-3 justify-center">
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="gap-2 hover-scale bg-white/20 border-white/30 text-white hover:bg-white/30"
+                        onClick={() => handleInteraction('like', currentQuote)}
+                      >
+                        <Heart className={`h-4 w-4 ${interaction.isLiked ? 'fill-red-400 text-red-400' : ''}`} />
+                        Love ({interaction.likeCount})
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="gap-2 hover-scale bg-white/20 border-white/30 text-white hover:bg-white/30"
+                        onClick={() => handleInteraction('favorite', currentQuote)}
+                      >
+                        <BookmarkPlus className={`h-4 w-4 ${interaction.isFavorited ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                        Favorite
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="gap-2 hover-scale bg-white/20 border-white/30 text-white hover:bg-white/30"
+                        onClick={() => handleInteraction('share', currentQuote)}
+                      >
+                        <Share2 className="h-4 w-4" />
+                        Share
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="gap-2 hover-scale bg-white/20 border-white/30 text-white hover:bg-white/30"
+                        onClick={() => handleInteraction('comment', currentQuote)}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        Comment ({commentCount})
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="gap-2 hover-scale bg-white/20 border-white/30 text-white hover:bg-white/30"
+                        onClick={() => downloadQuote(currentQuote)}
+                      >
+                        <Download className="h-4 w-4" />
+                        Download
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

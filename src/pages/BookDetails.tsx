@@ -1,93 +1,309 @@
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Star, Heart, Share2, MessageCircle, ShoppingBag, Plus } from "lucide-react";
-import { BookRating } from "@/components/BookRating";
-import { BookShelves } from "@/components/BookShelves";
-import { CommentSection } from "@/components/CommentSection";
-import { ShareDialog } from "@/components/ShareDialog";
-import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Star, Heart, Share2, ExternalLink, Calendar, BookOpen, Globe, Hash } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+
+interface Book {
+  id: string;
+  title: string;
+  author: string;
+  description: string;
+  cover_image?: string;
+  rating: number;
+  rating_count: number;
+  review_count: number;
+  categories: string[];
+  pages: number;
+  published_date: string;
+  language: string;
+  isbn: string;
+  buy_link?: string;
+  product_link?: string;
+  is_on_sale: boolean;
+  price?: number;
+}
+
+interface Chapter {
+  id: string;
+  book_id: string;
+  title: string;
+  author: string;
+  category: string;
+  description: string;
+  content?: string;
+  cover_image?: string;
+  published_date: string;
+  view_count: number;
+}
+
+interface Review {
+  id: string;
+  rating: number;
+  review_text: string;
+  reviewer_name: string;
+  is_verified: boolean;
+  created_at: string;
+}
 
 const BookDetails = () => {
-  const { bookId } = useParams();
+  const { bookId } = useParams<{ bookId: string }>();
+  const id = bookId;
   const navigate = useNavigate();
-  const [showShelves, setShowShelves] = useState(false);
-  const [showShare, setShowShare] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [book, setBook] = useState<Book | null>(null);
+  const [chapter, setChapter] = useState<Chapter | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isLiked, setIsLiked] = useState(false);
+  const [newReview, setNewReview] = useState({ rating: 0, review_text: '', reviewer_name: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
 
-  // Mock book data - in real app, fetch based on bookId
-  const books = {
-    1: {
-      id: 1,
-      title: "The Power Behind Quiet Words",
-      author: "Aria Thompson",
-      date: "June 22, 2025",
-      category: "Self-Inspiration",
-      isbn: "978-0-123456-78-9",
-      pages: 284,
-      language: "English",
-      publisher: "Wisdom Press",
-      description: "There are some words that don't need to be loud to make an impact. Sometimes the quietest whispers carry the most profound truths, touching hearts in ways that thunderous proclamations never could. In this profound exploration of the power of understated wisdom, Aria Thompson takes readers on a journey through the subtle art of meaningful communication.",
-      fullDescription: "Drawing from years of research in psychology, linguistics, and philosophy, Thompson reveals how the most transformative messages often come not from grand gestures or loud proclamations, but from the gentle, thoughtful words spoken at just the right moment. Through compelling stories, practical exercises, and deep insights, this book shows readers how to harness the incredible power of quiet words to create lasting change in their relationships, careers, and personal growth.",
-      rating: 4.3,
-      ratingsCount: 1247,
-      reviewsCount: 89,
-      genres: ["Self-Help", "Psychology", "Communication", "Personal Development"],
-      amazonUrl: "https://amazon.com/power-behind-quiet-words"
-    },
-    2: {
-      id: 2,
-      title: "Writing Through Pain: A Conversation with Maya Chen",
-      author: "Editorial Team",
-      date: "June 15, 2025",
-      category: "Author Interviews",
-      isbn: "978-0-123456-79-0",
-      pages: 156,
-      language: "English",
-      publisher: "Literary Insights",
-      description: "In our exclusive interview with bestselling author Maya Chen, we explore how personal struggles become the foundation for her most powerful quotes and how vulnerability transforms into strength.",
-      fullDescription: "This intimate conversation reveals the creative process behind some of the most moving quotes of our time. Maya Chen opens up about her journey through adversity, loss, and healing, showing how pain can become a powerful catalyst for meaningful writing. Through candid discussions and behind-the-scenes insights, readers gain a deeper understanding of how authentic expression emerges from life's most challenging moments.",
-      rating: 4.7,
-      ratingsCount: 892,
-      reviewsCount: 67,
-      genres: ["Biography", "Writing", "Inspiration", "Memoir"],
-      amazonUrl: "https://amazon.com/writing-through-pain-maya-chen"
-    },
-    3: {
-      id: 3,
-      title: "The History Behind 'In the Middle of Difficulty Lies Opportunity'",
-      author: "Dr. Robert Rivera",
-      date: "June 8, 2025",
-      category: "History of Quotes",
-      isbn: "978-0-123456-80-6",
-      pages: 342,
-      language: "English",
-      publisher: "Historical Wisdom Press",
-      description: "Einstein's famous words have inspired millions, but what was the context behind this profound observation? This article explores the fascinating story of how this quote came to be during one of history's most challenging periods.",
-      fullDescription: "Dr. Robert Rivera, renowned historian and Einstein scholar, takes readers on a fascinating journey through the historical context that gave birth to one of history's most enduring quotes. Through meticulous research and compelling storytelling, Rivera reveals the circumstances, challenges, and insights that led Einstein to this profound observation about finding opportunity within difficulty.",
-      rating: 4.5,
-      ratingsCount: 2156,
-      reviewsCount: 134,
-      genres: ["History", "Biography", "Philosophy", "Science"],
-      amazonUrl: "https://amazon.com/history-difficulty-opportunity-einstein"
+  useEffect(() => {
+    console.log('useEffect running with id:', id);
+    if (id) {
+      fetchBookOrChapter();
+      fetchReviews();
+    } else {
+      console.log('No ID found');
+      setLoading(false);
+    }
+  }, [id]);
+
+  const fetchReviews = async () => {
+    const bookIdToUse = book?.id || chapter?.book_id || id;
+    if (!bookIdToUse) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('book_reviews')
+        .select('*')
+        .eq('book_id', bookIdToUse)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setReviews(data || []);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
     }
   };
 
-  const book = books[parseInt(bookId || "0") as keyof typeof books];
+  const submitReview = async () => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please login to submit a review",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!newReview.review_text.trim()) {
+      toast({
+        title: "Review Required",
+        description: "Please write a review",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newReview.rating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a rating",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Use book.id if available, otherwise chapter's book_id, otherwise the id parameter
+    const bookIdToUse = book?.id || chapter?.book_id || id;
+    
+    if (!bookIdToUse) {
+      toast({
+        title: "Error",
+        description: "Unable to identify book for review",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSubmittingReview(true);
+    
+    try {
+      const { error } = await supabase
+        .from('book_reviews')
+        .insert({
+          book_id: bookIdToUse,
+          user_id: user.id,
+          rating: newReview.rating,
+          review_text: newReview.review_text,
+          reviewer_name: newReview.reviewer_name || user.email?.split('@')[0] || 'Anonymous'
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Review Submitted",
+        description: "Thank you for your review!"
+      });
+      
+      setNewReview({ rating: 0, review_text: '', reviewer_name: '' });
+      fetchReviews();
+      fetchBookOrChapter(); // Refresh book data for updated ratings
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit review",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const fetchBookOrChapter = async () => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      // Try chapter first
+      const { data: chapterData, error: chapterError } = await supabase
+        .from('chapters')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (chapterData) {
+        setChapter(chapterData);
+        
+        // Get book for this chapter
+        if (chapterData.book_id) {
+          const { data: bookData, error: bookError } = await supabase
+            .from('books')
+            .select('*')
+            .eq('id', chapterData.book_id)
+            .single();
+            
+          if (bookData) {
+            setBook(bookData);
+          }
+        }
+      } else {
+        // Try as book
+        const { data: bookData, error: bookError } = await supabase
+          .from('books')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (bookData) {
+          setBook(bookData);
+        }
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleShare = () => {
+    const title = chapter?.title || book?.title || '';
+    const shareText = `Check out "${title}" on QuoteReads`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title,
+        text: shareText,
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
+      toast({
+        title: "Link copied!",
+        description: "Share link copied to clipboard"
+      });
+    }
+  };
+
+
+
+  const handlePurchase = () => {
+    if (book?.buy_link) {
+      const url = book.buy_link.startsWith('http') ? book.buy_link : `https://${book.buy_link}`;
+      window.open(url, '_blank');
+    }
+  };
+
+  const handleWantToRead = () => {
+    if (book?.is_on_sale && book?.product_link) {
+      const url = book.product_link.startsWith('http') ? book.product_link : `https://${book.product_link}`;
+      window.open(url, '_blank');
+    } else {
+      setIsLiked(!isLiked);
+      toast({
+        title: isLiked ? "Removed from favorites" : "Added to favorites",
+        description: isLiked ? "Book removed from your favorites" : "Book added to your favorites"
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`h-4 w-4 ${
+          i < Math.floor(rating) 
+            ? 'fill-yellow-400 text-yellow-400' 
+            : i < rating 
+            ? 'fill-yellow-400/50 text-yellow-400' 
+            : 'text-gray-300'
+        }`}
+      />
+    ));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!book) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Book Not Found</h1>
-          <Button onClick={() => navigate("/chapters-preview")}>
-            Back to Chapters
-          </Button>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <p className="text-muted-foreground">Content not found</p>
         </div>
         <Footer />
       </div>
@@ -99,190 +315,261 @@ const BookDetails = () => {
       <Navigation />
       
       <main className="container mx-auto px-4 py-8">
-        {/* Book Header */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* Book Cover */}
-          <div className="md:col-span-1">
-            <div className="aspect-[3/4] bg-gradient-to-br from-muted to-muted-foreground/20 rounded-lg flex items-center justify-center mb-4">
-              <BookOpen className="h-24 w-24 text-muted-foreground/50" />
-            </div>
-          </div>
-
-          {/* Book Info */}
-          <div className="md:col-span-3 space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">{book.title}</h1>
-              <p className="text-lg text-muted-foreground mb-4">by {book.author}</p>
-              
-              <div className="flex items-center gap-4 mb-4">
-                <BookRating rating={book.rating} />
-                <span className="text-sm text-muted-foreground">
-                  {book.rating} · {book.ratingsCount.toLocaleString()} ratings · {book.reviewsCount} reviews
-                </span>
-              </div>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {book.genres.map((genre) => (
-                  <Badge key={genre} variant="secondary">{genre}</Badge>
-                ))}
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            {/* Book Cover */}
+            <div className="md:col-span-1">
+              <div className="aspect-[3/4] bg-muted rounded-lg overflow-hidden">
+                {(chapter?.cover_image || book.cover_image) ? (
+                  <img 
+                    src={chapter?.cover_image || book.cover_image} 
+                    alt={chapter?.title || book.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
+                    <BookOpen className="h-16 w-16 text-muted-foreground/50" />
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
-              <Button 
-                variant="default" 
-                className="flex items-center gap-2"
-                onClick={() => setShowShelves(true)}
-              >
-                <Plus className="h-4 w-4" />
-                Want to Read
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2"
-                onClick={() => window.open(book.amazonUrl, '_blank')}
-              >
-                <ShoppingBag className="h-4 w-4" />
-                Buy on Amazon
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => setShowShare(true)}
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-              
-              <Button variant="outline" size="icon">
-                <Heart className="h-4 w-4" />
-              </Button>
-            </div>
+            {/* Book Info */}
+            <div className="md:col-span-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+                {chapter?.title || book.title}
+              </h1>
+              <p className="text-xl text-muted-foreground mb-4">
+                by {chapter?.author || book.author}
+              </p>
 
-            {/* Book Details */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Pages:</span>
-                <p className="font-medium">{book.pages}</p>
+              {/* Rating */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center">
+                  {renderStars(book.rating)}
+                </div>
+                <span className="font-semibold">{book.rating}</span>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-muted-foreground">{book.rating_count?.toLocaleString() || 0} ratings</span>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-muted-foreground">{book.review_count} reviews</span>
               </div>
-              <div>
-                <span className="text-muted-foreground">Published:</span>
-                <p className="font-medium">{book.date}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Language:</span>
-                <p className="font-medium">{book.language}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">ISBN:</span>
-                <p className="font-medium">{book.isbn}</p>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <Separator className="my-8" />
+              {/* Categories */}
+              <div className="mb-6">
+                <p className="text-sm font-semibold text-foreground mb-2">CATEGORIES:</p>
+                <div className="flex flex-wrap gap-2">
+                  {(Array.isArray(book.categories) ? book.categories : []).map((category) => (
+                    <Badge key={category} variant="secondary">
+                      {category}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
 
-        {/* Content Tabs */}
-        <Tabs defaultValue="description" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="description">Description</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews ({book.reviewsCount})</TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="description" className="mt-6">
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">About this book</h3>
-                <p className="text-muted-foreground leading-relaxed mb-4">
-                  {book.description}
-                </p>
-                <p className="text-muted-foreground leading-relaxed">
-                  {book.fullDescription}
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="reviews" className="mt-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold">Reviews & Comments</h3>
-                  <Button variant="outline" size="sm">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Write a Review
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                {book.buy_link && (
+                  <Button onClick={handlePurchase} className="gap-2">
+                    <ExternalLink className="h-4 w-4" />
+                    Buy Now{book.price && ` $${book.price}`}
                   </Button>
-                </div>
-                <CommentSection quoteId={`book-${book.id}`} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="details" className="mt-6">
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Book Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-sm text-muted-foreground">Publisher:</span>
-                      <p className="font-medium">{book.publisher}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Publication Date:</span>
-                      <p className="font-medium">{book.date}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Pages:</span>
-                      <p className="font-medium">{book.pages}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Language:</span>
-                      <p className="font-medium">{book.language}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-sm text-muted-foreground">ISBN:</span>
-                      <p className="font-medium">{book.isbn}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Category:</span>
-                      <p className="font-medium">{book.category}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Average Rating:</span>
-                      <p className="font-medium">{book.rating}/5</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Total Ratings:</span>
-                      <p className="font-medium">{book.ratingsCount.toLocaleString()}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
+                )}
+                
+                <Button variant="outline" onClick={handleShare} className="gap-2">
+                  <Share2 className="h-4 w-4" />
+                  Share
+                </Button>
+              </div>
 
-      {/* Dialogs */}
-      <BookShelves 
-        open={showShelves} 
-        onOpenChange={setShowShelves}
-        bookTitle={book.title}
-      />
-      
-      <ShareDialog 
-        open={showShare}
-        onOpenChange={setShowShare}
-        title={book.title}
-        url={`/book/${book.id}`}
-      />
+              {/* Book Details */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="font-semibold">Pages:</p>
+                  <p className="text-muted-foreground">{book.pages}</p>
+                </div>
+                <div>
+                  <p className="font-semibold">Published:</p>
+                  <p className="text-muted-foreground">{formatDate(book.published_date)}</p>
+                </div>
+                <div>
+                  <p className="font-semibold">Language:</p>
+                  <p className="text-muted-foreground">{book.language}</p>
+                </div>
+                <div>
+                  <p className="font-semibold">ISBN:</p>
+                  <p className="text-muted-foreground">{book.isbn}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Tabs */}
+          <Tabs defaultValue="description" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="description">Description</TabsTrigger>
+              <TabsTrigger value="reviews">Reviews ({book.review_count})</TabsTrigger>
+              <TabsTrigger value="details">Details</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="description" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  {chapter?.content ? (
+                    <div className="prose max-w-none">
+                      <div className="whitespace-pre-wrap">{chapter.content}</div>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground leading-relaxed">
+                      {book.description}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="reviews" className="mt-6">
+              <div className="space-y-6">
+                {/* Write Review */}
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Rating</Label>
+                        <div className="flex items-center gap-1 mt-1">
+                          {Array.from({ length: 5 }, (_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-6 w-6 cursor-pointer ${
+                                i < newReview.rating
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'text-gray-300 hover:text-yellow-200'
+                              }`}
+                              onClick={() => setNewReview({...newReview, rating: i + 1})}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="reviewer_name">Name (optional)</Label>
+                        <Input
+                          id="reviewer_name"
+                          value={newReview.reviewer_name}
+                          onChange={(e) => setNewReview({...newReview, reviewer_name: e.target.value})}
+                          placeholder="Your name or leave blank for default"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="review_text">Review</Label>
+                        <Textarea
+                          id="review_text"
+                          value={newReview.review_text}
+                          onChange={(e) => setNewReview({...newReview, review_text: e.target.value})}
+                          placeholder="Share your thoughts about this book..."
+                          rows={4}
+                        />
+                      </div>
+                      <Button 
+                        onClick={submitReview} 
+                        disabled={submittingReview}
+                        className="w-full"
+                      >
+                        {submittingReview ? 'Submitting...' : 'Submit Review'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Reviews List */}
+                <div className="space-y-4">
+                  {reviews.length === 0 ? (
+                    <Card>
+                      <CardContent className="p-6 text-center">
+                        <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    reviews.map((review) => (
+                      <Card key={review.id}>
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-semibold">{review.reviewer_name}</span>
+                                {review.is_verified && (
+                                  <Badge variant="secondary" className="text-xs">Verified</Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {Array.from({ length: 5 }, (_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-4 w-4 ${
+                                      i < review.rating
+                                        ? 'fill-yellow-400 text-yellow-400'
+                                        : 'text-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(review.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-muted-foreground leading-relaxed">{review.review_text}</p>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="details" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-semibold mb-3">Publication Details</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Pages:</span>
+                          <span>{book.pages}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Published:</span>
+                          <span>{formatDate(book.published_date)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Language:</span>
+                          <span>{book.language}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>ISBN:</span>
+                          <span>{book.isbn}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-3">Categories</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {(Array.isArray(book.categories) ? book.categories : []).map((category) => (
+                          <Badge key={category} variant="outline">
+                            {category}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
       
       <Footer />
     </div>

@@ -128,7 +128,7 @@ export const UserQuoteCard = (props: UserQuoteCardProps) => {
         className
       )}
       style={bgImage ? {
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url(${bgImage})`,
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url("${bgImage}")`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       } : {

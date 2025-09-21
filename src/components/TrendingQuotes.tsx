@@ -15,16 +15,23 @@ export const TrendingQuotes = () => {
 
   const loadTrendingQuotes = async () => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('quotes')
-        .select('*')
+        .select('id, content, author, category, background_image')
         .eq('is_hidden', false)
+        .not('background_image', 'is', null)
         .order('created_at', { ascending: false })
         .limit(6);
       
-      setQuotes(data || []);
+      if (!error && data) {
+        setQuotes(data);
+      } else {
+        console.error('Error loading trending quotes:', error);
+        setQuotes([]);
+      }
     } catch (error) {
       console.error('Error loading quotes:', error);
+      setQuotes([]);
     } finally {
       setLoading(false);
     }

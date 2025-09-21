@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { ClickableUsername } from "@/components/ClickableUsername";
 import { supabase } from "@/integrations/supabase/client";
 import { assignBackgroundImages } from "@/utils/assignBackgroundImages";
-import { TestCategoryImages } from "@/components/TestCategoryImages";
+
 
 interface Quote {
   id: string;
@@ -41,6 +41,9 @@ const CommunityQuotes = () => {
   const [activeTab, setActiveTab] = useState("popular");
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const QUOTES_PER_PAGE = 10;
   
   const { toggleLike, toggleFavorite, getInteraction } = useQuoteInteraction();
   const { toggleLike: persistentToggleLike, toggleFavorite: persistentToggleFavorite } = usePersistentQuoteInteractions();
@@ -51,19 +54,29 @@ const CommunityQuotes = () => {
     fetchQuotes();
   }, []);
 
-  const fetchQuotes = async () => {
+  const fetchQuotes = async (pageNum = 1, append = false) => {
     try {
-      // Fetch quotes with like counts
+      setLoading(pageNum === 1);
+      
+      // Fetch quotes with pagination
       const { data: quotesData, error: quotesError } = await supabase
         .from('quotes')
         .select('*')
         .eq('is_hidden', false)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range((pageNum - 1) * QUOTES_PER_PAGE, pageNum * QUOTES_PER_PAGE - 1);
       
       if (!quotesError && quotesData) {
         // Assign background images to quotes that don't have them
         const quotesWithImages = await assignBackgroundImages(quotesData);
-        setQuotes(quotesWithImages);
+        
+        if (append) {
+          setQuotes(prev => [...prev, ...quotesWithImages]);
+        } else {
+          setQuotes(quotesWithImages);
+        }
+        
+        setHasMore(quotesData.length === QUOTES_PER_PAGE);
         
         // Fetch like counts for each quote
         const { data: likesData, error: likesError } = await supabase
@@ -76,7 +89,7 @@ const CommunityQuotes = () => {
           likesData.forEach(like => {
             likeCounts[like.quote_id] = (likeCounts[like.quote_id] || 0) + 1;
           });
-          setQuoteLikes(likeCounts);
+          setQuoteLikes(prev => ({ ...prev, ...likeCounts }));
         }
       }
     } catch (error) {
@@ -84,6 +97,12 @@ const CommunityQuotes = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchQuotes(nextPage, true);
   };
 
   // Get all unique tags with counts from quotes
@@ -324,9 +343,7 @@ const CommunityQuotes = () => {
                   </Button>
                 </AddQuoteDialog>
               </div>
-              
-              <TestCategoryImages />
-              
+
               <div className="flex items-center gap-4 mb-6">
                 <Input 
                   placeholder="Find quotes by keyword, author" 
@@ -389,7 +406,7 @@ const CommunityQuotes = () => {
                               <div 
                                 className="rounded-lg p-4 text-white relative overflow-hidden"
                                 style={quote.background_image ? {
-                                  backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url(${quote.background_image})`,
+                                  backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url("${quote.background_image}")`,
                                   backgroundSize: 'cover',
                                   backgroundPosition: 'center'
                                 } : {
@@ -475,6 +492,15 @@ const CommunityQuotes = () => {
                       {activeTab === 'friends' ? 'No friends yet. Follow other users to see their quotes here!' : 
                        'No quotes found matching your search criteria.'}
                     </p>
+                  </div>
+                )}
+                
+                {/* Load More Button */}
+                {hasMore && filteredQuotes.length > 0 && (
+                  <div className="text-center py-6">
+                    <Button onClick={loadMore} variant="outline">
+                      Load More Quotes
+                    </Button>
                   </div>
                 )}
               </div>

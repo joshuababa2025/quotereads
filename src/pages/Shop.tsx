@@ -73,7 +73,7 @@ const Shop = () => {
     }
   };
 
-  const recommendedProducts = products.slice(0, 5);
+  const recommendedProducts = products.slice(0, 6);
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
@@ -154,11 +154,44 @@ const Shop = () => {
             {/* Recommended for You - Desktop */}
             <div className="hidden lg:block">
               <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-foreground mb-4">Recommended for You</h3>
-                  <div className="grid grid-cols-1 gap-4">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-foreground mb-3 text-sm">Recommended for You</h3>
+                  <div className="grid grid-cols-2 gap-3">
                     {recommendedProducts.map((product) => (
-                      <ProductCard key={product.id} product={product} />
+                      <div key={product.id} className="group cursor-pointer" onClick={() => window.location.href = `/product/${product.id}`}>
+                        <div className="aspect-square bg-muted rounded-lg mb-2 overflow-hidden relative">
+                          <img 
+                            src={product.featured_image || '/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png'} 
+                            alt={product.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          {product.status === 'coming_soon' && (
+                            <div className="absolute top-1 left-1">
+                              <span className="bg-orange-500 text-white px-1 py-0.5 rounded text-xs font-medium">
+                                Soon
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <h4 className="font-medium text-xs text-foreground mb-1 line-clamp-2 leading-tight">
+                          {product.name}
+                        </h4>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-primary">
+                            ${product.price}
+                          </span>
+                          <Button 
+                            size="sm" 
+                            className="h-6 px-2 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Add to cart logic here
+                            }}
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </CardContent>
@@ -198,19 +231,7 @@ const Shop = () => {
               </div>
             )}
             
-            {/* Recommended for You - Mobile */}
-            <div className="lg:hidden">
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-foreground mb-4">Recommended for You</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {recommendedProducts.map((product) => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+
           </div>
         </div>
       </div>
