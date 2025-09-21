@@ -605,6 +605,45 @@ export type Database = {
         }
         Relationships: []
       }
+      giveaway_packages: {
+        Row: {
+          base_price: number
+          category: string
+          created_at: string
+          description: string | null
+          features: string[] | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          category: string
+          created_at?: string
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       group_discussions: {
         Row: {
           approved_at: string | null
@@ -1441,6 +1480,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_rankings: {
+        Row: {
+          id: string
+          points: number
+          rank_level: Database["public"]["Enums"]["rank_level"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          points?: number
+          rank_level?: Database["public"]["Enums"]["rank_level"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          points?: number
+          rank_level?: Database["public"]["Enums"]["rank_level"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_stats: {
         Row: {
           id: string
@@ -1601,7 +1664,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      rank_level: "silver" | "gold" | "platinum"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1728,6 +1791,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      rank_level: ["silver", "gold", "platinum"],
+    },
   },
 } as const
