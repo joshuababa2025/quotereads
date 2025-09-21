@@ -557,24 +557,121 @@ export type Database = {
         }
         Relationships: []
       }
-      groups: {
+      group_discussions: {
+        Row: {
+          comments_count: number | null
+          content: string
+          created_at: string | null
+          group_id: string
+          id: string
+          image_urls: string[] | null
+          likes_count: number | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comments_count?: number | null
+          content: string
+          created_at?: string | null
+          group_id: string
+          id?: string
+          image_urls?: string[] | null
+          likes_count?: number | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comments_count?: number | null
+          content?: string
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          image_urls?: string[] | null
+          likes_count?: number | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_discussions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_members: {
         Row: {
           created_at: string | null
-          description: string | null
+          group_id: string
           id: string
-          name: string
+          joined_at: string | null
+          role: string
+          user_id: string
         }
         Insert: {
           created_at?: string | null
-          description?: string | null
+          group_id: string
           id?: string
-          name: string
+          joined_at?: string | null
+          role?: string
+          user_id: string
         }
         Update: {
           created_at?: string | null
+          group_id?: string
+          id?: string
+          joined_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          profile_image: string | null
+          tags: string[] | null
+          type: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          profile_image?: string | null
+          tags?: string[] | null
+          type?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           name?: string
+          profile_image?: string | null
+          tags?: string[] | null
+          type?: string | null
         }
         Relationships: []
       }
