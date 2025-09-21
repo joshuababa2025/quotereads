@@ -23,8 +23,11 @@ interface GroupData {
   description: string | null;
   bio: string | null;
   profile_image: string | null;
+  cover_image: string | null;
   type: string | null;
   tags: string[] | null;
+  require_post_approval: boolean | null;
+  auto_approve_posts: boolean | null;
   created_at: string;
   created_by: string;
 }
@@ -41,6 +44,8 @@ interface GroupDiscussion {
   title: string;
   content: string;
   image_urls: string[] | null;
+  video_urls: string[] | null;
+  status: string;
   created_at: string;
   user_id: string;
   likes_count: number;
@@ -70,7 +75,8 @@ const GroupDetail = () => {
   const [discussionForm, setDiscussionForm] = useState({
     title: '',
     content: '',
-    images: [] as File[]
+    images: [] as File[],
+    videos: [] as File[]
   });
 
   useEffect(() => {
@@ -269,8 +275,46 @@ const GroupDetail = () => {
     }
 
     try {
-      // TODO: Handle image uploads to Supabase storage
+      // Upload images
       const imageUrls: string[] = [];
+      for (const image of discussionForm.images) {
+        const fileExt = image.name.split('.').pop();
+        const fileName = `discussions/${groupId}/${user.id}/${Date.now()}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('groups')
+          .upload(fileName, image);
+
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('groups')
+          .getPublicUrl(fileName);
+        
+        imageUrls.push(publicUrl);
+      }
+
+      // Upload videos
+      const videoUrls: string[] = [];
+      for (const video of discussionForm.videos) {
+        const fileExt = video.name.split('.').pop();
+        const fileName = `discussions/${groupId}/${user.id}/${Date.now()}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('groups')
+          .upload(fileName, video);
+
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('groups')
+          .getPublicUrl(fileName);
+        
+        videoUrls.push(publicUrl);
+      }
+
+      // Determine status based on group settings
+      const discussionStatus = group?.require_post_approval && !isAdmin ? 'pending' : 'published';
 
       const { error } = await supabase
         .from('group_discussions')
@@ -279,17 +323,26 @@ const GroupDetail = () => {
           user_id: user.id,
           title: discussionForm.title,
           content: discussionForm.content,
-          image_urls: imageUrls.length > 0 ? imageUrls : null
+          image_urls: imageUrls.length > 0 ? imageUrls : null,
+          video_urls: videoUrls.length > 0 ? videoUrls : null,
+          status: discussionStatus
         });
 
       if (error) throw error;
 
+      // Create notifications for group members if discussion is published
+      if (discussionStatus === 'published') {
+        await createGroupNotification('new_discussion', discussionForm.title);
+      }
+
       toast({
         title: "Success!",
-        description: "Discussion created successfully!"
+        description: discussionStatus === 'pending' 
+          ? "Discussion submitted for approval!" 
+          : "Discussion created successfully!"
       });
       setShowCreateDiscussion(false);
-      setDiscussionForm({ title: '', content: '', images: [] });
+      setDiscussionForm({ title: '', content: '', images: [], videos: [] });
       fetchGroupData(); // Refresh data
     } catch (error: any) {
       console.error('Error creating discussion:', error);
@@ -298,6 +351,41 @@ const GroupDetail = () => {
         description: "Failed to create discussion",
         variant: "destructive"
       });
+    }
+  };
+
+  const createGroupNotification = async (type: string, title: string) => {
+    if (!user || !groupId) return;
+
+    try {
+      // Get all group members except the sender
+      const { data: members } = await supabase
+        .from('group_members')
+        .select('user_id')
+        .eq('group_id', groupId)
+        .neq('user_id', user.id);
+
+      if (!members || members.length === 0) return;
+
+      // Create notifications for all members
+      const notifications = members.map(member => ({
+        group_id: groupId,
+        user_id: member.user_id,
+        sender_id: user.id,
+        type,
+        title: `New ${type.replace('_', ' ')} in ${group?.name}`,
+        message: `${title}`
+      }));
+
+      const { error } = await supabase
+        .from('group_notifications')
+        .insert(notifications);
+
+      if (error) {
+        console.error('Error creating notifications:', error);
+      }
+    } catch (error) {
+      console.error('Error in createGroupNotification:', error);
     }
   };
 
@@ -468,18 +556,30 @@ const GroupDetail = () => {
                         </div>
                         <h4 className="font-semibold mb-2">{discussion.title}</h4>
                         <p className="text-sm text-muted-foreground mb-3">{discussion.content}</p>
-                        {discussion.image_urls && discussion.image_urls.length > 0 && (
-                          <div className="flex gap-2 mb-3">
-                            {discussion.image_urls.map((url, index) => (
-                              <img 
-                                key={index} 
-                                src={url} 
-                                alt={`Discussion image ${index + 1}`}
-                                className="w-20 h-20 object-cover rounded"
-                              />
-                            ))}
-                          </div>
-                        )}
+                         {discussion.image_urls && discussion.image_urls.length > 0 && (
+                           <div className="flex gap-2 mb-3">
+                             {discussion.image_urls.map((url, index) => (
+                               <img 
+                                 key={index} 
+                                 src={url} 
+                                 alt={`Discussion image ${index + 1}`}
+                                 className="w-20 h-20 object-cover rounded"
+                               />
+                             ))}
+                           </div>
+                         )}
+                         {discussion.video_urls && discussion.video_urls.length > 0 && (
+                           <div className="flex gap-2 mb-3">
+                             {discussion.video_urls.map((url, index) => (
+                               <video 
+                                 key={index} 
+                                 src={url} 
+                                 controls
+                                 className="w-40 h-24 object-cover rounded"
+                               />
+                             ))}
+                           </div>
+                         )}
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <button className="flex items-center gap-1 hover:text-primary">
                             <Heart className="w-4 h-4" />

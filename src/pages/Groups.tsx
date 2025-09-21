@@ -1,5 +1,6 @@
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
+import { GroupNotifications } from "@/components/GroupNotifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -247,6 +248,9 @@ const Groups = () => {
             </div>
 
             <div className="flex items-center gap-4 mb-8">
+              <div className="flex items-center gap-2">
+                <GroupNotifications />
+              </div>
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input 
@@ -271,10 +275,12 @@ const Groups = () => {
                   <SelectItem value="General">General</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Group
-              </Button>
+              {user && (
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Group
+                </Button>
+              )}
             </div>
 
             {/* All Groups */}
@@ -336,13 +342,6 @@ const Groups = () => {
                                 onClick={() => shareGroup(group.id, group.name)}
                               >
                                 <Share2 className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => joinGroup(group.id)}
-                              >
-                                Join
                               </Button>
                               <Button
                                 variant="default"

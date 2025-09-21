@@ -92,24 +92,36 @@ export const GroupMemberManagement = ({
       const fileExt = file.name.split('.').pop();
       const fileName = `${groupId}-${type}-${Date.now()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data } = await supabase.storage
         .from('groups')
         .upload(fileName, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('groups')
         .getPublicUrl(fileName);
 
+      console.log('Public URL generated:', publicUrl);
+
       const updateField = type === 'profile' ? 'profile_image' : 'cover_image';
+      console.log('Updating field:', updateField, 'with URL:', publicUrl);
       
-      const { error: updateError } = await supabase
+      const { error: updateError, data: updateData } = await supabase
         .from('groups')
         .update({ [updateField]: publicUrl })
-        .eq('id', groupId);
+        .eq('id', groupId)
+        .select();
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
+
+      console.log('Update successful:', updateData);
 
       toast({
         title: "Success!",
@@ -120,7 +132,7 @@ export const GroupMemberManagement = ({
       console.error('Error uploading image:', error);
       toast({
         title: "Error",
-        description: "Failed to upload image",
+        description: `Failed to upload ${type} image: ${error.message}`,
         variant: "destructive"
       });
     }
