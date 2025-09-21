@@ -24,6 +24,7 @@ const GroupDetailPage = lazy(() => import("./pages/GroupDetail"));
 const CommunityQuotes = lazy(() => import("./pages/CommunityQuotes"));
 const NewGiveaway = lazy(() => import("./pages/NewGiveaway"));
 const PackageDetails = lazy(() => import("./pages/PackageDetails"));
+const PackageOrder = lazy(() => import("./pages/PackageOrder"));
 const PersonalizePackage = lazy(() => import("./pages/PersonalizePackage"));
 const InvoicePage = lazy(() => import("./pages/InvoicePage"));
 const ConfirmationPage = lazy(() => import("./pages/ConfirmationPage"));
@@ -107,6 +108,7 @@ const App = () => (
                         <Route path="/community-quotes" element={<CommunityQuotes />} />
                         <Route path="/giveaway" element={<Giveaway />} />
                         <Route path="/giveaway/package/:id" element={<PackageDetails />} />
+                        <Route path="/package-orders/:orderId" element={<PackageOrder />} />
                         <Route path="/giveaway/personalize/:id" element={<PersonalizePackage />} />
                         <Route path="/giveaway/invoice/:id" element={<InvoicePage />} />
                         <Route path="/giveaway/confirmation/:orderId" element={<ConfirmationPage />} />

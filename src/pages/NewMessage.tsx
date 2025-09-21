@@ -45,26 +45,42 @@ export const NewMessage = () => {
     
     setRecipientLoading(true);
     try {
-      // Add a small delay to ensure database consistency
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Check if recipientUsername looks like a UUID (direct user_id)
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(recipientUsername);
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, avatar_url, username')
-        .eq('username', recipientUsername)
-        .maybeSingle();
+      let data, error;
+      
+      if (isUuid) {
+        // Try to find by user_id first
+        const result = await supabase
+          .from('profiles')
+          .select('user_id, full_name, avatar_url, username')
+          .eq('user_id', recipientUsername)
+          .maybeSingle();
+        data = result.data;
+        error = result.error;
+      } else {
+        // Try to find by username
+        const result = await supabase
+          .from('profiles')
+          .select('user_id, full_name, avatar_url, username')
+          .eq('username', recipientUsername)
+          .maybeSingle();
+        data = result.data;
+        error = result.error;
+      }
 
-      console.log('Fetching user with username:', recipientUsername, 'Result:', { data, error });
+      console.log('Fetching user with identifier:', recipientUsername, 'Result:', { data, error });
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Database error:', error);
         throw error;
       }
       
       if (data) {
         setRecipient(data);
-      } else {
-        // Try with a case-insensitive search as fallback
+      } else if (!isUuid) {
+        // Try with a case-insensitive search as fallback for usernames
         const { data: fallbackData, error: fallbackError } = await supabase
           .from('profiles')
           .select('user_id, full_name, avatar_url, username')
@@ -76,11 +92,16 @@ export const NewMessage = () => {
         } else {
           toast({
             title: "User not found",
-            description: "Could not find the user. They may need to refresh their profile or try again in a moment.",
+            description: "Could not find the user. Please check the username and try again.",
             variant: "destructive"
           });
-          // Don't navigate away immediately, let user try again
         }
+      } else {
+        toast({
+          title: "User not found",
+          description: "Could not find the user. Please check the user ID and try again.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error fetching recipient:', error);
@@ -89,7 +110,6 @@ export const NewMessage = () => {
         description: "There was an issue loading the user. Please try again in a moment.",
         variant: "destructive"
       });
-      // Don't navigate away, let user retry
     } finally {
       setRecipientLoading(false);
     }

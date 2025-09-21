@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Search, Gift, Users, Heart, Trophy, Star, Medal, Award, Plus, PlusCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useRanking } from '@/hooks/useRanking';
 
 interface GiveawayPackage {
   id: string;
@@ -22,84 +23,102 @@ interface GiveawayPackage {
   features: string[];
 }
 
-interface UserRanking {
-  rank_level: string;
-  points: number;
-  display_rank: boolean;
-}
-
 const NewGiveaway = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { ranking, loading: rankingLoading, getRankDisplay } = useRanking();
   const [searchQuery, setSearchQuery] = useState('');
   const [packages, setPackages] = useState<GiveawayPackage[]>([]);
-  const [userRanking, setUserRanking] = useState<UserRanking | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showCreateCampaign, setShowCreateCampaign] = useState(false);
 
   useEffect(() => {
     fetchPackages();
-    if (user) {
-      fetchUserRanking();
-    }
-  }, [user]);
+  }, []);
 
   const fetchPackages = async () => {
     try {
-      // Since giveaway_packages table doesn't exist, use mock data for now
-      const mockPackages: GiveawayPackage[] = [
-        {
-          id: '1',
-          title: 'Basic Giveaway Package',
-          description: 'Perfect for small communities',
-          category: 'Basic',
-          base_price: 29.99,
-          image_url: '/placeholder.svg',
-          features: ['Up to 100 participants', 'Basic analytics', 'Email support']
-        },
-        {
-          id: '2',
-          title: 'Premium Giveaway Package',
-          description: 'For growing communities',
-          category: 'Premium',
-          base_price: 79.99,
-          image_url: '/placeholder.svg',
-          features: ['Up to 1000 participants', 'Advanced analytics', 'Priority support', 'Custom branding']
-        }
-      ];
-      setPackages(mockPackages);
+      const { data, error } = await supabase
+        .from('giveaway_packages')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPackages(data || []);
     } catch (error) {
       console.error('Error fetching packages:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load packages. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchUserRanking = async () => {
-    if (!user) return;
-    
+  const handlePackageSelect = async (packageId: string) => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to purchase a package.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
-      // Since user_rankings table doesn't exist, use mock data for now
-      const mockRanking: UserRanking = {
-        rank_level: 'Bronze',
-        points: 150,
-        display_rank: true
-      };
-      setUserRanking(mockRanking);
+      // Create order in package_orders table using Supabase table structure
+      const selectedPackage = packages.find(p => p.id === packageId);
+      if (!selectedPackage) return;
+
+      const { data, error } = await supabase
+        .from('package_orders')
+        .insert({
+          user_id: user.id,
+          package_id: packageId,
+          total_amount: selectedPackage.base_price,
+          status: 'pending',
+          reason: 'Package purchase from giveaway marketplace',
+          personal_info: {
+            name: user.user_metadata?.full_name || '',
+            email: user.email || ''
+          }
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating order:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Order created!",
+        description: "Your order has been created successfully. You will be redirected to payment.",
+      });
+
+      // Navigate to payment or order confirmation
+      navigate(`/package-orders/${data.id}`);
     } catch (error) {
-      console.error('Error fetching user ranking:', error);
+      console.error('Error processing order:', error);
+      toast({
+        title: "Order failed",
+        description: "Failed to process your order. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
-  const getRankIcon = (rankLevel: string) => {
+  const getRankIcon = (rankLevel: 'silver' | 'gold' | 'platinum') => {
     switch (rankLevel) {
-      case 'bronze':
-        return <Medal className="w-5 h-5 text-amber-600" />;
       case 'silver':
-        return <Trophy className="w-5 h-5 text-gray-400" />;
+        return <Medal className="w-5 h-5 text-gray-400" />;
       case 'gold':
-        return <Award className="w-5 h-5 text-yellow-500" />;
+        return <Trophy className="w-5 h-5 text-yellow-500" />;
+      case 'platinum':
+        return <Award className="w-5 h-5 text-purple-600" />;
       default:
         return <Star className="w-5 h-5 text-blue-500" />;
     }
@@ -112,19 +131,16 @@ const NewGiveaway = () => {
   );
 
   const categories = [
-    { id: 'books', name: 'Books', icon: '📚', color: 'bg-blue-100 text-blue-800' },
-    { id: 'feeding', name: 'Feeding', icon: '🍽️', color: 'bg-green-100 text-green-800' },
-    { id: 'kids', name: 'Kids Packs', icon: '🧸', color: 'bg-pink-100 text-pink-800' },
-    { id: 'clothing', name: 'Clothing', icon: '👕', color: 'bg-purple-100 text-purple-800' },
-    { id: 'prayer', name: 'Prayer Support', icon: '🙏', color: 'bg-indigo-100 text-indigo-800' }
+    { id: 'books', name: 'Books', icon: <Gift className="w-4 h-4" />, color: 'bg-blue-100 text-blue-800' },
+    { id: 'technology', name: 'Technology', icon: <Star className="w-4 h-4" />, color: 'bg-green-100 text-green-800' },
+    { id: 'wellness', name: 'Wellness', icon: <Heart className="w-4 h-4" />, color: 'bg-pink-100 text-pink-800' },
   ];
 
   const supportOptions = [
-    { name: 'Monetary Donation', icon: '💰', description: 'Financial support for campaigns' },
-    { name: 'Food Packages', icon: '🍞', description: 'Donate food items and packages' },
-    { name: 'Sweets for Children', icon: '🍭', description: 'Candies and treats for kids' },
-    { name: 'Prayer Support', icon: '🙏', description: 'Spiritual support and prayers' },
-    { name: 'Volunteer Time', icon: '⏰', description: 'Donate your time and skills' }
+    { name: 'Monetary Donation', icon: <Gift className="w-5 h-5" />, description: 'Financial support for campaigns' },
+    { name: 'Food Packages', icon: <Heart className="w-5 h-5" />, description: 'Donate food items and packages' },
+    { name: 'Prayer Support', icon: <Star className="w-5 h-5" />, description: 'Spiritual support and prayers' },
+    { name: 'Volunteer Time', icon: <Users className="w-5 h-5" />, description: 'Donate your time and skills' }
   ];
 
   const earnMoneyTasks = [
@@ -160,11 +176,11 @@ const NewGiveaway = () => {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h1 className="text-3xl font-bold text-foreground">Giveaway Marketplace</h1>
-                {user && userRanking && userRanking.display_rank && (
+                {user && ranking && (
                   <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 shadow-sm">
-                    {getRankIcon(userRanking.rank_level)}
-                    <span className="text-sm font-medium capitalize">{userRanking.rank_level} Member</span>
-                    <Badge variant="secondary">{userRanking.points} pts</Badge>
+                    {getRankIcon(ranking.rank_level)}
+                    <span className="text-sm font-medium capitalize">{getRankDisplay(ranking.rank_level)} Member</span>
+                    <Badge variant="secondary">{ranking.points} pts</Badge>
                   </div>
                 )}
               </div>
@@ -223,7 +239,7 @@ const NewGiveaway = () => {
                       </div>
                       <Button 
                         className="w-full" 
-                        onClick={() => navigate(`/giveaway/package/${mainPackage.id}`)}
+                        onClick={() => handlePackageSelect(mainPackage.id)}
                       >
                         <Gift className="w-4 h-4 mr-2" />
                         Select Package
@@ -260,8 +276,8 @@ const NewGiveaway = () => {
                           <div className="text-sm text-muted-foreground">
                             {pkg.features.length} features included
                           </div>
-                          <Button size="sm" onClick={() => navigate(`/giveaway/package/${pkg.id}`)}>
-                            View Details
+                          <Button size="sm" onClick={() => handlePackageSelect(pkg.id)}>
+                            Select Package
                           </Button>
                         </div>
                       </div>
@@ -285,7 +301,7 @@ const NewGiveaway = () => {
               <CardContent className="space-y-4">
                 {supportOptions.map((option, index) => (
                   <div key={index} className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer">
-                    <span className="text-lg">{option.icon}</span>
+                    {option.icon}
                     <div>
                       <h4 className="font-medium text-sm">{option.name}</h4>
                       <p className="text-xs text-muted-foreground">{option.description}</p>

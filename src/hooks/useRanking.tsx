@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface UserRanking {
   id: string;
   user_id: string;
-  rank_level: number;
+  rank_level: 'silver' | 'gold' | 'platinum';
   points: number;
-  display_rank: string;
   updated_at: string;
 }
 
@@ -16,83 +16,137 @@ export const useRanking = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Create mock ranking data since table doesn't exist
     if (user) {
-      const mockRanking: UserRanking = {
-        id: 'mock-' + user.id,
-        user_id: user.id,
-        rank_level: 1,
-        points: 100,
-        display_rank: 'Beginner',
-        updated_at: new Date().toISOString()
-      };
-      setRanking(mockRanking);
+      fetchUserRanking();
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, [user]);
+
+  const fetchUserRanking = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_rankings')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching user ranking:', error);
+        throw error;
+      }
+
+      if (data) {
+        setRanking(data);
+      } else {
+        // Create default ranking if none exists
+        const { data: newRanking, error: insertError } = await supabase
+          .from('user_rankings')
+          .insert({
+            user_id: user.id,
+            rank_level: 'silver',
+            points: 0
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Error creating user ranking:', insertError);
+        } else {
+          setRanking(newRanking);
+        }
+      }
+    } catch (error) {
+      console.error('Error in fetchUserRanking:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const updatePoints = async (pointsToAdd: number) => {
     if (!user || !ranking) return;
     
     const newPoints = ranking.points + pointsToAdd;
-    const newLevel = Math.floor(newPoints / 100) + 1;
-    const newDisplayRank = getRankDisplay(newLevel);
-
-    setRanking(prev => prev ? {
-      ...prev,
-      points: newPoints,
-      rank_level: newLevel,
-      display_rank: newDisplayRank,
-      updated_at: new Date().toISOString()
-    } : null);
-  };
-
-  const updateDisplayRank = async (newDisplayRank: string) => {
-    if (!user || !ranking) return;
+    let newRankLevel = ranking.rank_level;
     
-    setRanking(prev => prev ? {
-      ...prev,
-      display_rank: newDisplayRank,
-      updated_at: new Date().toISOString()
-    } : null);
+    // Determine new rank level based on points
+    if (newPoints >= 1000) {
+      newRankLevel = 'platinum';
+    } else if (newPoints >= 500) {
+      newRankLevel = 'gold';
+    } else {
+      newRankLevel = 'silver';
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_rankings')
+        .update({
+          points: newPoints,
+          rank_level: newRankLevel,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      setRanking(data);
+    } catch (error) {
+      console.error('Error updating points:', error);
+    }
   };
 
-  const getRankDisplay = (level: number): string => {
-    if (level <= 5) return 'Beginner';
-    if (level <= 15) return 'Novice';
-    if (level <= 30) return 'Intermediate';
-    if (level <= 50) return 'Advanced';
-    if (level <= 75) return 'Expert';
-    return 'Master';
+  const getRankDisplay = (rankLevel: 'silver' | 'gold' | 'platinum'): string => {
+    switch (rankLevel) {
+      case 'silver': return 'Silver';
+      case 'gold': return 'Gold';
+      case 'platinum': return 'Platinum';
+      default: return 'Silver';
+    }
   };
 
   const calculateProgress = () => {
     if (!ranking) return 0;
-    const currentLevelPoints = (ranking.rank_level - 1) * 100;
-    const nextLevelPoints = ranking.rank_level * 100;
-    const progress = ((ranking.points - currentLevelPoints) / (nextLevelPoints - currentLevelPoints)) * 100;
+    
+    let currentThreshold = 0;
+    let nextThreshold = 500;
+    
+    if (ranking.rank_level === 'gold') {
+      currentThreshold = 500;
+      nextThreshold = 1000;
+    } else if (ranking.rank_level === 'platinum') {
+      return 100; // Already at max level
+    }
+    
+    const progress = ((ranking.points - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
     return Math.min(Math.max(progress, 0), 100);
   };
 
   const getNextRank = () => {
-    if (!ranking) return 'Beginner';
-    return getRankDisplay(ranking.rank_level + 1);
+    if (!ranking) return 'Gold';
+    if (ranking.rank_level === 'silver') return 'Gold';
+    if (ranking.rank_level === 'gold') return 'Platinum';
+    return 'Platinum'; // Already at max
   };
 
   const getPointsToNextLevel = () => {
-    if (!ranking) return 100;
-    const nextLevelPoints = ranking.rank_level * 100;
-    return Math.max(nextLevelPoints - ranking.points, 0);
+    if (!ranking) return 500;
+    if (ranking.rank_level === 'silver') return Math.max(500 - ranking.points, 0);
+    if (ranking.rank_level === 'gold') return Math.max(1000 - ranking.points, 0);
+    return 0; // Already at max level
   };
 
   return {
     ranking,
     loading,
     updatePoints,
-    updateDisplayRank,
     getRankDisplay,
     calculateProgress,
     getNextRank,
     getPointsToNextLevel,
+    fetchUserRanking,
   };
 };

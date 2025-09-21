@@ -36,7 +36,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { ranking, loading: rankingLoading, updateDisplayRank, getRankDisplay } = useRanking();
+  const { ranking, loading: rankingLoading, getRankDisplay } = useRanking();
   const [isFollowing, setIsFollowing] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -324,10 +324,10 @@ export default function Profile() {
                       <p className="text-muted-foreground">
                         {profileData.username ? `@${profileData.username}` : 'No username set'}
                       </p>
-                      {ranking && ranking.display_rank && isCurrentUser && (
+                      {ranking && isCurrentUser && (
                         <div className="mt-2">
                           <RankingBadge 
-                            rankLevel={ranking.display_rank}
+                            rankLevel={ranking.rank_level}
                             points={ranking.points}
                             showPoints={true}
                             size="sm"
@@ -571,19 +571,19 @@ export default function Profile() {
                     <CardContent className="space-y-4">
                       <div className="text-center">
                         <RankingBadge 
-                          rankLevel={ranking.display_rank}
+                          rankLevel={ranking.rank_level}
                           points={ranking.points}
                           showPoints={true}
                           size="lg"
                           className="mb-3"
                         />
                         <p className="text-sm text-muted-foreground">
-                          Current Level: {ranking.display_rank}
+                          Current Level: {getRankDisplay(ranking.rank_level)}
                         </p>
                       </div>
                       
                       {(() => {
-                        const nextRank = getRankDisplay(ranking.rank_level + 1);
+                        const nextRank = ranking.rank_level !== 'platinum' ? getRankDisplay(ranking.rank_level === 'silver' ? 'gold' : 'platinum') : null;
                         return nextRank ? (
                           <div className="space-y-2">
                             <p className="text-xs text-muted-foreground">Next: {nextRank}</p>
@@ -606,8 +606,8 @@ export default function Profile() {
                         </Label>
                         <Switch
                           id="display-rank"
-                          checked={ranking.display_rank !== ''}
-                          onCheckedChange={(checked) => updateDisplayRank(checked ? getRankDisplay(ranking.rank_level) : '')}
+                          checked={true}
+                          disabled={true}
                         />
                       </div>
                       
