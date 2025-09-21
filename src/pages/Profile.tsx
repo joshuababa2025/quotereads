@@ -447,7 +447,7 @@ export default function Profile() {
             open={shareDialogOpen}
             onOpenChange={setShareDialogOpen}
             title={`${profileData.full_name}'s Profile`}
-            url={window.location.href}
+            url={window.location.pathname}
           />
 
           {/* Profile Content */}

@@ -13,7 +13,7 @@ interface ShareDialogProps {
 
 export const ShareDialog = ({ open, onOpenChange, title, url }: ShareDialogProps) => {
   const { toast } = useToast();
-  const fullUrl = `${window.location.origin}${url}`;
+  const fullUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
 
   const handleCopyLink = async () => {
     try {
