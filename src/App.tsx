@@ -13,6 +13,7 @@ import { lazy, Suspense } from "react";
 
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Messages = lazy(() => import("./pages/Messages"));
+const NewMessage = lazy(() => import("./pages/NewMessage"));
 const Donations = lazy(() => import("./pages/Donations"));
 const CampaignDetails = lazy(() => import("./pages/CampaignDetails"));
 const CampaignPayment = lazy(() => import("./pages/CampaignPayment"));
@@ -100,6 +101,7 @@ const App = () => (
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/notifications" element={<Notifications />} />
                         <Route path="/messages" element={<Messages />} />
+                        <Route path="/messages/new" element={<NewMessage />} />
                         <Route path="/groups" element={<Groups />} />
                         <Route path="/groups/:groupId" element={<GroupDetailPage />} />
                         <Route path="/community-quotes" element={<CommunityQuotes />} />
