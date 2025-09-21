@@ -187,11 +187,34 @@ export default function Profile() {
   };
 
   const handleSendMessage = async () => {
-    if (!profileData?.username) return;
+    if (!profileData) return;
     
     try {
-      // Use username instead of user ID for better security
-      navigate(`/messages/new?to=${profileData.username}`);
+      let username = profileData.username;
+      
+      // If user doesn't have a username, generate one
+      if (!username) {
+        const { data, error } = await supabase
+          .rpc('generate_unique_username', { 
+            base_name: profileData.full_name || 'user' 
+          });
+          
+        if (error) throw error;
+        
+        // Update the profile with the new username
+        await supabase
+          .from('profiles')
+          .update({ username: data })
+          .eq('user_id', profileData.user_id);
+          
+        username = data;
+        
+        // Update local state
+        setProfileData(prev => prev ? { ...prev, username: data } : prev);
+      }
+      
+      // Navigate to new message page with username
+      navigate(`/messages/new?to=${username}`);
     } catch (error) {
       console.error('Error navigating to message page:', error);
       toast({
