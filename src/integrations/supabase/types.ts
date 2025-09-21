@@ -14,6 +14,156 @@ export type Database = {
   }
   public: {
     Tables: {
+      blog_posts: {
+        Row: {
+          additional_images: string[] | null
+          author: string | null
+          category: string | null
+          comments: number | null
+          content: string
+          created_at: string | null
+          featured_image: string | null
+          id: string
+          published_at: string | null
+          status: string | null
+          title: string
+          views: number | null
+        }
+        Insert: {
+          additional_images?: string[] | null
+          author?: string | null
+          category?: string | null
+          comments?: number | null
+          content: string
+          created_at?: string | null
+          featured_image?: string | null
+          id?: string
+          published_at?: string | null
+          status?: string | null
+          title: string
+          views?: number | null
+        }
+        Update: {
+          additional_images?: string[] | null
+          author?: string | null
+          category?: string | null
+          comments?: number | null
+          content?: string
+          created_at?: string | null
+          featured_image?: string | null
+          id?: string
+          published_at?: string | null
+          status?: string | null
+          title?: string
+          views?: number | null
+        }
+        Relationships: []
+      }
+      book_reviews: {
+        Row: {
+          book_id: string | null
+          created_at: string | null
+          id: string
+          is_verified: boolean | null
+          rating: number | null
+          review_text: string | null
+          reviewer_name: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          book_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          rating?: number | null
+          review_text?: string | null
+          reviewer_name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          book_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          rating?: number | null
+          review_text?: string | null
+          reviewer_name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      books: {
+        Row: {
+          amazon_link: string | null
+          author: string
+          buy_link: string | null
+          categories: string | null
+          cover_image: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_on_sale: boolean | null
+          isbn: string | null
+          language: string | null
+          pages: number | null
+          price: number | null
+          product_link: string | null
+          published_date: string | null
+          rating: number | null
+          rating_count: number | null
+          review_count: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          amazon_link?: string | null
+          author: string
+          buy_link?: string | null
+          categories?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_on_sale?: boolean | null
+          isbn?: string | null
+          language?: string | null
+          pages?: number | null
+          price?: number | null
+          product_link?: string | null
+          published_date?: string | null
+          rating?: number | null
+          rating_count?: number | null
+          review_count?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          amazon_link?: string | null
+          author?: string
+          buy_link?: string | null
+          categories?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_on_sale?: boolean | null
+          isbn?: string | null
+          language?: string | null
+          pages?: number | null
+          price?: number | null
+          product_link?: string | null
+          published_date?: string | null
+          rating?: number | null
+          rating_count?: number | null
+          review_count?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       campaigns: {
         Row: {
           call_to_action: string | null
@@ -53,6 +203,93 @@ export type Database = {
           updated_at?: string
           user_id?: string
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      category_images: {
+        Row: {
+          category: string
+          created_at: string | null
+          file_size: number | null
+          id: string
+          image_name: string | null
+          image_url: string
+          is_active: boolean | null
+          mime_type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          file_size?: number | null
+          id?: string
+          image_name?: string | null
+          image_url: string
+          is_active?: boolean | null
+          mime_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          file_size?: number | null
+          id?: string
+          image_name?: string | null
+          image_url?: string
+          is_active?: boolean | null
+          mime_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      chapters: {
+        Row: {
+          author: string
+          book_id: string | null
+          category: string
+          content: string | null
+          cover_image: string | null
+          created_at: string | null
+          description: string
+          id: string
+          is_featured: boolean | null
+          published_date: string | null
+          title: string
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          author: string
+          book_id?: string | null
+          category: string
+          content?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          is_featured?: boolean | null
+          published_date?: string | null
+          title: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          author?: string
+          book_id?: string | null
+          category?: string
+          content?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_featured?: boolean | null
+          published_date?: string | null
+          title?: string
+          updated_at?: string | null
+          view_count?: number | null
         }
         Relationships: []
       }
@@ -163,6 +400,133 @@ export type Database = {
         }
         Relationships: []
       }
+      community_post_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          post_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_post_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          author_name: string | null
+          category: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_flagged: boolean | null
+          post_type: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          author_name?: string | null
+          category?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_flagged?: boolean | null
+          post_type?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          author_name?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_flagged?: boolean | null
+          post_type?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      earn_money_tasks: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          is_active: boolean | null
+          reward_amount: number
+          task_name: string
+          task_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          is_active?: boolean | null
+          reward_amount: number
+          task_name: string
+          task_type: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          reward_amount?: number
+          task_name?: string
+          task_type?: string
+        }
+        Relationships: []
+      }
       favorited_quotes: {
         Row: {
           created_at: string
@@ -193,39 +557,24 @@ export type Database = {
         }
         Relationships: []
       }
-      giveaway_packages: {
+      groups: {
         Row: {
-          base_price: number
-          category: string
-          created_at: string
-          description: string
-          features: string[] | null
+          created_at: string | null
+          description: string | null
           id: string
-          image_url: string | null
-          title: string
-          updated_at: string
+          name: string
         }
         Insert: {
-          base_price?: number
-          category: string
-          created_at?: string
-          description: string
-          features?: string[] | null
+          created_at?: string | null
+          description?: string | null
           id?: string
-          image_url?: string | null
-          title: string
-          updated_at?: string
+          name: string
         }
         Update: {
-          base_price?: number
-          category?: string
-          created_at?: string
-          description?: string
-          features?: string[] | null
+          created_at?: string | null
+          description?: string | null
           id?: string
-          image_url?: string | null
-          title?: string
-          updated_at?: string
+          name?: string
         }
         Relationships: []
       }
@@ -292,6 +641,44 @@ export type Database = {
         }
         Relationships: []
       }
+      most_read: {
+        Row: {
+          author: string
+          chapter_id: string | null
+          created_at: string | null
+          id: string
+          title: string
+          view_count: number | null
+          week_start: string | null
+        }
+        Insert: {
+          author: string
+          chapter_id?: string | null
+          created_at?: string | null
+          id?: string
+          title: string
+          view_count?: number | null
+          week_start?: string | null
+        }
+        Update: {
+          author?: string
+          chapter_id?: string | null
+          created_at?: string | null
+          id?: string
+          title?: string
+          view_count?: number | null
+          week_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "most_read_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -347,15 +734,7 @@ export type Database = {
           package_id?: string
           price?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "package_addons_package_id_fkey"
-            columns: ["package_id"]
-            isOneToOne: false
-            referencedRelation: "giveaway_packages"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       package_orders: {
         Row: {
@@ -394,15 +773,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "package_orders_package_id_fkey"
-            columns: ["package_id"]
-            isOneToOne: false
-            referencedRelation: "giveaway_packages"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -437,36 +808,124 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          quote_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          quote_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          quote_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_comments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          quote_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          quote_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          quote_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_likes_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           author: string | null
+          background_image: string | null
           category: string | null
+          comments: number | null
           content: string
           created_at: string
           id: string
           is_hidden: boolean | null
+          is_quote_of_day: boolean | null
+          likes: number | null
+          quote_of_day_date: string | null
+          shares: number | null
+          special_collection: string | null
+          status: string | null
+          tags: string[] | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           author?: string | null
+          background_image?: string | null
           category?: string | null
+          comments?: number | null
           content: string
           created_at?: string
           id?: string
           is_hidden?: boolean | null
+          is_quote_of_day?: boolean | null
+          likes?: number | null
+          quote_of_day_date?: string | null
+          shares?: number | null
+          special_collection?: string | null
+          status?: string | null
+          tags?: string[] | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           author?: string | null
+          background_image?: string | null
           category?: string | null
+          comments?: number | null
           content?: string
           created_at?: string
           id?: string
           is_hidden?: boolean | null
+          is_quote_of_day?: boolean | null
+          likes?: number | null
+          quote_of_day_date?: string | null
+          shares?: number | null
+          special_collection?: string | null
+          status?: string | null
+          tags?: string[] | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -498,6 +957,123 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shop_products: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          featured_image: string | null
+          id: string
+          images: string[] | null
+          launch_date: string | null
+          name: string
+          price: number
+          status: string | null
+          stock: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          featured_image?: string | null
+          id?: string
+          images?: string[] | null
+          launch_date?: string | null
+          name: string
+          price: number
+          status?: string | null
+          stock?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          featured_image?: string | null
+          id?: string
+          images?: string[] | null
+          launch_date?: string | null
+          name?: string
+          price?: number
+          status?: string | null
+          stock?: number | null
+        }
+        Relationships: []
+      }
+      signups: {
+        Row: {
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      support_options: {
+        Row: {
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          is_active: boolean | null
+          option_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          icon: string
+          id?: string
+          is_active?: boolean | null
+          option_name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          option_name?: string
+        }
+        Relationships: []
+      }
+      topics: {
+        Row: {
+          category_path: string
+          color_class: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          category_path: string
+          color_class: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          category_path?: string
+          color_class?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
       }
       user_earnings: {
         Row: {
@@ -535,33 +1111,24 @@ export type Database = {
         }
         Relationships: []
       }
-      user_rankings: {
+      user_follows: {
         Row: {
-          created_at: string
-          display_rank: boolean
+          created_at: string | null
+          follower_id: string | null
+          following_id: string | null
           id: string
-          points: number
-          rank_level: string
-          updated_at: string
-          user_id: string
         }
         Insert: {
-          created_at?: string
-          display_rank?: boolean
+          created_at?: string | null
+          follower_id?: string | null
+          following_id?: string | null
           id?: string
-          points?: number
-          rank_level?: string
-          updated_at?: string
-          user_id: string
         }
         Update: {
-          created_at?: string
-          display_rank?: boolean
+          created_at?: string | null
+          follower_id?: string | null
+          following_id?: string | null
           id?: string
-          points?: number
-          rank_level?: string
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -598,13 +1165,125 @@ export type Database = {
         }
         Relationships: []
       }
+      user_stories: {
+        Row: {
+          author_name: string | null
+          content: string
+          created_at: string | null
+          id: string
+          image_url: string | null
+          is_anonymous: boolean | null
+          is_approved: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_name?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_anonymous?: boolean | null
+          is_approved?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_name?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_anonymous?: boolean | null
+          is_approved?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_task_completions: {
+        Row: {
+          completed_at: string | null
+          id: string
+          reward_earned: number
+          task_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          reward_earned: number
+          task_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          reward_earned?: number
+          task_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string | null
+          role: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          name?: string | null
+          role?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string | null
+          role?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_category_images: {
+        Args: { category_name: string }
+        Returns: {
+          created_at: string
+          id: string
+          image_name: string
+          image_url: string
+        }[]
+      }
+      get_random_category_image: {
+        Args: { category_name: string }
+        Returns: {
+          id: string
+          image_name: string
+          image_url: string
+        }[]
+      }
+      increment_chapter_views: {
+        Args: { chapter_uuid: string }
+        Returns: undefined
+      }
       increment_user_stat: {
         Args: { stat_name: string; user_id_param: string }
+        Returns: undefined
+      }
+      update_most_read: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
     }

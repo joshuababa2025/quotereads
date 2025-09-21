@@ -263,11 +263,10 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
             <div className="flex gap-2">
               <Input
                 id="tags"
-                placeholder="Add tags..."
+                placeholder="Add tags (separate with commas)"
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
-                placeholder="Add tags (separate with commas)"
               />
               <Button type="button" onClick={handleAddTag} size="sm">
                 <Plus className="w-4 h-4" />

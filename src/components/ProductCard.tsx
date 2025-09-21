@@ -34,7 +34,17 @@ export function ProductCard({ product, onPreOrder }: ProductCardProps) {
   const [showPreOrderModal, setShowPreOrderModal] = useState(false);
 
   const handleAddToCart = () => {
-    dispatch({ type: 'ADD_TO_CART', item: product });
+    const cartItem = {
+      id: parseInt(product.id),
+      title: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.featured_image || '',
+      author: '',
+      isPreOrder: product.launch_date ? new Date(product.launch_date) > new Date() : false,
+      releaseDate: product.launch_date
+    };
+    dispatch({ type: 'ADD_TO_CART', item: cartItem });
     toast.success(`${product.name} added to cart!`);
   };
 

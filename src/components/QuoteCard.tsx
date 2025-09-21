@@ -55,7 +55,7 @@ export const QuoteCard = ({
     if (!interaction.isFavorited) {
       dispatch({ 
         type: 'ADD_TO_FAVORITES', 
-        quote: { id, quote, author, category } 
+        quote: { id, quote, author, category, variant: 'purple' } 
       });
       toast({
         title: "Added to favorites",
@@ -71,7 +71,7 @@ export const QuoteCard = ({
     if (!interaction.isLiked) {
       dispatch({ 
         type: 'ADD_TO_LOVED', 
-        quote: { id, quote, author, category } 
+        quote: { id, quote, author, category, variant: 'pink' } 
       });
       toast({
         title: "Added to loved quotes",
