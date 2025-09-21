@@ -49,7 +49,7 @@ export default function QuoteDetails() {
       if (data && !error) {
         foundQuote = {
           id: data.id,
-          quote: data.content || data.quote,
+          quote: data.content,
           author: data.author,
           category: data.category || 'General',
           backgroundImage: data.background_image,
@@ -196,15 +196,14 @@ export default function QuoteDetails() {
               </h2>
               <div className="grid md:grid-cols-2 gap-6">
                  {relatedQuotes.slice(0, 6).map((relatedQuote, index) => (
-                   <QuoteCard
-                     key={relatedQuote.id}
-                     id={relatedQuote.id}
-                     quote={relatedQuote.quote}
-                     author={relatedQuote.author}
-                     category={relatedQuote.category}
-                     variant={relatedQuote.variant}
-                     likes={relatedQuote.likes}
-                   />
+                    <QuoteCard
+                      key={relatedQuote.id}
+                      id={relatedQuote.id}
+                      quote={relatedQuote.quote}
+                      author={relatedQuote.author}
+                      category={relatedQuote.category}
+                      likes={relatedQuote.likes}
+                    />
                  ))}
               </div>
               

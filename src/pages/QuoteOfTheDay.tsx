@@ -53,7 +53,7 @@ const QuoteOfTheDay = () => {
       
       if (!error && data) {
         const [quoteWithImage] = await assignBackgroundImages([data]);
-        setTodayQuote(quoteWithImage);
+        setTodayQuote(quoteWithImage as any);
       } else {
         // Fallback: get a random quote if no quote of the day is set
         const { data: fallbackData, error: fallbackError } = await supabase
@@ -64,7 +64,7 @@ const QuoteOfTheDay = () => {
         
         if (!fallbackError && fallbackData?.[0]) {
           const [quoteWithImage] = await assignBackgroundImages([fallbackData[0]]);
-          setTodayQuote(quoteWithImage);
+          setTodayQuote(quoteWithImage as any);
         }
       }
     } catch (error) {
@@ -86,7 +86,7 @@ const QuoteOfTheDay = () => {
       
       if (!error && data) {
         const quotesWithImages = await assignBackgroundImages(data);
-        setPreviousQuotes(quotesWithImages);
+        setPreviousQuotes(quotesWithImages as any);
       }
     } catch (error) {
       console.error('Error fetching previous quotes:', error);

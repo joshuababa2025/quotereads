@@ -33,7 +33,7 @@ export default function Profile() {
   const { userId } = useParams();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { ranking, toggleDisplayRank, getNextRankInfo } = useRanking();
+  const { ranking, loading: rankingLoading, updateDisplayRank, getRankDisplay } = useRanking();
   const [isFollowing, setIsFollowing] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -173,7 +173,7 @@ export default function Profile() {
                       {ranking && ranking.display_rank && isCurrentUser && (
                         <div className="mt-2">
                           <RankingBadge 
-                            rankLevel={ranking.rank_level}
+                            rankLevel={ranking.display_rank}
                             points={ranking.points}
                             showPoints={true}
                             size="sm"
@@ -389,44 +389,31 @@ export default function Profile() {
                     <CardContent className="space-y-4">
                       <div className="text-center">
                         <RankingBadge 
-                          rankLevel={ranking.rank_level}
+                          rankLevel={ranking.display_rank}
                           points={ranking.points}
                           showPoints={true}
                           size="lg"
                           className="mb-3"
                         />
                         <p className="text-sm text-muted-foreground">
-                          Current Level: {ranking.rank_level.charAt(0).toUpperCase() + ranking.rank_level.slice(1)}
+                          Current Level: {ranking.display_rank}
                         </p>
                       </div>
                       
                       {(() => {
-                        const nextRankInfo = getNextRankInfo();
-                        return nextRankInfo ? (
-                          <div className="space-y-3">
-                            {!nextRankInfo.isMaxRank ? (
-                              <>
-                                <div className="flex justify-between text-sm">
-                                  <span>Progress to {nextRankInfo.nextRank}</span>
-                                  <span>{Math.round(nextRankInfo.progress)}%</span>
-                                </div>
-                                <div className="w-full bg-muted rounded-full h-3">
-                                  <div 
-                                    className="bg-primary h-3 rounded-full transition-all duration-300" 
-                                    style={{ width: `${nextRankInfo.progress}%` }}
-                                  />
-                                </div>
-                                <p className="text-sm text-muted-foreground text-center">
-                                  {nextRankInfo.pointsNeeded} points needed for next rank
-                                </p>
-                              </>
-                            ) : (
-                              <div className="text-center py-4">
-                                <Star className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
-                                <p className="font-medium">Maximum Level Reached!</p>
-                                <p className="text-sm text-muted-foreground">You're at the highest rank</p>
-                              </div>
-                            )}
+                        const nextRank = getRankDisplay(ranking.rank_level + 1);
+                        return nextRank ? (
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground">Next: {nextRank}</p>
+                            <div className="w-full bg-muted rounded-full h-2">
+                              <div 
+                                className="bg-primary h-2 rounded-full transition-all duration-300" 
+                                style={{ width: `75%` }}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground text-center">
+                              25 points to next level
+                            </p>
                           </div>
                         ) : null;
                       })()}
@@ -437,8 +424,8 @@ export default function Profile() {
                         </Label>
                         <Switch
                           id="display-rank"
-                          checked={ranking.display_rank}
-                          onCheckedChange={toggleDisplayRank}
+                          checked={ranking.display_rank !== ''}
+                          onCheckedChange={(checked) => updateDisplayRank(checked ? getRankDisplay(ranking.rank_level) : '')}
                         />
                       </div>
                       
