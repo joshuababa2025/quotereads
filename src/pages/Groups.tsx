@@ -25,6 +25,7 @@ interface GroupData {
   tags: string[] | null;
   created_at: string;
   created_by: string;
+  profile_image: string | null;
   member_count?: number;
 }
 
@@ -56,7 +57,7 @@ const Groups = () => {
 
   const fetchGroups = async () => {
     try {
-      // Get all groups first
+      // Get all groups with profile images
       const { data: groupsData, error: groupsError } = await supabase
         .from('groups')
         .select('*')
@@ -309,9 +310,17 @@ const Groups = () => {
                     <CardContent className="p-6">
                       <div className="flex gap-4">
                         <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                          <span className="text-white font-bold text-lg">
-                            {group.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase()}
-                          </span>
+                          {group.profile_image ? (
+                            <img 
+                              src={group.profile_image} 
+                              alt="Group profile" 
+                              className="w-16 h-16 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <span className="text-white font-bold text-lg">
+                              {group.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase()}
+                            </span>
+                          )}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">

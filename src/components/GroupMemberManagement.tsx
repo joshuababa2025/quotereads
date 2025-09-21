@@ -5,10 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { UserMinus, UserX, Shield, MoreVertical, Upload, Camera } from 'lucide-react';
+import { UserMinus, UserX, Shield, MoreVertical, Upload, Camera, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { CreateMeetingDialog } from './CreateMeetingDialog';
 
 interface GroupMemberForManagement {
   id: string;
@@ -38,6 +39,7 @@ export const GroupMemberManagement = ({
 }: GroupMemberManagementProps) => {
   const { toast } = useToast();
   const [showImageUpload, setShowImageUpload] = useState(false);
+  const [showCreateMeeting, setShowCreateMeeting] = useState(false);
 
   const handleRemoveMember = async (memberId: string, memberName: string) => {
     try {
@@ -191,8 +193,12 @@ export const GroupMemberManagement = ({
                 </DialogContent>
               </Dialog>
               
-              <Button variant="outline" className="w-full" disabled>
-                <Upload className="w-4 h-4 mr-2" />
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => setShowCreateMeeting(true)}
+              >
+                <Calendar className="w-4 h-4 mr-2" />
                 Create Meeting
               </Button>
             </div>
@@ -260,6 +266,15 @@ export const GroupMemberManagement = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Meeting Dialog */}
+      <CreateMeetingDialog
+        isOpen={showCreateMeeting}
+        onClose={() => setShowCreateMeeting(false)}
+        groupId={groupId}
+        userId={currentUserId}
+        onMeetingCreated={onMemberAction}
+      />
     </div>
   );
 };

@@ -246,6 +246,38 @@ const GroupDetail = () => {
     }
   };
 
+  const handleDeleteGroup = async () => {
+    if (!user || !group || group.created_by !== user.id) return;
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete "${group.name}"? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('groups')
+        .delete()
+        .eq('id', groupId!);
+
+      if (error) throw error;
+
+      toast({
+        title: "Group deleted",
+        description: "Group has been permanently deleted."
+      });
+      navigate('/groups');
+    } catch (error: any) {
+      console.error('Error deleting group:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete group",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCreateDiscussion = async () => {
     if (!user) {
       toast({
@@ -429,19 +461,30 @@ const GroupDetail = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="bg-gradient-to-r from-primary/10 to-primary/5">
-        <div className="container mx-auto px-4 py-8">
+      {/* Cover Photo Banner */}
+      <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 overflow-hidden">
+        {group.cover_image && (
+          <div className="absolute inset-0">
+            <img 
+              src={group.cover_image} 
+              alt="Group cover" 
+              className="w-full h-full object-cover opacity-40"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black/10" />
+          </div>
+        )}
+        <div className="relative container mx-auto px-4 py-8">
           <Button
             variant="ghost"
             onClick={() => navigate('/groups')}
-            className="mb-4"
+            className="mb-4 bg-white/10 backdrop-blur-sm hover:bg-white/20"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Groups
           </Button>
           
           <div className="flex items-center gap-6">
-            <div className="w-24 h-24 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+            <div className="w-24 h-24 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center relative z-10">
               {group.profile_image ? (
                 <img src={group.profile_image} alt="Group" className="w-24 h-24 rounded-lg object-cover" />
               ) : (
@@ -450,8 +493,8 @@ const GroupDetail = () => {
                 </span>
               )}
             </div>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">{group.name}</h1>
+            <div className="flex-1 relative z-10">
+              <h1 className="text-3xl font-bold mb-2 text-foreground">{group.name}</h1>
               <div className="flex items-center gap-6 text-muted-foreground mb-3">
                 <span className="flex items-center gap-1">
                   <Users className="w-4 h-4" />
@@ -470,12 +513,21 @@ const GroupDetail = () => {
                 <p className="text-muted-foreground mt-2 font-medium">{group.bio}</p>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 relative z-10">
               {isAdmin && (
-                <Button variant="outline" onClick={() => setShowEditDialog(true)}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Edit Group
-                </Button>
+                <>
+                  <Button variant="outline" onClick={() => setShowEditDialog(true)}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Edit Group
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDeleteGroup}
+                    className="text-white"
+                  >
+                    Delete Group
+                  </Button>
+                </>
               )}
               <Button variant="outline" onClick={shareGroup}>
                 <Share2 className="w-4 h-4 mr-2" />
@@ -729,12 +781,39 @@ const GroupDetail = () => {
             </div>
             <div className="space-y-2">
               <Label>Images (Optional)</Label>
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                <Camera className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  setDiscussionForm(prev => ({ ...prev, images: files }));
+                }}
+                className="w-full p-2 border rounded"
+              />
+              {discussionForm.images.length > 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Image upload functionality coming soon
+                  {discussionForm.images.length} image(s) selected
                 </p>
-              </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Videos (Optional)</Label>
+              <input
+                type="file"
+                accept="video/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  setDiscussionForm(prev => ({ ...prev, videos: files }));
+                }}
+                className="w-full p-2 border rounded"
+              />
+              {discussionForm.videos.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {discussionForm.videos.length} video(s) selected
+                </p>
+              )}
             </div>
             <div className="flex gap-2 pt-4">
               <Button variant="outline" onClick={() => setShowCreateDiscussion(false)} className="flex-1">

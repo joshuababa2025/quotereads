@@ -616,6 +616,65 @@ export type Database = {
           },
         ]
       }
+      group_meetings: {
+        Row: {
+          address: string | null
+          created_at: string
+          description: string | null
+          end_time: string | null
+          google_maps_link: string | null
+          group_id: string
+          id: string
+          meeting_link: string | null
+          meeting_type: string
+          start_time: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          google_maps_link?: string | null
+          group_id: string
+          id?: string
+          meeting_link?: string | null
+          meeting_type: string
+          start_time: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          google_maps_link?: string | null
+          group_id?: string
+          id?: string
+          meeting_link?: string | null
+          meeting_type?: string
+          start_time?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_meetings_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           created_at: string | null
