@@ -118,6 +118,16 @@ export const UserProfile = ({ userId, className = "", showFollowButton = true }:
             following_id: userId
           });
 
+        // Create notification for the followed user
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: userId,
+            title: 'New Follower',
+            message: `${profile?.full_name || 'Someone'} started following you`,
+            type: 'info'
+          });
+
         setIsFollowing(true);
         toast({
           title: "Following",

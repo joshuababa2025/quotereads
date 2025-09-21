@@ -28,8 +28,51 @@ export const Notifications = () => {
   useEffect(() => {
     if (user) {
       fetchNotifications();
+      setupRealtimeSubscription();
     }
   }, [user]);
+
+  const setupRealtimeSubscription = () => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('notifications_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('New notification received:', payload);
+          setNotifications(prev => [payload.new as Notification, ...prev]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Notification updated:', payload);
+          setNotifications(prev => 
+            prev.map(notif => 
+              notif.id === payload.new.id ? payload.new as Notification : notif
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
 
   const fetchNotifications = async () => {
     if (!user) return;

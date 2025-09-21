@@ -37,7 +37,15 @@ export const SendMessageDialog = ({ recipientId, recipientName, children }: Send
           message: message.trim()
         });
 
-      if (error) throw error;
+        // Create notification for new message
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: recipientId,
+            title: 'New Message',
+            message: `${user.user_metadata?.full_name || 'Someone'} sent you a message`,
+            type: 'info'
+          });
 
       toast({
         title: "Message sent",

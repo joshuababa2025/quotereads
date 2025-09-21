@@ -35,8 +35,65 @@ export const Messages = () => {
   useEffect(() => {
     if (user) {
       fetchMessages();
+      setupRealtimeSubscription();
     }
   }, [user]);
+
+  const setupRealtimeSubscription = () => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('messages_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          console.log('New message received:', payload);
+          
+          // Fetch sender profile for the new message
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('user_id', payload.new.sender_id)
+            .single();
+          
+          const messageWithProfile = {
+            ...payload.new,
+            sender_profile: profile
+          };
+          
+          setMessages(prev => [messageWithProfile, ...prev]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          console.log('Message updated:', payload);
+          
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === payload.new.id ? { ...msg, ...payload.new } : msg
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
 
   const fetchMessages = async () => {
     if (!user) return;
