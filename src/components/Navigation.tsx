@@ -95,7 +95,7 @@ export const Navigation = () => {
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <Link to="/">
-              <h1 className="text-2xl font-bold text-foreground hover:text-primary transition-colors">QuoteReads</h1>
+              <h1 className="text-2xl font-bold text-foreground hover:text-primary transition-colors">ANEWPORTALS</h1>
             </Link>
           </div>
 

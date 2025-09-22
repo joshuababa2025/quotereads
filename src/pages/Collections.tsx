@@ -4,44 +4,81 @@ import { QuoteCard } from "@/components/QuoteCard";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Star, Heart, Brain, Sun } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
-const featuredCollections = [
+interface Collection {
+  id: number;
+  title: string;
+  description: string;
+  quotes: number;
+  category: string;
+  image: string;
+  textColor: string;
+  path: string;
+}
+
+const defaultCollections: Collection[] = [
   {
     id: 1,
     title: "Wisdom of the Ages",
     description: "Ancient philosophers and modern thinkers share their greatest insights",
-    quotes: 396,
-    category: "Philosophy",
-    image: "bg-gradient-to-br from-purple-100 to-purple-200",
-    textColor: "text-purple-900"
+    quotes: 0,
+    category: "Wisdom",
+    image: "bg-gradient-to-br from-blue-100 to-blue-200",
+    textColor: "text-blue-900",
+    path: "/category/wisdom"
   },
   {
     id: 2,
     title: "Daily Motivation",
     description: "Start your day with powerful quotes that inspire action",
-    quotes: 89, 
+    quotes: 0, 
     category: "Motivation",
     image: "bg-gradient-to-br from-green-100 to-green-200",
-    textColor: "text-green-900"
+    textColor: "text-green-900",
+    path: "/category/motivation"
   },
   {
     id: 3,
     title: "Love & Relationships",
     description: "Beautiful quotes about love, friendship, and human connections",
-    quotes: 234,
+    quotes: 0,
     category: "Love",
     image: "bg-gradient-to-br from-pink-100 to-pink-200",
-    textColor: "text-pink-900"
+    textColor: "text-pink-900",
+    path: "/category/love"
   },
   {
     id: 4,
-    title: "Success & Leadership",
+    title: "Success & Achievement",
     description: "Inspiring words from leaders who changed the world",
-    quotes: 156,
+    quotes: 0,
     category: "Success",
-    image: "bg-gradient-to-br from-blue-100 to-blue-200",
-    textColor: "text-blue-900"
+    image: "bg-gradient-to-br from-purple-100 to-purple-200",
+    textColor: "text-purple-900",
+    path: "/category/success"
+  },
+  {
+    id: 5,
+    title: "Happiness & Joy",
+    description: "Uplifting quotes to brighten your day and lift your spirits",
+    quotes: 0,
+    category: "Happiness",
+    image: "bg-gradient-to-br from-yellow-100 to-yellow-200",
+    textColor: "text-yellow-900",
+    path: "/category/happiness"
+  },
+  {
+    id: 6,
+    title: "Life Inspiration",
+    description: "Profound insights about life's journey and experiences",
+    quotes: 0,
+    category: "Life",
+    image: "bg-gradient-to-br from-indigo-100 to-indigo-200",
+    textColor: "text-indigo-900",
+    path: "/category/life"
   }
 ];
 
@@ -63,7 +100,61 @@ const sampleQuotes = [
 ];
 
 export default function Collections() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [collections, setCollections] = useState<Collection[]>(defaultCollections);
+  const [sidebarCategories, setSidebarCategories] = useState([
+    { icon: Heart, label: "Love", count: 0, path: "/category/love" },
+    { icon: Brain, label: "Wisdom", count: 0, path: "/category/wisdom" },
+    { icon: Sun, label: "Motivation", count: 0, path: "/category/motivation" },
+    { icon: Star, label: "Success", count: 0, path: "/category/success" }
+  ]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCategoryCounts();
+  }, []);
+
+  const fetchCategoryCounts = async () => {
+    try {
+      // Update collections with real counts
+      const updatedCollections = await Promise.all(
+        defaultCollections.map(async (collection) => {
+          const { count } = await supabase
+            .from('quotes')
+            .select('*', { count: 'exact', head: true })
+            .ilike('category', collection.category);
+          
+          return {
+            ...collection,
+            quotes: count || 0
+          };
+        })
+      );
+      
+      // Update sidebar categories with real counts
+      const updatedSidebar = await Promise.all(
+        sidebarCategories.map(async (category) => {
+          const { count } = await supabase
+            .from('quotes')
+            .select('*', { count: 'exact', head: true })
+            .ilike('category', category.label);
+          
+          return {
+            ...category,
+            count: count || 0
+          };
+        })
+      );
+      
+      setCollections(updatedCollections);
+      setSidebarCategories(updatedSidebar);
+    } catch (error) {
+      console.error('Error fetching category counts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -100,32 +191,44 @@ export default function Collections() {
 
             {/* Featured Collections Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {featuredCollections.map((collection) => (
-                <div 
-                  key={collection.id}
-                  className={`${collection.image} rounded-xl p-6 hover:shadow-lg transition-all duration-300 group cursor-pointer`}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <Star className={`h-6 w-6 ${collection.textColor}`} />
-                    <span className={`text-sm ${collection.textColor} opacity-70`}>
-                      {collection.quotes} quotes
-                    </span>
-                  </div>
-                  <h3 className={`text-xl font-bold ${collection.textColor} mb-2`}>
-                    {collection.title}
-                  </h3>
-                  <p className={`${collection.textColor} opacity-80 mb-4 text-sm`}>
-                    {collection.description}
-                  </p>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className={`${collection.textColor} hover:bg-white/20 group-hover:translate-x-1 transition-transform`}
-                  >
-                    Explore Collection
-                  </Button>
+              {loading ? (
+                <div className="col-span-full text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-muted-foreground mt-2">Loading collections...</p>
                 </div>
-              ))}
+              ) : (
+                collections.map((collection) => (
+                  <div 
+                    key={collection.id}
+                    className={`${collection.image} rounded-xl p-6 hover:shadow-lg transition-all duration-300 group cursor-pointer`}
+                    onClick={() => navigate(collection.path)}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <Star className={`h-6 w-6 ${collection.textColor}`} />
+                      <span className={`text-sm ${collection.textColor} opacity-70`}>
+                        {collection.quotes} quotes
+                      </span>
+                    </div>
+                    <h3 className={`text-xl font-bold ${collection.textColor} mb-2`}>
+                      {collection.title}
+                    </h3>
+                    <p className={`${collection.textColor} opacity-80 mb-4 text-sm`}>
+                      {collection.description}
+                    </p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className={`${collection.textColor} hover:bg-white/20 group-hover:translate-x-1 transition-transform`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(collection.path);
+                      }}
+                    >
+                      Explore Collection
+                    </Button>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Sample Quotes from Collections */}
@@ -150,23 +253,23 @@ export default function Collections() {
             <div className="bg-card rounded-xl p-6 border">
               <h3 className="font-semibold text-foreground mb-4">Browse by Category</h3>
               <div className="space-y-2">
-                {[
-                  { icon: Heart, label: "Love", count: 234 },
-                  { icon: Brain, label: "Wisdom", count: 456 },
-                  { icon: Sun, label: "Motivation", count: 189 },
-                  { icon: Star, label: "Success", count: 123 }
-                ].map(({ icon: Icon, label, count }) => (
-                  <button
-                    key={label}
-                    className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Icon className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">{label}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">{count}</span>
-                  </button>
-                ))}
+                {loading ? (
+                  <div className="text-muted-foreground text-sm">Loading...</div>
+                ) : (
+                  sidebarCategories.map(({ icon: Icon, label, count, path }) => (
+                    <button
+                      key={label}
+                      className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
+                      onClick={() => navigate(path)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Icon className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">{label}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{count}</span>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
 

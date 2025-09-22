@@ -237,13 +237,22 @@ const NewGiveaway = () => {
                           </div>
                         ))}
                       </div>
-                      <Button 
-                        className="w-full" 
-                        onClick={() => handlePackageSelect(mainPackage.id)}
-                      >
-                        <Gift className="w-4 h-4 mr-2" />
-                        Select Package
-                      </Button>
+                      <div className="space-y-2">
+                        <Button 
+                          className="w-full" 
+                          onClick={() => navigate(`/giveaway/inner/${mainPackage.id}`)}
+                        >
+                          <Gift className="w-4 h-4 mr-2" />
+                          Select Package
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          className="w-full text-xs" 
+                          onClick={() => navigate(`/giveaway/customize/${mainPackage.id}`)}
+                        >
+                          + Add Custom Items
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 );
@@ -276,7 +285,7 @@ const NewGiveaway = () => {
                           <div className="text-sm text-muted-foreground">
                             {pkg.features.length} features included
                           </div>
-                          <Button size="sm" onClick={() => handlePackageSelect(pkg.id)}>
+                          <Button size="sm" onClick={() => navigate(`/giveaway/inner/${pkg.id}`)}>
                             Select Package
                           </Button>
                         </div>

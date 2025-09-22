@@ -9,7 +9,7 @@ export const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <span className="text-xl font-bold">QuoteReads</span>
+              <span className="text-xl font-bold">ANEWPORTALS</span>
             </div>
             <p className="text-footer-foreground/80 text-sm leading-relaxed">
               Discover, collect, and share the world's most inspiring quotes.
@@ -59,7 +59,7 @@ export const Footer = () => {
 
         <div className="border-t border-footer-foreground/20 mt-8 pt-8 text-center">
           <p className="text-sm text-footer-foreground/60">
-            © 2025 QuoteReads. All rights reserved.
+            © 2025 ANEWPORTALS. All rights reserved.
           </p>
         </div>
       </div>

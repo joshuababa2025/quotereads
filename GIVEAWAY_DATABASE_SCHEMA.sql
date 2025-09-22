@@ -110,32 +110,140 @@ BEGIN
     END IF;
 END $$;
 
+-- 7. Package Orders Table
+CREATE TABLE IF NOT EXISTS package_orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  package_id UUID REFERENCES giveaway_packages(id) ON DELETE CASCADE,
+  total_amount DECIMAL(10,2) NOT NULL,
+  status TEXT DEFAULT 'pending', -- 'pending', 'confirmed', 'completed', 'cancelled'
+  reason TEXT, -- Prayer, Blessings, Mercy, etc.
+  personal_info JSONB, -- Custom requests, contact info, etc.
+  invoice_sent BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 8. Giveaway Reasons Table
+CREATE TABLE IF NOT EXISTS giveaway_reasons (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  description TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 9. Custom Add-ons Table
+CREATE TABLE IF NOT EXISTS custom_addons (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  package_id UUID REFERENCES giveaway_packages(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  addon_name TEXT NOT NULL,
+  addon_description TEXT,
+  additional_cost DECIMAL(10,2) DEFAULT 0,
+  is_approved BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS for new tables
+ALTER TABLE package_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE giveaway_reasons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE custom_addons ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for new tables
+CREATE POLICY "Users can view own orders" ON package_orders FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can create own orders" ON package_orders FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own orders" ON package_orders FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Admins can manage all orders" ON package_orders FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+
+CREATE POLICY "Giveaway reasons are viewable by everyone" ON giveaway_reasons FOR SELECT USING (true);
+CREATE POLICY "Admins can manage reasons" ON giveaway_reasons FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+
+CREATE POLICY "Users can view approved addons" ON custom_addons FOR SELECT USING (is_approved = true);
+CREATE POLICY "Users can create own addons" ON custom_addons FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can view own addons" ON custom_addons FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Admins can manage addons" ON custom_addons FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+
 -- Insert sample data (only if table is empty)
+-- Insert giveaway reasons
+INSERT INTO giveaway_reasons (name, description) 
+SELECT * FROM (VALUES
+('Prayer', 'Spiritual support and prayer requests'),
+('Blessings', 'Seeking divine blessings and favor'),
+('Mercy', 'Acts of mercy and compassion'),
+('Forgiveness', 'Seeking or offering forgiveness'),
+('Healing', 'Physical, emotional, or spiritual healing'),
+('Breakthrough', 'Overcoming challenges and obstacles'),
+('Thanksgiving', 'Expressing gratitude and thanks'),
+('Community Support', 'Supporting local communities'),
+('Education', 'Educational support and resources'),
+('Emergency Relief', 'Emergency assistance and relief'),
+('Elderly Care', 'Support for elderly community members'),
+('Child Welfare', 'Supporting children in need')
+) AS t(name, description)
+WHERE NOT EXISTS (SELECT 1 FROM giveaway_reasons LIMIT 1);
+
 INSERT INTO giveaway_packages (title, description, category, base_price, image_url, features) 
 SELECT * FROM (VALUES
-('Essential Book Collection', 'A curated collection of inspiring books for personal growth and education', 'books', 25.00, 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=800&q=80', ARRAY['5 bestselling books', 'Free shipping worldwide', 'Digital copies included', 'Author signatures available']),
-('Family Meal Package', 'Nutritious meals for families in need', 'feeding', 50.00, 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80', ARRAY['Feeds family of 4', 'Fresh ingredients', 'Recipe cards included', 'Dietary options available']),
-('Children Joy Pack', 'Educational toys and supplies for underprivileged children', 'kids', 35.00, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80', ARRAY['Educational toys', 'Art supplies', 'Books for kids', 'School materials']),
-('Warm Clothing Bundle', 'Essential clothing items for those in need', 'clothing', 40.00, 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=800&q=80', ARRAY['Winter jackets', 'Warm blankets', 'Shoes and socks', 'Size variety available']),
-('Prayer Support Package', 'Spiritual support and religious materials', 'prayer', 15.00, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80', ARRAY['Prayer books', 'Meditation guides', 'Spiritual counseling', 'Community support'])
+('Jollof Rice Family Package', 'Full bags of Jollof rice, turkey, 200 takeaway packs for community feeding', 'books', 150.00, 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80', ARRAY['Full bags of Jollof rice', 'Full pack of turkey', '200 pieces takeaway packs', 'Prayer from 1-2 pastors', 'Documentation video', 'Printout cloths for 20 kids']),
+('Kids Sweet & Biscuit Package', '20 packs of sweet candies and biscuits with special prayer gathering', 'technology', 75.00, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80', ARRAY['20 packs sweet candies', '20 packs biscuits', 'Kids gathering prayer', 'Prayer request inclusion', 'Special photo design', 'Hand written notes', 'Signatures and more']),
+('Prayer & Spiritual Support', 'Comprehensive spiritual support with prayer sessions and blessed items', 'wellness', 50.00, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80', ARRAY['Personal prayer sessions', 'Blessed religious items', 'Prayer documentation', 'Spiritual counseling', 'Community prayer support', 'Custom prayer requests'])
 ) AS t(title, description, category, base_price, image_url, features)
 WHERE NOT EXISTS (SELECT 1 FROM giveaway_packages LIMIT 1);
 
-INSERT INTO support_options (name, icon, description) 
-SELECT * FROM (VALUES
-('Monetary Donation', '💰', 'Financial support for campaigns'),
-('Food Packages', '🍞', 'Donate food items and packages'),
-('Sweets for Children', '🍭', 'Candies and treats for kids'),
-('Prayer Support', '🙏', 'Spiritual support and prayers'),
-('Volunteer Time', '⏰', 'Donate your time and skills')
-) AS t(name, icon, description)
-WHERE NOT EXISTS (SELECT 1 FROM support_options LIMIT 1);
+-- Check and recreate tables with correct structure
+DO $$
+BEGIN
+    -- Drop and recreate support_options table
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'support_options') THEN
+        DROP TABLE support_options CASCADE;
+    END IF;
+    
+    CREATE TABLE support_options (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL,
+        description TEXT NOT NULL,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+    
+    ALTER TABLE support_options ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY "Support options are viewable by everyone" ON support_options FOR SELECT USING (true);
+    
+    -- Drop and recreate earn_money_tasks table
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'earn_money_tasks') THEN
+        DROP TABLE earn_money_tasks CASCADE;
+    END IF;
+    
+    CREATE TABLE earn_money_tasks (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        name TEXT NOT NULL,
+        reward_amount DECIMAL(10,2) NOT NULL,
+        description TEXT NOT NULL,
+        task_type TEXT NOT NULL,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+    
+    ALTER TABLE earn_money_tasks ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY "Tasks are viewable by everyone" ON earn_money_tasks FOR SELECT USING (true);
+END $$;
 
-INSERT INTO earn_money_tasks (name, reward_amount, description, task_type) 
-SELECT * FROM (VALUES
-('Watch YouTube Videos', 0.50, 'Watch and rate videos for 5 minutes', 'video'),
-('Social Media Engagement', 1.00, 'Like and share posts on social platforms', 'social'),
-('Survey Participation', 2.00, 'Complete short surveys about products', 'survey'),
-('Ad Viewing', 0.25, 'View advertisements for 30 seconds', 'ad')
-) AS t(name, reward_amount, description, task_type)
-WHERE NOT EXISTS (SELECT 1 FROM earn_money_tasks LIMIT 1);
+-- Insert support options data
+INSERT INTO support_options (name, icon, description) VALUES
+('Monetary Donation', '💰', 'Financial support for campaigns and giveaways'),
+('Cooking & Food Packages', '🍞', 'Donate food items, cooking ingredients, and meal packages'),
+('Sweets & Candies', '🍭', 'Candies, biscuits, and treats for children'),
+('Prayer & Spiritual Support', '🙏', 'Spiritual support, prayers, and religious guidance'),
+('Volunteer Time', '⏰', 'Donate your time and skills for community service');
+
+-- Insert earn money tasks data
+INSERT INTO earn_money_tasks (name, reward_amount, description, task_type) VALUES
+('YouTube Video Tasks', 2.50, 'Watch, like, and comment on YouTube videos', 'video'),
+('Twitter Engagement', 1.50, 'Like, retweet, and engage on Twitter posts', 'social'),
+('Instagram Reactions', 1.25, 'Like, comment, and share Instagram content', 'social'),
+('General Community Tasks', 3.00, 'Complete various community-based tasks', 'general'),
+('Advertisement Viewing', 0.75, 'Watch and rate advertisements', 'ad'),
+('Survey Participation', 5.00, 'Complete detailed surveys and feedback forms', 'survey'),
+('Voting Tasks', 1.00, 'Participate in community voting and polls', 'voting');
