@@ -279,9 +279,9 @@ const Groups = () => {
       <Navigation />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 order-2 lg:order-1">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-foreground mb-2">Community Groups</h1>
               <p className="text-muted-foreground">
@@ -289,11 +289,11 @@ const Groups = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-4 mb-8">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-8">
+              <div className="flex items-center gap-2 order-1 sm:order-1">
                 <GroupNotifications />
               </div>
-              <div className="relative flex-1">
+              <div className="relative flex-1 order-2 sm:order-2">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input 
                   placeholder="Search groups by name or description..." 
@@ -303,7 +303,7 @@ const Groups = () => {
                 />
               </div>
               <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-full sm:w-48 order-3">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
@@ -318,7 +318,7 @@ const Groups = () => {
                 </SelectContent>
               </Select>
               {user && (
-                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto order-4">
                   <Plus className="w-4 h-4 mr-2" />
                   Create Group
                 </Button>
@@ -348,9 +348,9 @@ const Groups = () => {
               ) : (
                 filteredGroups.map((group) => (
                   <Card key={group.id} className="mb-4 hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex gap-4">
-                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shrink-0 mx-auto sm:mx-0">
                           {group.profile_image ? (
                             <img 
                               src={group.profile_image} 
@@ -364,32 +364,33 @@ const Groups = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                            <div className="text-center sm:text-left">
                               <h3 className="font-semibold text-lg mb-1">
                                 <Link to={`/groups/${group.id}`} className="hover:text-primary transition-colors">
                                   {group.name}
                                 </Link>
                               </h3>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-sm text-muted-foreground mb-2">
                                 <span className="flex items-center gap-1">
                                   <Users className="w-4 h-4" />
                                   {group.member_count || 0} members
                                 </span>
-                                <span className="flex items-center gap-1">
+                                <span className="hidden sm:flex items-center gap-1">
                                   <Calendar className="w-4 h-4" />
                                   Created {format(new Date(group.created_at), 'MMMM yyyy')}
                                 </span>
                                 {group.type && (
-                                  <Badge variant="secondary">{group.type}</Badge>
+                                  <Badge variant="secondary" className="text-xs">{group.type}</Badge>
                                 )}
                               </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 justify-center sm:justify-start">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => shareGroup(group.id, group.name)}
+                                className="sm:block hidden"
                               >
                                 <Share2 className="w-4 h-4" />
                               </Button>
@@ -397,14 +398,15 @@ const Groups = () => {
                                 variant="default"
                                 size="sm"
                                 onClick={() => navigate(`/groups/${group.id}`)}
+                                className="w-full sm:w-auto"
                               >
                                 View Group
                               </Button>
                             </div>
                           </div>
-                          <p className="text-sm mb-3">{group.description}</p>
+                          <p className="text-sm mb-3 text-center sm:text-left">{group.description}</p>
                           {group.tags && group.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1 justify-center sm:justify-start">
                               {group.tags.slice(0, 5).map((tag, index) => (
                                 <Badge key={index} variant="outline" className="text-xs">
                                   {tag}
@@ -427,7 +429,7 @@ const Groups = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-6 order-1 lg:order-2">
             {/* Quick Stats */}
             <Card>
               <CardHeader>

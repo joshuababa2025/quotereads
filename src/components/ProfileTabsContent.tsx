@@ -32,6 +32,22 @@ export const ProfileTabsContent = ({ userId, activeTab, isCurrentUser }: Profile
     loadTabContent();
   }, [activeTab, userId]);
 
+  // Listen for quote interaction events to reload data
+  useEffect(() => {
+    const handleQuoteInteraction = () => {
+      // Reload data after a short delay to allow database to update
+      setTimeout(() => {
+        loadTabContent();
+      }, 1000);
+    };
+
+    window.addEventListener('quoteInteraction', handleQuoteInteraction);
+    
+    return () => {
+      window.removeEventListener('quoteInteraction', handleQuoteInteraction);
+    };
+  }, [activeTab, userId]);
+
   const loadTabContent = async () => {
     setLoading(true);
     try {

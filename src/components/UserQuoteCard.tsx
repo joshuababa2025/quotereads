@@ -62,6 +62,10 @@ export const UserQuoteCard = (props: UserQuoteCardProps) => {
     e.stopPropagation();
     toggleFavorite(id);
     await persistentToggleFavorite({ id, content: quote, author, category });
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('quoteInteraction'));
+    
     if (!interaction.isFavorited) {
       dispatch({ 
         type: 'ADD_TO_FAVORITES', 
@@ -70,6 +74,11 @@ export const UserQuoteCard = (props: UserQuoteCardProps) => {
       toast({
         title: "Added to favorites",
         description: "Quote saved to your favorites collection"
+      });
+    } else {
+      toast({
+        title: "Removed from favorites",
+        description: "Quote removed from your favorites"
       });
     }
   };
