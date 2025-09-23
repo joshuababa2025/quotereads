@@ -192,13 +192,7 @@ const ChaptersPreview = () => {
                 </p>
               </Card>
             ) : (
-              chapters.map((chapter) => {
-                console.log('Chapter image debug:', {
-                  title: chapter.title,
-                  cover_image: chapter.cover_image,
-                  hasImage: !!chapter.cover_image
-                });
-                return (
+              chapters.map((chapter) => (
                 <Card key={chapter.id} className="overflow-hidden">
                   <div className="aspect-video bg-muted rounded-t-lg overflow-hidden relative">
                     <img 
@@ -206,12 +200,10 @@ const ChaptersPreview = () => {
                       alt={chapter.title}
                       className="w-full h-full object-cover"
                       onLoad={(e) => {
-                        console.log('Image loaded successfully:', chapter.cover_image);
                         const fallback = e.currentTarget.nextElementSibling as HTMLElement;
                         if (fallback) fallback.style.display = 'none';
                       }}
                       onError={(e) => {
-                        console.log('Image failed to load:', chapter.cover_image);
                         e.currentTarget.style.display = 'none';
                         const fallback = e.currentTarget.nextElementSibling as HTMLElement;
                         if (fallback) fallback.style.display = 'flex';
@@ -265,8 +257,7 @@ const ChaptersPreview = () => {
 
                   </CardContent>
                 </Card>
-              );
-              })
+              ))
             )}
 
             {/* Pagination */}

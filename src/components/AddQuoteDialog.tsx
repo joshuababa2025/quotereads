@@ -59,15 +59,12 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
 
   const loadCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('quote_categories')
-        .select('name')
-        .eq('is_active', true)
-        .order('name');
-      
-      if (!error && data) {
-        setCategories(data.map(cat => cat.name));
-      }
+      // Use predefined categories instead of database
+      const predefinedCategories = [
+        'Love', 'Motivation', 'Wisdom', 'Success', 'Life', 
+        'Happiness', 'Dreams', 'Hope', 'Action', 'General'
+      ];
+      setCategories(predefinedCategories);
     } catch (error) {
       console.error('Error loading categories:', error);
     }
@@ -107,33 +104,22 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
       return;
     }
 
-    try {
-      const { data, error } = await supabase
-        .rpc('add_quote_category', { category_name: newCategoryName.trim() });
+    // Just add the category to the predefined list for now
+    if (!categories.includes(newCategoryName.trim())) {
+      setCategories(prev => [...prev, newCategoryName.trim()].sort());
       
-      if (error) throw error;
-      
-      if (data) {
-        toast({
-          title: "Category added successfully!",
-          description: `"${newCategoryName.trim()}" has been added to categories.`,
-        });
-        setNewCategoryName("");
-        setShowAddCategory(false);
-        setCategory(newCategoryName.trim());
-        await loadCategories();
-      } else {
-        toast({
-          title: "Category already exists",
-          description: `"${newCategoryName.trim()}" is already in the categories list.`,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Error adding category:', error);
       toast({
-        title: "Error adding category",
-        description: "Please try again later.",
+        title: "Category added successfully!",
+        description: `"${newCategoryName.trim()}" has been added to categories.`,
+      });
+      setNewCategoryName("");
+      setShowAddCategory(false);
+      setCategory(newCategoryName.trim());
+      await loadCategories();
+    } else {
+      toast({
+        title: "Category already exists",
+        description: `"${newCategoryName.trim()}" is already in the categories list.`,
         variant: "destructive",
       });
     }

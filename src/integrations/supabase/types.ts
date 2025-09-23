@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string | null
+          id: string
+          permissions: string[] | null
+          role: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permissions?: string[] | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permissions?: string[] | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      api_keys: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          key_name: string
+          key_value: string
+          service_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_name: string
+          key_value: string
+          service_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_name?: string
+          key_value?: string
+          service_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           additional_images: string[] | null
@@ -497,6 +551,47 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_addons: {
+        Row: {
+          additional_cost: number | null
+          addon_description: string | null
+          addon_name: string
+          created_at: string | null
+          id: string
+          is_approved: boolean | null
+          package_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          additional_cost?: number | null
+          addon_description?: string | null
+          addon_name: string
+          created_at?: string | null
+          id?: string
+          is_approved?: boolean | null
+          package_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          additional_cost?: number | null
+          addon_description?: string | null
+          addon_name?: string
+          created_at?: string | null
+          id?: string
+          is_approved?: boolean | null
+          package_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_addons_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "giveaway_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discussion_comments: {
         Row: {
           content: string
@@ -551,8 +646,8 @@ export type Database = {
           description: string
           id: string
           is_active: boolean | null
+          name: string
           reward_amount: number
-          task_name: string
           task_type: string
         }
         Insert: {
@@ -560,8 +655,8 @@ export type Database = {
           description: string
           id?: string
           is_active?: boolean | null
+          name: string
           reward_amount: number
-          task_name: string
           task_type: string
         }
         Update: {
@@ -569,8 +664,8 @@ export type Database = {
           description?: string
           id?: string
           is_active?: boolean | null
+          name?: string
           reward_amount?: number
-          task_name?: string
           task_type?: string
         }
         Relationships: []
@@ -602,6 +697,51 @@ export type Database = {
           quote_content?: string
           quote_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      giveaway_campaigns: {
+        Row: {
+          category: string
+          created_at: string | null
+          creator_id: string | null
+          current_amount: number | null
+          description: string
+          end_date: string | null
+          goal_amount: number
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          creator_id?: string | null
+          current_amount?: number | null
+          description: string
+          end_date?: string | null
+          goal_amount: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          creator_id?: string | null
+          current_amount?: number | null
+          description?: string
+          end_date?: string | null
+          goal_amount?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -641,6 +781,30 @@ export type Database = {
           is_active?: boolean
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      giveaway_reasons: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
         }
         Relationships: []
       }
@@ -1156,6 +1320,33 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       quote_comments: {
         Row: {
           content: string
@@ -1376,7 +1567,7 @@ export type Database = {
           icon: string
           id: string
           is_active: boolean | null
-          option_name: string
+          name: string
         }
         Insert: {
           created_at?: string | null
@@ -1384,7 +1575,7 @@ export type Database = {
           icon: string
           id?: string
           is_active?: boolean | null
-          option_name: string
+          name: string
         }
         Update: {
           created_at?: string | null
@@ -1392,7 +1583,40 @@ export type Database = {
           icon?: string
           id?: string
           is_active?: boolean | null
-          option_name?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      system_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: string
+          id: string
+          ip_address: string | null
+          level: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details: string
+          id?: string
+          ip_address?: string | null
+          level: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: string
+          id?: string
+          ip_address?: string | null
+          level?: string
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1629,6 +1853,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_quote_category: {
+        Args: { category_description?: string; category_name: string }
+        Returns: string
+      }
       generate_unique_username: {
         Args: { base_name: string }
         Returns: string
@@ -1640,6 +1868,32 @@ export type Database = {
           id: string
           image_name: string
           image_url: string
+        }[]
+      }
+      get_current_quote_of_day: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          author: string
+          background_image: string
+          category: string
+          content: string
+          created_at: string
+          id: string
+          quote_of_day_date: string
+          tags: string[]
+        }[]
+      }
+      get_previous_quotes_of_day: {
+        Args: { limit_count?: number }
+        Returns: {
+          author: string
+          background_image: string
+          category: string
+          content: string
+          created_at: string
+          id: string
+          quote_of_day_date: string
+          tags: string[]
         }[]
       }
       get_random_category_image: {
@@ -1657,6 +1911,10 @@ export type Database = {
       increment_user_stat: {
         Args: { stat_name: string; user_id_param: string }
         Returns: undefined
+      }
+      set_quote_of_the_day: {
+        Args: { quote_id: string; target_date?: string }
+        Returns: boolean
       }
       update_most_read: {
         Args: Record<PropertyKey, never>

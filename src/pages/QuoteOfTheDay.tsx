@@ -43,13 +43,19 @@ const QuoteOfTheDay = () => {
 
   const fetchQuoteOfTheDay = async () => {
     try {
-      // Use the new function to get current quote of the day
+      // Get current quote of the day
       const { data, error } = await supabase
-        .rpc('get_current_quote_of_day');
+        .from('quotes')
+        .select('*')
+        .eq('is_quote_of_day', true)
+        .eq('quote_of_day_date', new Date().toISOString().split('T')[0])
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
       
-      if (!error && data && data.length > 0) {
-        const [quoteWithImage] = await assignBackgroundImages([data[0]]);
-        setTodayQuote(quoteWithImage as any);
+      if (!error && data) {
+        const [quoteWithImage] = await assignBackgroundImages([data]);
+        setTodayQuote(quoteWithImage as Quote);
       } else {
         // Fallback: get a random quote if no quote of the day is set
         const { data: fallbackData, error: fallbackError } = await supabase
@@ -72,9 +78,15 @@ const QuoteOfTheDay = () => {
 
   const fetchPreviousQuotes = async () => {
     try {
-      // Use the new function to get previous quotes of the day
+      // Use direct query instead of RPC function
       const { data, error } = await supabase
-        .rpc('get_previous_quotes_of_day', { limit_count: 12 });
+        .from('quotes')
+        .select('*')
+        .eq('is_quote_of_day', true)
+        .not('quote_of_day_date', 'is', null)
+        .lt('quote_of_day_date', new Date().toISOString().split('T')[0])
+        .order('quote_of_day_date', { ascending: false })
+        .limit(12);
       
       if (!error && data) {
         const quotesWithImages = await assignBackgroundImages(data);
