@@ -85,7 +85,6 @@ const AdminBooks = () => {
     description: '',
     content: '',
     cover_image: '',
-    buy_link: '',
     published_date: '',
     is_featured: false
   });
@@ -236,18 +235,17 @@ const AdminBooks = () => {
   };
 
   const resetChapterForm = () => {
-    setChapterForm({
-      book_id: '',
-      title: '',
-      author: '',
-      category: '',
-      description: '',
-      content: '',
-      cover_image: '',
-      buy_link: '',
-      published_date: '',
-      is_featured: false
-    });
+        setChapterForm({
+          book_id: '',
+          title: '',
+          author: '',
+          category: '',
+          description: '',
+          content: '',
+          cover_image: '',
+          published_date: '',
+          is_featured: false
+        });
   };
 
   const editBook = (book: Book) => {
@@ -650,15 +648,6 @@ const AdminBooks = () => {
                             id="chapter_cover_image"
                             value={chapterForm.cover_image}
                             onChange={(e) => setChapterForm({...chapterForm, cover_image: e.target.value})}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="chapter_buy_link">Buy Link</Label>
-                          <Input
-                            id="chapter_buy_link"
-                            value={chapterForm.buy_link}
-                            onChange={(e) => setChapterForm({...chapterForm, buy_link: e.target.value})}
-                            placeholder="https://store.com/buy-book"
                           />
                         </div>
                       </div>

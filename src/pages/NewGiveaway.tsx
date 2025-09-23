@@ -185,7 +185,7 @@ const NewGiveaway = () => {
                 )}
               </div>
               <p className="text-muted-foreground mb-6">
-                Choose from our donation packages to make a meaningful impact in communities worldwide.
+                Discover and participate in meaningful donation packages that make a real impact in communities worldwide.
               </p>
               
               {/* Search Bar */}

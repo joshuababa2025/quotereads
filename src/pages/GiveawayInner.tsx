@@ -31,6 +31,7 @@ const GiveawayInner = () => {
   const { toast } = useToast();
   
   const [packageData, setPackageData] = useState<GiveawayPackage | null>(null);
+  const [additionalPackages, setAdditionalPackages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [customRequests, setCustomRequests] = useState({
@@ -55,8 +56,24 @@ const GiveawayInner = () => {
   useEffect(() => {
     if (packageId) {
       fetchPackageDetails();
+      fetchAdditionalPackages();
     }
   }, [packageId]);
+
+  const fetchAdditionalPackages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('additional_packages')
+        .select('*')
+        .eq('is_active', true)
+        .order('category', { ascending: true });
+
+      if (error) throw error;
+      setAdditionalPackages(data || []);
+    } catch (error) {
+      console.error('Error fetching additional packages:', error);
+    }
+  };
 
   const fetchPackageDetails = async () => {
     try {
@@ -86,29 +103,7 @@ const GiveawayInner = () => {
     'Emergency Relief', 'Elderly Care', 'Child Welfare'
   ];
 
-  const additionalPackages = [
-    {
-      id: 'jollof_rice',
-      name: 'Jollof Rice Package',
-      description: 'Full bags of Jollof rice, turkey, 200 takeaway packs',
-      basePrice: 150,
-      addons: ['Prayer from 1-2 pastors', 'Documentation video', 'Printout cloths for 20 kids']
-    },
-    {
-      id: 'kids_package',
-      name: 'Kids Sweet Package',
-      description: '20 packs of sweet candies and biscuits',
-      basePrice: 75,
-      addons: ['Kids gathering prayer', 'Special photo design', 'Hand written notes', 'Signatures']
-    },
-    {
-      id: 'prayer_support',
-      name: 'Prayer & Spiritual Support',
-      description: 'Dedicated prayer sessions and spiritual guidance',
-      basePrice: 50,
-      addons: ['Personal prayer request', 'Blessed items', 'Prayer documentation']
-    }
-  ];
+  
 
   const earnMoneyTasks = [
     { name: 'YouTube Video Tasks', reward: '$2-5', description: 'Watch, like, and comment on videos' },
@@ -147,10 +142,10 @@ const GiveawayInner = () => {
     // Add additional packages
     additionalPackages.forEach(pkg => {
       const quantity = quantities.additionalItems[pkg.id] || 0;
-      total += pkg.basePrice * quantity;
+      total += pkg.base_price * quantity;
     });
     
-    // Add addon costs (simplified - would be dynamic in real implementation)
+    // Add addon costs
     total += selectedAddons.length * 25;
     
     return total;
@@ -184,7 +179,7 @@ const GiveawayInner = () => {
         }
       };
 
-      const { data, error } = await supabase
+      const { data: orderData1, error } = await supabase
         .from('package_orders')
         .insert(orderData)
         .select()
@@ -192,12 +187,87 @@ const GiveawayInner = () => {
 
       if (error) throw error;
 
+      // Create custom requests for admin review
+      const customRequestPromises = [];
+      
+      if (customRequests.prayerRequest) {
+        customRequestPromises.push(
+          supabase.from('custom_giveaway_requests').insert({
+            user_id: user.id,
+            package_order_id: orderData1.id,
+            request_type: 'prayer',
+            request_content: customRequests.prayerRequest
+          })
+        );
+      }
+      
+      if (customRequests.specialRequest) {
+        customRequestPromises.push(
+          supabase.from('custom_giveaway_requests').insert({
+            user_id: user.id,
+            package_order_id: orderData1.id,
+            request_type: 'special',
+            request_content: customRequests.specialRequest
+          })
+        );
+      }
+      
+      if (customRequests.handwrittenNote) {
+        customRequestPromises.push(
+          supabase.from('custom_giveaway_requests').insert({
+            user_id: user.id,
+            package_order_id: orderData1.id,
+            request_type: 'handwritten',
+            request_content: customRequests.handwrittenNote
+          })
+        );
+      }
+      
+      if (customRequests.customDesign) {
+        customRequestPromises.push(
+          supabase.from('custom_giveaway_requests').insert({
+            user_id: user.id,
+            package_order_id: orderData1.id,
+            request_type: 'design',
+            request_content: customRequests.customDesign
+          })
+        );
+      }
+      
+      if (customRequests.logoName) {
+        customRequestPromises.push(
+          supabase.from('custom_giveaway_requests').insert({
+            user_id: user.id,
+            package_order_id: orderData1.id,
+            request_type: 'name',
+            request_content: customRequests.logoName
+          })
+        );
+      }
+      
+      if (uploadedFiles.length > 0) {
+        customRequestPromises.push(
+          supabase.from('custom_giveaway_requests').insert({
+            user_id: user.id,
+            package_order_id: orderData1.id,
+            request_type: 'file',
+            request_content: 'File uploads attached',
+            file_urls: uploadedFiles.map(f => f.name)
+          })
+        );
+      }
+
+      // Submit all custom requests
+      if (customRequestPromises.length > 0) {
+        await Promise.all(customRequestPromises);
+      }
+
       toast({
         title: "Order Submitted!",
         description: "Your giveaway order has been submitted. An invoice will be sent to your email.",
       });
 
-      navigate(`/package-orders/${data.id}`);
+      navigate(`/package-orders/${orderData1.id}`);
     } catch (error) {
       console.error('Error submitting order:', error);
       toast({
@@ -293,7 +363,7 @@ const GiveawayInner = () => {
                       <div>
                         <h4 className="font-semibold">{pkg.name}</h4>
                         <p className="text-sm text-muted-foreground">{pkg.description}</p>
-                        <p className="text-sm font-medium text-primary">${pkg.basePrice}</p>
+                        <p className="text-sm font-medium text-primary">${pkg.base_price}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button 

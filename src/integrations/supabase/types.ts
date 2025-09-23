@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      additional_packages: {
+        Row: {
+          addon_price: number | null
+          addons: string[] | null
+          base_price: number
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          addon_price?: number | null
+          addons?: string[] | null
+          base_price?: number
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          addon_price?: number | null
+          addons?: string[] | null
+          base_price?: number
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string | null
@@ -591,6 +630,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      custom_giveaway_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          file_urls: string[] | null
+          id: string
+          package_order_id: string | null
+          request_content: string | null
+          request_type: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          file_urls?: string[] | null
+          id?: string
+          package_order_id?: string | null
+          request_content?: string | null
+          request_type: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          file_urls?: string[] | null
+          id?: string
+          package_order_id?: string | null
+          request_content?: string | null
+          request_type?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       discussion_comments: {
         Row: {
