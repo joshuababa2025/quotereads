@@ -281,7 +281,6 @@ const AdminBooks = () => {
       description: chapter.description,
       content: chapter.content || '',
       cover_image: chapter.cover_image || '',
-      buy_link: chapter.buy_link || '',
       published_date: chapter.published_date,
       is_featured: chapter.is_featured
     });
