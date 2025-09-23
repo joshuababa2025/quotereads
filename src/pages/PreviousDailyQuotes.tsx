@@ -44,7 +44,13 @@ const PreviousDailyQuotes = () => {
   const fetchPreviousQuotes = async () => {
     try {
       const { data, error } = await supabase
-        .rpc('get_previous_quotes_of_day', { limit_count: 100 });
+        .from('quotes')
+        .select('*')
+        .eq('is_quote_of_day', true)
+        .not('quote_of_day_date', 'is', null)
+        .lt('quote_of_day_date', new Date().toISOString().split('T')[0])
+        .order('quote_of_day_date', { ascending: false })
+        .limit(100);
       
       if (!error && data) {
         const quotesWithImages = await assignBackgroundImages(data);

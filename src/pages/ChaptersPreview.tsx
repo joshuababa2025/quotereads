@@ -198,7 +198,7 @@ const ChaptersPreview = () => {
               chapters.map((chapter) => (
                 <Card key={chapter.id} className="overflow-hidden">
                   <div className="aspect-video bg-muted rounded-t-lg overflow-hidden">
-                    {chapter.cover_image && chapter.cover_image.includes('supabase.co') && !chapter.cover_image.startsWith('blob:') ? (
+                    {chapter.cover_image && chapter.cover_image.trim() !== '' ? (
                       <img 
                         src={chapter.cover_image} 
                         alt={chapter.title}

@@ -85,7 +85,7 @@ const Auth = () => {
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to LibVerse Nest
+          Back to ANEWSPORTAL
         </Link>
 
         <Card className="border-0 shadow-2xl bg-card/80 backdrop-blur-sm">
