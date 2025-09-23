@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS books (
   language TEXT DEFAULT 'English',
   isbn TEXT,
   amazon_link TEXT,
+  buy_link TEXT,
   product_link TEXT,
   is_on_sale BOOLEAN DEFAULT false,
   price DECIMAL(10,2),
@@ -34,6 +35,7 @@ CREATE TABLE IF NOT EXISTS chapters (
   description TEXT NOT NULL,
   content TEXT,
   cover_image TEXT,
+  buy_link TEXT,
   published_date DATE DEFAULT CURRENT_DATE,
   is_featured BOOLEAN DEFAULT false,
   view_count INTEGER DEFAULT 0,
@@ -124,11 +126,11 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Sample data
-INSERT INTO books (title, author, description, rating, rating_count, review_count, categories, pages, published_date, language, isbn, amazon_link, is_on_sale, price) VALUES
-('The Power Behind Quiet Words', 'Aria Thompson', 'A profound exploration of how subtle communication can create lasting impact. This book delves into the psychology of gentle persuasion and the art of meaningful conversation.', 4.3, 1247, 89, ARRAY['Self-Help', 'Psychology', 'Communication', 'Personal Development'], 284, '2025-06-22', 'English', '978-0-123456-78-9', 'https://amazon.com/power-behind-quiet-words', true, 19.99)
+INSERT INTO books (title, author, description, rating, rating_count, review_count, categories, pages, published_date, language, isbn, amazon_link, buy_link, is_on_sale, price) VALUES
+('The Power Behind Quiet Words', 'Aria Thompson', 'A profound exploration of how subtle communication can create lasting impact. This book delves into the psychology of gentle persuasion and the art of meaningful conversation.', 4.3, 1247, 89, ARRAY['Self-Help', 'Psychology', 'Communication', 'Personal Development'], 284, '2025-06-22', 'English', '978-0-123456-78-9', 'https://amazon.com/power-behind-quiet-words', 'https://example-bookstore.com/buy/power-behind-quiet-words', true, 19.99)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO chapters (book_id, title, author, category, description, content, cover_image, is_featured) 
+INSERT INTO chapters (book_id, title, author, category, description, content, cover_image, buy_link, is_featured) 
 SELECT 
   b.id,
   'The Power Behind Quiet Words',
@@ -137,6 +139,7 @@ SELECT
   'There are some words that don''t need to be loud to make an impact. Sometimes the quietest whispers carry the most profound truths, touching hearts in ways that thunderous proclamations never could.',
   'In a world filled with noise, we often overlook the profound impact of quiet words. This chapter explores how gentle communication can be more powerful than forceful arguments...',
   '/lovable-uploads/d6ef49b8-d427-4023-8085-e6fd9a0aacf9.png',
+  'https://example-bookstore.com/buy/power-behind-quiet-words',
   true
 FROM books b WHERE b.title = 'The Power Behind Quiet Words'
 ON CONFLICT DO NOTHING;

@@ -17,16 +17,9 @@ interface Chapter {
   category: string;
   description: string;
   cover_image?: string;
+  buy_link?: string;
   published_date: string;
   view_count: number;
-  books?: {
-    title: string;
-    author: string;
-    buy_link?: string;
-    product_link?: string;
-    is_on_sale: boolean;
-    price?: number;
-  };
 }
 
 interface Topic {
@@ -56,6 +49,10 @@ const ChaptersPreview = () => {
   const [quoteOfTheDay, setQuoteOfTheDay] = useState<{content: string; author: string; background_image?: string} | null>(null);
 
   useEffect(() => {
+    // Clear any cached data and force refresh
+    setLoading(true);
+    setChapters([]);
+    
     fetchChapters();
     fetchTopics();
     fetchMostRead();
@@ -63,6 +60,7 @@ const ChaptersPreview = () => {
   }, [currentPage]);
 
   const fetchChapters = async () => {
+    console.log('Fetching chapters...');
     try {
       const { data, error, count } = await supabase
         .from('chapters')
@@ -70,12 +68,16 @@ const ChaptersPreview = () => {
         .order('created_at', { ascending: false })
         .range((currentPage - 1) * chaptersPerPage, currentPage * chaptersPerPage - 1);
       
+      console.log('Chapters response:', { data, error, count });
+      
       if (error) throw error;
       
       setChapters(data || []);
       setTotalPages(Math.ceil((count || 0) / chaptersPerPage));
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching chapters:', error);
+      setLoading(false);
       toast({
         title: "Error",
         description: "Failed to load chapters",
@@ -184,39 +186,40 @@ const ChaptersPreview = () => {
             ) : chapters.length === 0 ? (
               <Card className="p-12 text-center">
                 <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Database Setup Required</h3>
-                <p className="text-muted-foreground mb-4">
-                  Please run the database schema files to see content:
+                <h3 className="text-xl font-semibold mb-2">No Chapters Available</h3>
+                <p className="text-muted-foreground">
+                  No chapters have been published yet.
                 </p>
-                <div className="text-left max-w-md mx-auto space-y-2 text-sm">
-                  <p className="font-medium">1. Run BOOKS_SCHEMA.sql in Supabase</p>
-                  <p className="font-medium">2. Run ADDITIONAL_FEATURES_SCHEMA.sql in Supabase</p>
-                  <p className="font-medium">3. Add content via /admin/books</p>
-                </div>
               </Card>
             ) : (
-              chapters.map((chapter) => (
+              chapters.map((chapter) => {
+                console.log('Chapter image debug:', {
+                  title: chapter.title,
+                  cover_image: chapter.cover_image,
+                  hasImage: !!chapter.cover_image
+                });
+                return (
                 <Card key={chapter.id} className="overflow-hidden">
-                  <div className="aspect-video bg-muted rounded-t-lg overflow-hidden">
-                    {chapter.cover_image && chapter.cover_image.includes('supabase.co') && !chapter.cover_image.startsWith('blob:') ? (
-                      <img 
-                        src={chapter.cover_image} 
-                        alt={chapter.title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.error('Chapter image failed to load:', e.currentTarget.src);
-                          e.currentTarget.style.display = 'none';
-                          const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                          if (nextElement) {
-                            nextElement.style.setProperty('display', 'flex');
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
-                        <BookOpen className="h-16 w-16 text-muted-foreground/50" />
-                      </div>
-                    )}
+                  <div className="aspect-video bg-muted rounded-t-lg overflow-hidden relative">
+                    <img 
+                      src={chapter.cover_image || ''} 
+                      alt={chapter.title}
+                      className="w-full h-full object-cover"
+                      onLoad={(e) => {
+                        console.log('Image loaded successfully:', chapter.cover_image);
+                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'none';
+                      }}
+                      onError={(e) => {
+                        console.log('Image failed to load:', chapter.cover_image);
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
+                      <BookOpen className="h-16 w-16 text-muted-foreground/50" />
+                    </div>
                   </div>
                   <CardContent className="p-6">
                     <div className="flex items-center gap-2 mb-3">
@@ -244,15 +247,26 @@ const ChaptersPreview = () => {
                       >
                         Read more →
                       </Button>
-                      <span className="text-xs text-muted-foreground">
-                        {chapter.view_count} views
-                      </span>
+                      <div className="flex items-center gap-3">
+                        {chapter.buy_link && (
+                          <Button 
+                            size="sm"
+                            onClick={() => window.open(chapter.buy_link, '_blank')}
+                          >
+                            Buy Now
+                          </Button>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {chapter.view_count} views
+                        </span>
+                      </div>
                     </div>
 
 
                   </CardContent>
                 </Card>
-              ))
+              );
+              })
             )}
 
             {/* Pagination */}

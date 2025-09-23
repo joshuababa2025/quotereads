@@ -30,6 +30,7 @@ interface Book {
   language: string;
   isbn: string;
   amazon_link?: string;
+  buy_link?: string;
   product_link?: string;
   is_on_sale: boolean;
   price?: number;
@@ -70,6 +71,7 @@ const AdminBooks = () => {
     language: 'English',
     isbn: '',
     amazon_link: '',
+    buy_link: '',
     product_link: '',
     is_on_sale: false,
     price: ''
@@ -83,6 +85,7 @@ const AdminBooks = () => {
     description: '',
     content: '',
     cover_image: '',
+    buy_link: '',
     published_date: '',
     is_featured: false
   });
@@ -225,6 +228,7 @@ const AdminBooks = () => {
       language: 'English',
       isbn: '',
       amazon_link: '',
+      buy_link: '',
       product_link: '',
       is_on_sale: false,
       price: ''
@@ -240,6 +244,7 @@ const AdminBooks = () => {
       description: '',
       content: '',
       cover_image: '',
+      buy_link: '',
       published_date: '',
       is_featured: false
     });
@@ -258,6 +263,7 @@ const AdminBooks = () => {
       language: book.language,
       isbn: book.isbn,
       amazon_link: book.amazon_link || '',
+      buy_link: book.buy_link || '',
       product_link: book.product_link || '',
       is_on_sale: book.is_on_sale,
       price: book.price?.toString() || ''
@@ -275,6 +281,7 @@ const AdminBooks = () => {
       description: chapter.description,
       content: chapter.content || '',
       cover_image: chapter.cover_image || '',
+      buy_link: chapter.buy_link || '',
       published_date: chapter.published_date,
       is_featured: chapter.is_featured
     });
@@ -453,16 +460,28 @@ const AdminBooks = () => {
                             id="amazon_link"
                             value={bookForm.amazon_link}
                             onChange={(e) => setBookForm({...bookForm, amazon_link: e.target.value})}
+                            placeholder="https://amazon.com/book-title"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="product_link">Product Link (if on sale)</Label>
+                          <Label htmlFor="buy_link">Buy Now Link (Main Purchase Link)</Label>
                           <Input
-                            id="product_link"
-                            value={bookForm.product_link}
-                            onChange={(e) => setBookForm({...bookForm, product_link: e.target.value})}
+                            id="buy_link"
+                            value={bookForm.buy_link}
+                            onChange={(e) => setBookForm({...bookForm, buy_link: e.target.value})}
+                            placeholder="https://bookstore.com/buy/book-title"
                           />
                         </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="product_link">Product Link (Alternative/Sale Link)</Label>
+                        <Input
+                          id="product_link"
+                          value={bookForm.product_link}
+                          onChange={(e) => setBookForm({...bookForm, product_link: e.target.value})}
+                          placeholder="https://special-offer.com/book-title"
+                        />
                       </div>
                       
                       <div className="flex items-center space-x-4">
@@ -625,13 +644,24 @@ const AdminBooks = () => {
                         />
                       </div>
                       
-                      <div>
-                        <Label htmlFor="chapter_cover_image">Cover Image URL</Label>
-                        <Input
-                          id="chapter_cover_image"
-                          value={chapterForm.cover_image}
-                          onChange={(e) => setChapterForm({...chapterForm, cover_image: e.target.value})}
-                        />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="chapter_cover_image">Cover Image URL</Label>
+                          <Input
+                            id="chapter_cover_image"
+                            value={chapterForm.cover_image}
+                            onChange={(e) => setChapterForm({...chapterForm, cover_image: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="chapter_buy_link">Buy Link</Label>
+                          <Input
+                            id="chapter_buy_link"
+                            value={chapterForm.buy_link}
+                            onChange={(e) => setChapterForm({...chapterForm, buy_link: e.target.value})}
+                            placeholder="https://store.com/buy-book"
+                          />
+                        </div>
                       </div>
                       
                       <div className="flex items-center space-x-2">

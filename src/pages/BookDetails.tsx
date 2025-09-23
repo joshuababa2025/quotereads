@@ -74,15 +74,20 @@ const BookDetails = () => {
     console.log('useEffect running with id:', id);
     if (id) {
       fetchBookOrChapter();
-      fetchReviews();
     } else {
       console.log('No ID found');
       setLoading(false);
     }
   }, [id]);
 
+  useEffect(() => {
+    if (book?.id || chapter?.book_id) {
+      fetchReviews();
+    }
+  }, [book?.id, chapter?.book_id]);
+
   const fetchReviews = async () => {
-    const bookIdToUse = book?.id || chapter?.book_id || id;
+    const bookIdToUse = book?.id || chapter?.book_id;
     if (!bookIdToUse) return;
     
     try {
