@@ -38,12 +38,9 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
   const { user } = useAuth();
   const { getCategoryImages, getRandomImageByCategory } = useCategoryImages();
 
-  const categories = [
-    "Love", "Anger", "Joy", "Sadness", "Fear", "Surprise", "Disgust", "Trust",
-    "Anticipation", "Motivation", "Wisdom", "Happiness", "Life", "Hope", "Dreams", 
-    "Success", "Healing", "Peace", "Gratitude", "Courage", "Strength", "Faith",
-    "Inspiration", "Growth", "Mindfulness"
-  ];
+  const [categories, setCategories] = useState<string[]>([]);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
   const specialCollections = [
     { value: "none", label: "None" },
     { value: "wisdom-of-ages", label: "Wisdom of the Ages" },
@@ -51,10 +48,30 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
   ];
 
   useEffect(() => {
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
     if (category && category !== "custom") {
       loadCategoryImages(category);
     }
   }, [category]);
+
+  const loadCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('quote_categories')
+        .select('name')
+        .eq('is_active', true)
+        .order('name');
+      
+      if (!error && data) {
+        setCategories(data.map(cat => cat.name));
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   const loadCategoryImages = async (selectedCategory: string) => {
     const images = await getCategoryImages(selectedCategory);
@@ -81,8 +98,58 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) {
+      toast({
+        title: "Please enter a category name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .rpc('add_quote_category', { category_name: newCategoryName.trim() });
+      
+      if (error) throw error;
+      
+      if (data) {
+        toast({
+          title: "Category added successfully!",
+          description: `"${newCategoryName.trim()}" has been added to categories.`,
+        });
+        setNewCategoryName("");
+        setShowAddCategory(false);
+        setCategory(newCategoryName.trim());
+        await loadCategories();
+      } else {
+        toast({
+          title: "Category already exists",
+          description: `"${newCategoryName.trim()}" is already in the categories list.`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding category:', error);
+      toast({
+        title: "Error adding category",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async () => {
-    const finalCategory = category === "custom" ? customCategory.trim() : category;
+    if (category === "add-new") {
+      toast({
+        title: "Please add the category first",
+        description: "Click 'Add' to create the new category before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const finalCategory = category;
     
     if (!quote.trim() || !author.trim() || !finalCategory) {
       toast({
@@ -124,12 +191,13 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
       setQuote("");
       setAuthor("");
       setCategory("");
-      setCustomCategory("");
       setSelectedImage(null);
       setCategoryImages([]);
       setTags([]);
       setCurrentTag("");
       setSpecialCollection("none");
+      setNewCategoryName("");
+      setShowAddCategory(false);
       setOpen(false);
     } catch (error) {
       console.error('Error adding quote:', error);
@@ -189,15 +257,25 @@ export const AddQuoteDialog: React.FC<AddQuoteDialogProps> = ({ children }) => {
                       {cat}
                     </SelectItem>
                   ))}
-                  <SelectItem value="custom">Custom Category</SelectItem>
+                  <SelectItem value="add-new" className="text-primary font-medium">
+                    + Add New Category
+                  </SelectItem>
                 </SelectContent>
               </Select>
-              {category === "custom" && (
-                <Input
-                  placeholder="Enter custom category"
-                  value={customCategory}
-                  onChange={(e) => setCustomCategory(e.target.value)}
-                />
+              {category === "add-new" && (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter new category name"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
+                    />
+                    <Button type="button" onClick={handleAddCategory} size="sm">
+                      Add
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
 

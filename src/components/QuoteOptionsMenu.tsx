@@ -20,6 +20,7 @@ interface QuoteOptionsMenuProps {
   author: string;
   category: string;
   variant: "purple" | "green" | "orange" | "pink" | "blue";
+  backgroundImage?: string;
   isOwner?: boolean;
   onDelete?: () => void;
 }
@@ -30,6 +31,7 @@ export const QuoteOptionsMenu = ({
   author, 
   category, 
   variant,
+  backgroundImage,
   isOwner = false,
   onDelete
 }: QuoteOptionsMenuProps) => {
@@ -67,7 +69,8 @@ export const QuoteOptionsMenu = ({
       quote,
       author,
       category,
-      variant
+      variant,
+      backgroundImage
     });
 
     toast({

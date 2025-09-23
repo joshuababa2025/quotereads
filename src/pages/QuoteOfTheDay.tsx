@@ -43,16 +43,12 @@ const QuoteOfTheDay = () => {
 
   const fetchQuoteOfTheDay = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      // Use the new function to get current quote of the day
       const { data, error } = await supabase
-        .from('quotes')
-        .select('*')
-        .eq('is_quote_of_day', true)
-        .eq('quote_of_day_date', today)
-        .single();
+        .rpc('get_current_quote_of_day');
       
-      if (!error && data) {
-        const [quoteWithImage] = await assignBackgroundImages([data]);
+      if (!error && data && data.length > 0) {
+        const [quoteWithImage] = await assignBackgroundImages([data[0]]);
         setTodayQuote(quoteWithImage as any);
       } else {
         // Fallback: get a random quote if no quote of the day is set
@@ -76,13 +72,9 @@ const QuoteOfTheDay = () => {
 
   const fetchPreviousQuotes = async () => {
     try {
+      // Use the new function to get previous quotes of the day
       const { data, error } = await supabase
-        .from('quotes')
-        .select('*')
-        .eq('is_quote_of_day', true)
-        .neq('quote_of_day_date', new Date().toISOString().split('T')[0])
-        .order('quote_of_day_date', { ascending: false })
-        .limit(9);
+        .rpc('get_previous_quotes_of_day', { limit_count: 12 });
       
       if (!error && data) {
         const quotesWithImages = await assignBackgroundImages(data);
@@ -347,26 +339,41 @@ const QuoteOfTheDay = () => {
                 </p>
               </div>
               
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {previousQuotes.map((quote, index) => (
-                  <div key={quote.id} className="group hover-scale">
-                    <div className="relative">
-                      <div className="absolute -inset-0.5 bg-primary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                      <QuoteCard
-                        id={quote.id}
-                        quote={quote.content}
-                        author={quote.author}
-                        category={quote.category}
-                        backgroundImage={quote.background_image}
-                      />
+              {previousQuotes.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {previousQuotes.map((quote, index) => (
+                    <div key={quote.id} className="group hover-scale">
+                      <div className="relative">
+                        <div className="absolute -inset-0.5 bg-primary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                        <div className="relative">
+                          <QuoteCard
+                            id={quote.id}
+                            quote={quote.content}
+                            author={quote.author}
+                            category={quote.category}
+                            backgroundImage={quote.background_image}
+                            fixedHeight={true}
+                          />
+                          {quote.quote_of_day_date && (
+                            <div className="absolute top-2 right-2 bg-primary/90 text-primary-foreground text-xs px-2 py-1 rounded-full">
+                              {new Date(quote.quote_of_day_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p>No previous quotes of the day available yet.</p>
+                  <p className="text-sm mt-2">Check back tomorrow to see today's quote in the history!</p>
+                </div>
+              )}
               
-              {previousQuotes.length >= 9 && (
+              {previousQuotes.length >= 12 && (
                 <div className="text-center">
-                  <Button variant="outline" size="lg" className="hover-scale">
+                  <Button variant="outline" size="lg" className="hover-scale" onClick={() => navigate('/previous-daily-quotes')}>
                     View All Previous Quotes
                   </Button>
                 </div>

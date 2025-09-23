@@ -225,6 +225,7 @@ export const UserQuoteCard = (props: UserQuoteCardProps) => {
             author={author}
             category={category}
             variant={variant}
+            backgroundImage={backgroundImage}
             isOwner={isOwner}
             onDelete={onDelete}
           />

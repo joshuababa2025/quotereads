@@ -60,6 +60,7 @@ const QuoteDetails = lazy(() => import("./pages/QuoteDetails"));
 const BookDetails = lazy(() => import("./pages/BookDetails"));
 const Search = lazy(() => import("./pages/Search"));
 const QuoteOfTheDay = lazy(() => import("./pages/QuoteOfTheDay"));
+const PreviousDailyQuotes = lazy(() => import("./pages/PreviousDailyQuotes"));
 const Profile = lazy(() => import("./pages/Profile"));
 const AdminBooks = lazy(() => import("./pages/AdminBooks"));
 
@@ -149,6 +150,7 @@ const App = () => (
                         <Route path="/book/:bookId" element={<BookDetails />} />
                         <Route path="/search" element={<Search />} />
                         <Route path="/quote-of-the-day" element={<QuoteOfTheDay />} />
+                        <Route path="/previous-daily-quotes" element={<PreviousDailyQuotes />} />
                         <Route path="/profile/:userId?" element={<Profile />} />
                         <Route path="/admin/books" element={<AdminBooks />} />
                         <Route path="*" element={<NotFound />} />

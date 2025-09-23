@@ -15,14 +15,22 @@ export const useCategoryImages = () => {
 
   const getRandomImageByCategory = async (category: string): Promise<CategoryImage | null> => {
     try {
-      // Return a default image structure for now since the table might not exist
-      return {
-        id: 'default',
-        image_url: '/placeholder.svg',
-        image_name: 'Default Image',
-        category: category,
-        created_at: new Date().toISOString()
-      };
+      const { data, error } = await supabase
+        .rpc('get_random_category_image', { category_name: category });
+
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        return {
+          id: data[0].id,
+          image_url: data[0].image_url,
+          image_name: data[0].image_name || 'Category Image',
+          category: category,
+          created_at: new Date().toISOString()
+        };
+      }
+      
+      return null;
     } catch (error) {
       console.error('Error fetching random category image:', error);
       return null;
@@ -31,8 +39,16 @@ export const useCategoryImages = () => {
 
   const getCategoryImages = async (category: string): Promise<CategoryImage[]> => {
     try {
-      // Return empty array for now since the table might not exist
-      return [];
+      const { data, error } = await supabase
+        .from('category_images')
+        .select('*')
+        .eq('category', category)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      return data || [];
     } catch (error) {
       console.error('Error fetching category images:', error);
       return [];

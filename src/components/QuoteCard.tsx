@@ -8,7 +8,7 @@ import { useComments } from "@/contexts/CommentsContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
 import { QuoteOptionsMenu } from "./QuoteOptionsMenu";
-import { startTransition } from 'react';
+import { startTransition, useState } from 'react';
 
 interface QuoteCardProps {
   quote: string;
@@ -18,6 +18,7 @@ interface QuoteCardProps {
   likes?: number;
   className?: string;
   id?: string;
+  fixedHeight?: boolean;
 }
 
 const variantStyles = {
@@ -35,7 +36,8 @@ export const QuoteCard = ({
   backgroundImage,
   likes = 0, 
   className,
-  id = `${quote.slice(0, 20)}-${author}` 
+  id = `${quote.slice(0, 20)}-${author}`,
+  fixedHeight = false
 }: QuoteCardProps) => {
   const { dispatch } = useQuotes();
   const { toggleLike, toggleFavorite, getInteraction } = useQuoteInteraction();
@@ -43,6 +45,7 @@ export const QuoteCard = ({
   const { state: commentsState } = useComments();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(false);
   
   const interaction = getInteraction(id);
   const displayLikes = likes + interaction.likeCount;
@@ -131,10 +134,25 @@ export const QuoteCard = ({
     return `/quote/${slug}-${authorSlug}-${id}`;
   };
 
+  // Truncate text for fixed height cards
+  const shouldTruncate = fixedHeight && quote.length > 120;
+  const displayQuote = shouldTruncate && !isExpanded ? quote.slice(0, 120) + '...' : quote;
+
+  const handleCardClick = () => {
+    if (shouldTruncate && !isExpanded) {
+      setIsExpanded(true);
+    } else {
+      startTransition(() => {
+        navigate(createFriendlyUrl(quote, author, id));
+      });
+    }
+  };
+
   return (
     <div 
       className={cn(
         "rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative group overflow-hidden text-white",
+        fixedHeight && "h-80 flex flex-col",
         className
       )}
       style={{
@@ -142,22 +160,32 @@ export const QuoteCard = ({
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
-      onClick={() => {
-        startTransition(() => {
-          navigate(createFriendlyUrl(quote, author, id));
-        });
-      }}
+      onClick={handleCardClick}
     >
       {/* Quote Icon */}
       <div className="text-6xl font-serif mb-4 opacity-20">"</div>
       
       {/* Quote Text */}
-      <blockquote className="text-lg font-medium mb-6 leading-relaxed">
-        {quote}
+      <blockquote className={cn(
+        "text-lg font-medium mb-6 leading-relaxed",
+        fixedHeight && "flex-1 overflow-hidden"
+      )}>
+        {displayQuote}
+        {shouldTruncate && !isExpanded && (
+          <span className="text-blue-300 hover:text-blue-200 ml-1 cursor-pointer" onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(true);
+          }}>
+            Read more
+          </span>
+        )}
       </blockquote>
       
       {/* Author */}
-      <div className="flex items-start justify-between gap-3">
+      <div className={cn(
+        "flex items-start justify-between gap-3",
+        fixedHeight && "mt-auto"
+      )}>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm opacity-90">— {author}</p>
           <span 
@@ -228,6 +256,7 @@ export const QuoteCard = ({
             author={author}
             category={category}
             variant="purple"
+            backgroundImage={backgroundImage}
             isOwner={false}
           />
         </div>
