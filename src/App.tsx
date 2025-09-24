@@ -63,6 +63,9 @@ const QuoteOfTheDay = lazy(() => import("./pages/QuoteOfTheDay"));
 const PreviousDailyQuotes = lazy(() => import("./pages/PreviousDailyQuotes"));
 const Profile = lazy(() => import("./pages/Profile"));
 const AdminBooks = lazy(() => import("./pages/AdminBooks"));
+const AdminFooter = lazy(() => import("./pages/AdminFooter"));
+const SupportDonation = lazy(() => import("./pages/SupportDonation"));
+const EarnMoneyOnline = lazy(() => import("./pages/EarnMoneyOnline"));
 
 // Simple inline 404 component to avoid import issues
 const NotFound = () => (
@@ -153,6 +156,9 @@ const App = () => (
                         <Route path="/previous-daily-quotes" element={<PreviousDailyQuotes />} />
                         <Route path="/profile/:userId?" element={<Profile />} />
                         <Route path="/admin/books" element={<AdminBooks />} />
+                        <Route path="/admin/footer" element={<AdminFooter />} />
+                        <Route path="/support-donation" element={<SupportDonation />} />
+                        <Route path="/earn-money-online" element={<EarnMoneyOnline />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </Suspense>

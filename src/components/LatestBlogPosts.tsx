@@ -69,12 +69,14 @@ export const LatestBlogPosts = () => {
         )}
       </div>
       
+      {blogPosts.length >= 3 && (
         <Link to="/blog">
           <Button variant="ghost" className="w-full mt-4 justify-between hover:bg-muted/50">
-            View all posts
+            Read More
             <ArrowRight className="h-4 w-4" />
           </Button>
         </Link>
+      )}
     </div>
   );
 };

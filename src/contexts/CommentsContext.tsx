@@ -133,6 +133,35 @@ function commentsReducer(state: CommentsState, action: CommentsAction): Comments
       const existingComments = state.comments[action.quoteId] || [];
       const updatedComments = [...existingComments, newComment];
 
+      // Create notification for quote owner
+      (async () => {
+        try {
+          const { data: { user } } = await import('@/integrations/supabase/client').then(m => m.supabase.auth.getUser());
+          const { supabase } = await import('@/integrations/supabase/client');
+          
+          if (user) {
+            const { data: quote } = await supabase
+              .from('quotes')
+              .select('user_id, content')
+              .eq('id', action.quoteId)
+              .single();
+
+            if (quote?.user_id && quote.user_id !== user.id) {
+              await supabase.rpc('create_notification', {
+                p_user_id: quote.user_id,
+                p_type: 'comment',
+                p_title: 'Someone commented on your quote!',
+                p_message: `${action.comment.username} commented: "${action.comment.content.substring(0, 50)}..."`,
+                p_quote_id: action.quoteId,
+                p_actor_user_id: user.id
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error creating comment notification:', error);
+        }
+      })();
+
       return {
         ...state,
         comments: {

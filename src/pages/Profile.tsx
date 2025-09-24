@@ -50,6 +50,7 @@ export default function Profile() {
     bio: '',
     avatar_url: ''
   });
+  const [uploading, setUploading] = useState(false);
   
   // Stats state
   const [stats, setStats] = useState({
@@ -91,6 +92,76 @@ export default function Profile() {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Error',
+        description: 'File size must be less than 5MB',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Error',
+        description: 'Please select an image file',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Delete old avatar if exists
+      if (editForm.avatar_url) {
+        const oldPath = editForm.avatar_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setEditForm(prev => ({ ...prev, avatar_url: publicUrl }));
+      
+      toast({
+        title: 'Success',
+        description: 'Profile picture uploaded successfully'
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to upload profile picture',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -276,6 +347,17 @@ export default function Profile() {
     }
   }, [userId, user]);
 
+  // Show edit dialog if current user has incomplete profile
+  useEffect(() => {
+    if (isCurrentUser && profileData && !loading) {
+      const isIncomplete = !profileData.full_name || !profileData.bio;
+      if (isIncomplete && !editDialogOpen) {
+        // Auto-open edit dialog for incomplete profiles
+        setTimeout(() => setEditDialogOpen(true), 1000);
+      }
+    }
+  }, [isCurrentUser, profileData, loading, editDialogOpen]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -304,6 +386,25 @@ export default function Profile() {
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
+          {/* Profile Completion Prompt */}
+          {isCurrentUser && profileData && (!profileData.full_name || !profileData.bio) && (
+            <Card className="mb-6 border-primary/50 bg-primary/5">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground mb-1">Complete Your Profile</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Add your name, bio, and profile picture to help others connect with you.
+                    </p>
+                  </div>
+                  <Button onClick={() => setEditDialogOpen(true)}>
+                    Complete Profile
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Profile Header */}
           <Card className="mb-8">
             <CardContent className="pt-6">
@@ -319,10 +420,10 @@ export default function Profile() {
                   <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
                     <div>
                       <h1 className="text-3xl font-bold text-foreground">
-                        {profileData.full_name || 'Anonymous User'}
+                        {profileData.full_name || 'Set your name'}
                       </h1>
                       <p className="text-muted-foreground">
-                        {profileData.username ? `@${profileData.username}` : 'No username set'}
+                        {profileData.username ? `@${profileData.username}` : 'Set your username'}
                       </p>
                       {ranking && isCurrentUser && (
                         <div className="mt-2">
@@ -349,60 +450,83 @@ export default function Profile() {
                             <DialogHeader>
                               <DialogTitle>Edit Profile</DialogTitle>
                               <DialogDescription>
-                                Make changes to your profile here. Click save when you're done.
+                                {(!profileData.full_name || !profileData.bio) 
+                                  ? "Complete your profile to help others connect with you."
+                                  : "Make changes to your profile here. Click save when you're done."
+                                }
                               </DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="full_name" className="text-right">
-                                  Full Name
-                                </Label>
-                                <Input
-                                  id="full_name"
-                                  value={editForm.full_name}
-                                  onChange={(e) => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
-                                  className="col-span-3"
-                                />
+                              <div className="space-y-4">
+                                <div>
+                                  <Label htmlFor="full_name">Full Name</Label>
+                                  <Input
+                                    id="full_name"
+                                    value={editForm.full_name}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
+                                    placeholder="Enter your full name"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="username">Username</Label>
+                                  <Input
+                                    id="username"
+                                    value={editForm.username}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
+                                    placeholder="Choose a unique username"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="avatar_upload">Profile Picture</Label>
+                                  <div className="space-y-2">
+                                    <Input
+                                      id="avatar_upload"
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={handleAvatarUpload}
+                                      className="cursor-pointer"
+                                    />
+                                    {editForm.avatar_url && (
+                                      <div className="flex items-center gap-2">
+                                        <img 
+                                          src={editForm.avatar_url} 
+                                          alt="Preview" 
+                                          className="w-12 h-12 rounded-full object-cover"
+                                        />
+                                        <Button 
+                                          type="button" 
+                                          variant="outline" 
+                                          size="sm"
+                                          onClick={() => setEditForm(prev => ({ ...prev, avatar_url: '' }))}
+                                        >
+                                          Remove
+                                        </Button>
+                                      </div>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                      Upload a profile picture (JPG, PNG, GIF - Max 5MB)
+                                    </p>
+                                  </div>
+                                </div>
+                                <div>
+                                  <Label htmlFor="bio">About You</Label>
+                                  <Textarea
+                                    id="bio"
+                                    value={editForm.bio}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
+                                    rows={4}
+                                    placeholder="Tell others about yourself, your interests, favorite quotes, etc."
+                                  />
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {editForm.bio.length}/500 characters
+                                  </p>
+                                </div>
                               </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="username" className="text-right">
-                                  Username
-                                </Label>
-                                <Input
-                                  id="username"
-                                  value={editForm.username}
-                                  onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
-                                  className="col-span-3"
-                                />
-                              </div>
-                               <div className="grid grid-cols-4 items-center gap-4">
-                                 <Label htmlFor="avatar_url" className="text-right">
-                                   Avatar URL
-                                 </Label>
-                                 <Input
-                                   id="avatar_url"
-                                   value={editForm.avatar_url}
-                                   onChange={(e) => setEditForm(prev => ({ ...prev, avatar_url: e.target.value }))}
-                                   className="col-span-3"
-                                   placeholder="Profile picture URL"
-                                 />
-                               </div>
-                               <div className="grid grid-cols-4 items-center gap-4">
-                                 <Label htmlFor="bio" className="text-right">
-                                   Bio
-                                 </Label>
-                                 <Textarea
-                                   id="bio"
-                                   value={editForm.bio}
-                                   onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
-                                   className="col-span-3"
-                                   rows={3}
-                                   placeholder="Tell us about yourself"
-                                 />
-                               </div>
                             </div>
                             <DialogFooter>
-                              <Button onClick={handleSaveProfile}>Save changes</Button>
+                              <Button onClick={handleSaveProfile} disabled={uploading}>
+                                {uploading ? 'Uploading...' : 'Save changes'}
+                              </Button>
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
@@ -439,7 +563,7 @@ export default function Profile() {
                   </div>
                   
                   <p className="text-muted-foreground mb-4">
-                    {profileData.bio || 'No bio available'}
+                    {profileData.bio || (isCurrentUser ? 'Add a bio to tell others about yourself' : 'No bio available')}
                   </p>
                   
                   <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">

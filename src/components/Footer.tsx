@@ -1,7 +1,46 @@
-import { Twitter, Facebook, Instagram, Mail } from "lucide-react";
+import { Twitter, Facebook, Instagram, Mail, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Footer = () => {
+  const [socialLinks, setSocialLinks] = useState<any[]>([]);
+  const [termsAndConditions, setTermsAndConditions] = useState('');
+
+  useEffect(() => {
+    loadFooterData();
+  }, []);
+
+  const loadFooterData = async () => {
+    // Load social media links
+    const { data: links } = await supabase
+      .from('social_media_links')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order');
+    
+    // Load terms and conditions
+    const { data: settings } = await supabase
+      .from('footer_settings')
+      .select('setting_value')
+      .eq('setting_key', 'terms_and_conditions')
+      .single();
+    
+    setSocialLinks(links || []);
+    setTermsAndConditions(settings?.setting_value || '');
+  };
+
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'Twitter': return <Twitter className="h-4 w-4" />;
+      case 'Facebook': return <Facebook className="h-4 w-4" />;
+      case 'Instagram': return <Instagram className="h-4 w-4" />;
+      case 'Linkedin': return <Linkedin className="h-4 w-4" />;
+      case 'Mail': return <Mail className="h-4 w-4" />;
+      default: return <Mail className="h-4 w-4" />;
+    }
+  };
+
   return (
     <footer className="bg-footer text-footer-foreground">
       <div className="container mx-auto px-4 py-12">
@@ -33,7 +72,7 @@ export const Footer = () => {
               <li><a href="/blog" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Blog</a></li>
               <li><a href="/groups" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Forums</a></li>
               <li><a href="/newsletter" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Newsletter</a></li>
-              <li><a href="/donations" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Donations</a></li>
+              <li><a href="/support-donation" className="text-footer-foreground/80 hover:text-footer-foreground transition-colors">Donations</a></li>
             </ul>
           </div>
 
@@ -41,26 +80,34 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Follow Us</h4>
             <div className="flex space-x-2">
-              <Button variant="ghost" size="sm" className="p-2 text-footer-foreground/80 hover:text-footer-foreground hover:bg-white/10">
-                <Twitter className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="p-2 text-footer-foreground/80 hover:text-footer-foreground hover:bg-white/10">
-                <Facebook className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="p-2 text-footer-foreground/80 hover:text-footer-foreground hover:bg-white/10">
-                <Instagram className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="p-2 text-footer-foreground/80 hover:text-footer-foreground hover:bg-white/10">
-                <Mail className="h-4 w-4" />
-              </Button>
+              {socialLinks.map((link) => (
+                <Button 
+                  key={link.id}
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2 text-footer-foreground/80 hover:text-footer-foreground hover:bg-white/10"
+                  onClick={() => window.open(link.url, '_blank')}
+                >
+                  {getIcon(link.icon_name)}
+                </Button>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="border-t border-footer-foreground/20 mt-8 pt-8 text-center">
-          <p className="text-sm text-footer-foreground/60">
-            © 2025 ANEWPORTALS. All rights reserved.
-          </p>
+        <div className="border-t border-footer-foreground/20 mt-8 pt-8">
+          {termsAndConditions && (
+            <div className="text-center mb-4">
+              <p className="text-xs text-footer-foreground/60 max-w-4xl mx-auto">
+                {termsAndConditions}
+              </p>
+            </div>
+          )}
+          <div className="text-center">
+            <p className="text-sm text-footer-foreground/60">
+              © 2025 ANEWPORTALS. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </footer>

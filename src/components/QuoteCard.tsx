@@ -53,7 +53,7 @@ export const QuoteCard = ({
 
   const handleAddToFavorites = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleFavorite(id);
+    toggleFavorite(id, backgroundImage);
     await persistentToggleFavorite({ id, content: quote, author, category });
     
     // Dispatch custom event to notify other components
@@ -78,7 +78,7 @@ export const QuoteCard = ({
 
   const handleAddToLoved = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleLike(id);
+    toggleLike(id, backgroundImage);
     await persistentToggleLike({ id, content: quote, author, category });
     if (!interaction.isLiked) {
       dispatch({ 

@@ -15,7 +15,7 @@ interface Notification {
   title: string;
   message: string;
   type: string;
-  read: boolean;
+  is_read: boolean;
   created_at: string;
 }
 
@@ -46,7 +46,7 @@ export const Notifications = () => {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('New notification received:', payload);
+          console.log('DEBUG - New notification received via realtime:', payload);
           setNotifications(prev => [payload.new as Notification, ...prev]);
         }
       )
@@ -77,6 +77,7 @@ export const Notifications = () => {
   const fetchNotifications = async () => {
     if (!user) return;
     
+    console.log('DEBUG - Fetching notifications for user:', user.id);
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -85,6 +86,9 @@ export const Notifications = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
+      console.log('DEBUG - Notifications query result:', { data, error });
+      console.log('DEBUG - Number of notifications:', data?.length || 0);
+      
       if (error) throw error;
       setNotifications(data || []);
     } catch (error) {
@@ -103,14 +107,14 @@ export const Notifications = () => {
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('id', notificationId);
 
       if (error) throw error;
 
       setNotifications(prev => 
         prev.map(notif => 
-          notif.id === notificationId ? { ...notif, read: true } : notif
+          notif.id === notificationId ? { ...notif, is_read: true } : notif
         )
       );
     } catch (error) {
@@ -122,14 +126,14 @@ export const Notifications = () => {
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('user_id', user?.id)
-        .eq('read', false);
+        .eq('is_read', false);
 
       if (error) throw error;
 
       setNotifications(prev => 
-        prev.map(notif => ({ ...notif, read: true }))
+        prev.map(notif => ({ ...notif, is_read: true }))
       );
 
       toast({
@@ -177,7 +181,7 @@ export const Notifications = () => {
               <Bell className="w-6 h-6" />
               <h1 className="text-3xl font-bold">Notifications</h1>
             </div>
-            {notifications.some(n => !n.read) && (
+            {notifications.some(n => !n.is_read) && (
               <Button variant="outline" onClick={markAllAsRead}>
                 <Check className="w-4 h-4 mr-2" />
                 Mark All Read
@@ -195,20 +199,24 @@ export const Notifications = () => {
               <Bell className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <h2 className="text-xl font-semibold mb-2">No notifications yet</h2>
               <p className="text-muted-foreground">When you receive notifications, they'll appear here.</p>
+              <div className="mt-4 text-xs text-muted-foreground">
+                <p>DEBUG - User ID: {user?.id}</p>
+                <p>DEBUG - Notifications count: {notifications.length}</p>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
               {notifications.map((notification) => (
                 <Card 
                   key={notification.id} 
-                  className={`transition-all ${!notification.read ? 'bg-muted/30 border-l-4 border-l-primary' : ''}`}
+                  className={`transition-all ${!notification.is_read ? 'bg-muted/30 border-l-4 border-l-primary' : ''}`}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full ${getTypeColor(notification.type)}`} />
                         <CardTitle className="text-base">{notification.title}</CardTitle>
-                        {!notification.read && (
+                        {!notification.is_read && (
                           <Badge variant="secondary" className="text-xs">New</Badge>
                         )}
                       </div>
@@ -216,7 +224,7 @@ export const Notifications = () => {
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(notification.created_at), 'MMM dd, HH:mm')}
                         </span>
-                        {!notification.read && (
+                        {!notification.is_read && (
                           <Button
                             variant="ghost"
                             size="sm"

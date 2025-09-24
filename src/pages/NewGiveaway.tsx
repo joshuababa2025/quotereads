@@ -18,9 +18,11 @@ interface GiveawayPackage {
   title: string;
   description: string;
   category: string;
-  base_price: number;
+  original_price: number;
+  discount_price: number;
   image_url: string;
   features: string[];
+  is_active: boolean;
 }
 
 const NewGiveaway = () => {
@@ -38,19 +40,32 @@ const NewGiveaway = () => {
 
   const fetchPackages = async () => {
     try {
-      const { data, error } = await supabase
+      console.log('Fetching giveaway packages...');
+      
+      const { data, error, status } = await supabase
         .from('giveaway_packages')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Supabase response:', { data, error, status });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Fetched packages:', data?.length || 0);
       setPackages(data || []);
+      
+      if (!data || data.length === 0) {
+        console.warn('No giveaway packages found in database');
+      }
     } catch (error) {
       console.error('Error fetching packages:', error);
       toast({
         title: "Error",
-        description: "Failed to load packages. Please try again.",
+        description: `Failed to load packages: ${error.message}`,
         variant: "destructive"
       });
     } finally {
@@ -74,17 +89,11 @@ const NewGiveaway = () => {
       if (!selectedPackage) return;
 
       const { data, error } = await supabase
-        .from('package_orders')
+        .from('giveaway_purchases')
         .insert({
           user_id: user.id,
           package_id: packageId,
-          total_amount: selectedPackage.base_price,
-          status: 'pending',
-          reason: 'Package purchase from giveaway marketplace',
-          personal_info: {
-            name: user.user_metadata?.full_name || '',
-            email: user.email || ''
-          }
+          total_amount: selectedPackage.discount_price
         })
         .select()
         .single();
@@ -95,12 +104,14 @@ const NewGiveaway = () => {
       }
 
       toast({
-        title: "Order created!",
-        description: "Your order has been created successfully. You will be redirected to payment.",
+        title: "Thank You!",
+        description: "Your giveaway application has been submitted successfully. Redirecting to checkout...",
       });
 
-      // Navigate to payment or order confirmation
-      navigate(`/package-orders/${data.id}`);
+      // Redirect to checkout page
+      setTimeout(() => {
+        navigate(`/checkout?type=giveaway&orderId=${data.id}&amount=${selectedPackage.discount_price}`);
+      }, 1500);
     } catch (error) {
       console.error('Error processing order:', error);
       toast({
@@ -131,9 +142,9 @@ const NewGiveaway = () => {
   );
 
   const categories = [
-    { id: 'books', name: 'Books', icon: <Gift className="w-4 h-4" />, color: 'bg-blue-100 text-blue-800' },
-    { id: 'technology', name: 'Technology', icon: <Star className="w-4 h-4" />, color: 'bg-green-100 text-green-800' },
-    { id: 'wellness', name: 'Wellness', icon: <Heart className="w-4 h-4" />, color: 'bg-pink-100 text-pink-800' },
+    { id: 'food', name: 'Food Packages', icon: <Gift className="w-4 h-4" />, color: 'bg-orange-100 text-orange-800' },
+    { id: 'kids', name: 'Kids Support', icon: <Star className="w-4 h-4" />, color: 'bg-blue-100 text-blue-800' },
+    { id: 'spiritual', name: 'Spiritual Support', icon: <Heart className="w-4 h-4" />, color: 'bg-purple-100 text-purple-800' },
   ];
 
   const supportOptions = [
@@ -144,10 +155,10 @@ const NewGiveaway = () => {
   ];
 
   const earnMoneyTasks = [
-    { id: 1, name: 'Watch YouTube Videos', reward: '$0.50', description: 'Watch and rate videos for 5 minutes', completed: false },
-    { id: 2, name: 'Social Media Engagement', reward: '$1.00', description: 'Like and share posts on social platforms', completed: false },
-    { id: 3, name: 'Survey Participation', reward: '$2.00', description: 'Complete short surveys about products', completed: false },
-    { id: 4, name: 'Ad Viewing', reward: '$0.25', description: 'View advertisements for 30 seconds', completed: false }
+    { id: 1, name: 'Watch YouTube Videos', reward: '$0.50-2.00', description: 'Watch and rate videos for 5 minutes', category: 'video' },
+    { id: 2, name: 'Social Media Engagement', reward: '$1.00-3.00', description: 'Like and share posts on social platforms', category: 'social' },
+    { id: 3, name: 'Survey Participation', reward: '$2.00-10.00', description: 'Complete short surveys about products', category: 'survey' },
+    { id: 4, name: 'Ad Viewing', reward: '$0.25-1.00', description: 'View advertisements for 30 seconds', category: 'ads' }
   ];
 
   if (loading) {
@@ -203,98 +214,88 @@ const NewGiveaway = () => {
 
             {/* Package Categories Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {categories.map((category) => {
-                const categoryPackages = filteredPackages.filter(pkg => pkg.category === category.id);
-                const mainPackage = categoryPackages[0];
-                
-                if (!mainPackage) return null;
-                
-                return (
-                  <Card key={category.id} className="hover:shadow-lg transition-shadow cursor-pointer group">
-                    <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                      <img 
-                        src={mainPackage.image_url} 
-                        alt={mainPackage.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-4 left-4">
-                        <Badge className={category.color}>
-                          <span className="mr-1">{category.icon}</span>
-                          {category.name}
-                        </Badge>
-                      </div>
-                    </div>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-semibold mb-2">{mainPackage.title}</h3>
-                      <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                        {mainPackage.description}
-                      </p>
-                      <div className="space-y-2 mb-4">
-                        {mainPackage.features.slice(0, 3).map((feature, index) => (
-                          <div key={index} className="flex items-center text-sm text-muted-foreground">
-                            <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></div>
-                            {feature}
+              {filteredPackages.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <Gift className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No Packages Available</h3>
+                  <p className="text-muted-foreground">
+                    {searchQuery ? 'No packages match your search.' : 'No giveaway packages found.'}
+                  </p>
+                </div>
+              ) : (
+                filteredPackages.map((pkg) => {
+                  const category = categories.find(cat => cat.id === pkg.category) || 
+                    { id: pkg.category, name: pkg.category, icon: <Gift className="w-4 h-4" />, color: 'bg-gray-100 text-gray-800' };
+                  
+                  return (
+                    <Card key={pkg.id} className="hover:shadow-lg transition-shadow cursor-pointer group">
+                      <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                        <img 
+                          src={pkg.image_url || 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=500'} 
+                          alt={pkg.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=500';
+                          }}
+                        />
+                        <div className="absolute top-4 left-4">
+                          <Badge className={category.color}>
+                            <span className="mr-1">{category.icon}</span>
+                            {category.name}
+                          </Badge>
+                        </div>
+                        {pkg.countdown_end && (
+                          <div className="absolute top-4 right-4">
+                            <Badge variant="destructive" className="animate-pulse">
+                              Limited Time
+                            </Badge>
                           </div>
-                        ))}
+                        )}
                       </div>
-                      <div className="space-y-2">
+                      <CardContent className="p-6">
+                        <h3 className="text-xl font-semibold mb-2">{pkg.title}</h3>
+                        <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                          {pkg.description}
+                        </p>
+                        
+                        {/* Pricing */}
+                        {pkg.original_price && pkg.discount_price && (
+                          <div className="mb-4 p-3 bg-green-50 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <span className="text-lg font-bold text-green-600">${pkg.discount_price}</span>
+                                <span className="text-sm text-muted-foreground line-through ml-2">${pkg.original_price}</span>
+                              </div>
+                              <Badge className="bg-red-500">
+                                Save ${(pkg.original_price - pkg.discount_price).toFixed(2)}
+                              </Badge>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="space-y-2 mb-4">
+                          {pkg.features && pkg.features.slice(0, 3).map((feature, index) => (
+                            <div key={index} className="flex items-center text-sm text-muted-foreground">
+                              <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></div>
+                              {feature}
+                            </div>
+                          ))}
+                        </div>
                         <Button 
                           className="w-full" 
-                          onClick={() => navigate(`/giveaway/inner/${mainPackage.id}`)}
+                          onClick={() => navigate(`/giveaway/inner/${pkg.id}`)}
                         >
                           <Gift className="w-4 h-4 mr-2" />
                           Select Package
                         </Button>
-                        <Button 
-                          variant="outline"
-                          className="w-full text-xs" 
-                          onClick={() => navigate(`/giveaway/customize/${mainPackage.id}`)}
-                        >
-                          + Add Custom Items
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
             </div>
 
-            {/* Featured Packages */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-6">All Available Packages</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredPackages.map((pkg) => (
-                  <Card key={pkg.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="flex">
-                      <div className="w-32 h-24 flex-shrink-0">
-                        <img 
-                          src={pkg.image_url} 
-                          alt={pkg.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-semibold text-lg">{pkg.title}</h3>
-                          <Badge variant="secondary" className="capitalize">{pkg.category}</Badge>
-                        </div>
-                        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-                          {pkg.description}
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <div className="text-sm text-muted-foreground">
-                            {pkg.features.length} features included
-                          </div>
-                          <Button size="sm" onClick={() => navigate(`/giveaway/inner/${pkg.id}`)}>
-                            Select Package
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
+
           </div>
 
           {/* Sidebar */}
@@ -309,7 +310,11 @@ const NewGiveaway = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {supportOptions.map((option, index) => (
-                  <div key={index} className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer">
+                  <div 
+                    key={index} 
+                    className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                    onClick={() => navigate('/support-donation')}
+                  >
                     {option.icon}
                     <div>
                       <h4 className="font-medium text-sm">{option.name}</h4>
@@ -339,7 +344,12 @@ const NewGiveaway = () => {
                       <Badge variant="outline" className="text-green-600">{task.reward}</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mb-2">{task.description}</p>
-                    <Button size="sm" variant="outline" className="w-full">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => navigate('/earn-money-online')}
+                    >
                       Start Task
                     </Button>
                   </div>

@@ -19,9 +19,21 @@ interface GiveawayPackage {
   title: string;
   description: string;
   category: string;
-  base_price: number;
+  original_price: number;
+  discount_price: number;
+  countdown_end?: string;
   image_url: string;
   features: string[];
+  is_active: boolean;
+}
+
+interface GiveawayAddon {
+  id: string;
+  package_id: string;
+  title: string;
+  description?: string;
+  price: number;
+  is_active: boolean;
 }
 
 const GiveawayInner = () => {
@@ -31,7 +43,9 @@ const GiveawayInner = () => {
   const { toast } = useToast();
   
   const [packageData, setPackageData] = useState<GiveawayPackage | null>(null);
-  const [additionalPackages, setAdditionalPackages] = useState<any[]>([]);
+
+  const [packageAddons, setPackageAddons] = useState<GiveawayAddon[]>([]);
+  const [timeLeft, setTimeLeft] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [customRequests, setCustomRequests] = useState({
@@ -56,44 +70,95 @@ const GiveawayInner = () => {
   useEffect(() => {
     if (packageId) {
       fetchPackageDetails();
-      fetchAdditionalPackages();
+
+      fetchPackageAddons();
     }
   }, [packageId]);
 
-  const fetchAdditionalPackages = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('additional_packages')
-        .select('*')
-        .eq('is_active', true)
-        .order('category', { ascending: true });
-
-      if (error) throw error;
-      setAdditionalPackages(data || []);
-    } catch (error) {
-      console.error('Error fetching additional packages:', error);
+  useEffect(() => {
+    if (packageData?.countdown_end) {
+      const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const end = new Date(packageData.countdown_end!).getTime();
+        const distance = end - now;
+        
+        if (distance > 0) {
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+          
+          setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+        } else {
+          setTimeLeft('Expired');
+          clearInterval(timer);
+        }
+      }, 1000);
+      
+      return () => clearInterval(timer);
     }
-  };
+  }, [packageData]);
+
+
 
   const fetchPackageDetails = async () => {
     try {
-      const { data, error } = await supabase
+      console.log('Fetching package details for ID:', packageId);
+      
+      const { data, error, status } = await supabase
         .from('giveaway_packages')
         .select('*')
         .eq('id', packageId)
         .single();
 
-      if (error) throw error;
+      console.log('Package fetch response:', { data, error, status });
+
+      if (error) {
+        console.error('Package fetch error:', error);
+        throw error;
+      }
+      
+      if (!data) {
+        throw new Error('Package not found');
+      }
+      
+      console.log('Package data loaded:', data.title);
       setPackageData(data);
     } catch (error) {
       console.error('Error fetching package:', error);
       toast({
         title: "Error",
-        description: "Failed to load package details.",
+        description: `Failed to load package: ${error.message}`,
         variant: "destructive"
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPackageAddons = async () => {
+    try {
+      console.log('Fetching addons for package ID:', packageId);
+      
+      const { data, error, status } = await supabase
+        .from('giveaway_addons')
+        .select('*')
+        .eq('package_id', packageId)
+        .eq('is_active', true)
+        .order('title');
+
+      console.log('Addons fetch response:', { data, error, status, count: data?.length });
+
+      if (error) {
+        console.error('Addons fetch error:', error);
+        throw error;
+      }
+      
+      setPackageAddons(data || []);
+      console.log('Addons loaded:', data?.length || 0);
+    } catch (error) {
+      console.error('Error fetching addons:', error);
+      // Don't show toast for addon errors, just log them
     }
   };
 
@@ -137,16 +202,15 @@ const GiveawayInner = () => {
   };
 
   const calculateTotal = () => {
-    let total = packageData?.base_price || 0;
+    let total = packageData?.discount_price || 0;
     
-    // Add additional packages
-    additionalPackages.forEach(pkg => {
-      const quantity = quantities.additionalItems[pkg.id] || 0;
-      total += pkg.base_price * quantity;
+
+    
+    // Add addon costs from database
+    selectedAddons.forEach(addonId => {
+      const addon = packageAddons.find(a => a.id === addonId);
+      if (addon) total += addon.price;
     });
-    
-    // Add addon costs
-    total += selectedAddons.length * 25;
     
     return total;
   };
@@ -180,94 +244,35 @@ const GiveawayInner = () => {
       };
 
       const { data: orderData1, error } = await supabase
-        .from('package_orders')
-        .insert(orderData)
+        .from('giveaway_purchases')
+        .insert({
+          user_id: user.id,
+          package_id: packageData.id,
+          total_amount: calculateTotal()
+        })
         .select()
         .single();
 
       if (error) throw error;
 
-      // Create custom requests for admin review
-      const customRequestPromises = [];
-      
-      if (customRequests.prayerRequest) {
-        customRequestPromises.push(
-          supabase.from('custom_giveaway_requests').insert({
-            user_id: user.id,
-            package_order_id: orderData1.id,
-            request_type: 'prayer',
-            request_content: customRequests.prayerRequest
-          })
-        );
-      }
-      
-      if (customRequests.specialRequest) {
-        customRequestPromises.push(
-          supabase.from('custom_giveaway_requests').insert({
-            user_id: user.id,
-            package_order_id: orderData1.id,
-            request_type: 'special',
-            request_content: customRequests.specialRequest
-          })
-        );
-      }
-      
-      if (customRequests.handwrittenNote) {
-        customRequestPromises.push(
-          supabase.from('custom_giveaway_requests').insert({
-            user_id: user.id,
-            package_order_id: orderData1.id,
-            request_type: 'handwritten',
-            request_content: customRequests.handwrittenNote
-          })
-        );
-      }
-      
-      if (customRequests.customDesign) {
-        customRequestPromises.push(
-          supabase.from('custom_giveaway_requests').insert({
-            user_id: user.id,
-            package_order_id: orderData1.id,
-            request_type: 'design',
-            request_content: customRequests.customDesign
-          })
-        );
-      }
-      
-      if (customRequests.logoName) {
-        customRequestPromises.push(
-          supabase.from('custom_giveaway_requests').insert({
-            user_id: user.id,
-            package_order_id: orderData1.id,
-            request_type: 'name',
-            request_content: customRequests.logoName
-          })
-        );
-      }
-      
-      if (uploadedFiles.length > 0) {
-        customRequestPromises.push(
-          supabase.from('custom_giveaway_requests').insert({
-            user_id: user.id,
-            package_order_id: orderData1.id,
-            request_type: 'file',
-            request_content: 'File uploads attached',
-            file_urls: uploadedFiles.map(f => f.name)
-          })
-        );
-      }
-
-      // Submit all custom requests
-      if (customRequestPromises.length > 0) {
-        await Promise.all(customRequestPromises);
-      }
-
-      toast({
-        title: "Order Submitted!",
-        description: "Your giveaway order has been submitted. An invoice will be sent to your email.",
+      // Log the order details for admin review
+      console.log('Order created with details:', {
+        orderId: orderData1.id,
+        customRequests,
+        selectedAddons,
+        enrollmentOptions,
+        uploadedFiles: uploadedFiles.map(f => f.name)
       });
 
-      navigate(`/package-orders/${orderData1.id}`);
+      toast({
+        title: "Thank You!",
+        description: "Your giveaway application has been submitted successfully. Redirecting to checkout...",
+      });
+
+      // Redirect to checkout page (like shop)
+      setTimeout(() => {
+        navigate(`/checkout?type=giveaway&orderId=${orderData1.id}&amount=${calculateTotal()}`);
+      }, 1500);
     } catch (error) {
       console.error('Error submitting order:', error);
       toast({
@@ -330,7 +335,14 @@ const GiveawayInner = () => {
             {/* Package Details */}
             <Card>
               <CardHeader>
-                <CardTitle>Package Details</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  Package Details
+                  {timeLeft && (
+                    <Badge variant="destructive" className="animate-pulse">
+                      {timeLeft}
+                    </Badge>
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="aspect-video mb-4 rounded-lg overflow-hidden">
@@ -340,6 +352,22 @@ const GiveawayInner = () => {
                     className="w-full h-full object-cover"
                   />
                 </div>
+                
+                {/* Pricing */}
+                {packageData.original_price && packageData.discount_price && (
+                  <div className="mb-4 p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-lg font-bold text-green-600">${packageData.discount_price}</span>
+                        <span className="text-sm text-muted-foreground line-through ml-2">${packageData.original_price}</span>
+                      </div>
+                      <Badge className="bg-red-500">
+                        Save ${(packageData.original_price - packageData.discount_price).toFixed(2)}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="space-y-2">
                   {packageData.features.map((feature, index) => (
                     <div key={index} className="flex items-center">
@@ -348,59 +376,39 @@ const GiveawayInner = () => {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Additional Packages */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Packages</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {additionalPackages.map((pkg) => (
-                  <div key={pkg.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h4 className="font-semibold">{pkg.name}</h4>
-                        <p className="text-sm text-muted-foreground">{pkg.description}</p>
-                        <p className="text-sm font-medium text-primary">${pkg.base_price}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleQuantityChange(pkg.id, -1)}
-                        >
-                          <Minus className="w-3 h-3" />
-                        </Button>
-                        <span className="w-8 text-center">{quantities.additionalItems[pkg.id] || 0}</span>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleQuantityChange(pkg.id, 1)}
-                        >
-                          <Plus className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                
+                {/* Package Addons */}
+                {packageAddons.length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="font-semibold mb-3">Available Add-ons</h4>
                     <div className="space-y-2">
-                      {pkg.addons.map((addon, index) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <Checkbox 
-                            id={`${pkg.id}-addon-${index}`}
-                            checked={selectedAddons.includes(`${pkg.id}-addon-${index}`)}
-                            onCheckedChange={() => handleAddonToggle(`${pkg.id}-addon-${index}`)}
-                          />
-                          <label htmlFor={`${pkg.id}-addon-${index}`} className="text-sm">
-                            {addon} (+$25)
-                          </label>
+                      {packageAddons.map((addon) => (
+                        <div key={addon.id} className="flex items-center justify-between p-2 border rounded">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={addon.id}
+                              checked={selectedAddons.includes(addon.id)}
+                              onCheckedChange={() => handleAddonToggle(addon.id)}
+                            />
+                            <div>
+                              <label htmlFor={addon.id} className="text-sm font-medium cursor-pointer">
+                                {addon.title}
+                              </label>
+                              {addon.description && (
+                                <p className="text-xs text-muted-foreground">{addon.description}</p>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-sm font-medium text-green-600">+${addon.price}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-                ))}
+                )}
               </CardContent>
             </Card>
+
+
 
             {/* Giveaway Reason */}
             <Card>
@@ -556,24 +564,28 @@ const GiveawayInner = () => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Base Package</span>
-                  <span>${packageData.base_price}</span>
+                  <div className="text-right">
+                    {packageData.original_price && packageData.discount_price ? (
+                      <>
+                        <span className="text-sm line-through text-muted-foreground">${packageData.original_price}</span>
+                        <span className="ml-2 font-semibold text-green-600">${packageData.discount_price}</span>
+                      </>
+                    ) : (
+                      <span>${packageData.original_price}</span>
+                    )}
+                  </div>
                 </div>
-                {additionalPackages.map((pkg) => {
-                  const quantity = quantities.additionalItems[pkg.id] || 0;
-                  if (quantity === 0) return null;
+
+                {selectedAddons.map(addonId => {
+                  const addon = packageAddons.find(a => a.id === addonId);
+                  if (!addon) return null;
                   return (
-                    <div key={pkg.id} className="flex justify-between text-sm">
-                      <span>{pkg.name} x{quantity}</span>
-                      <span>${pkg.basePrice * quantity}</span>
+                    <div key={addonId} className="flex justify-between text-sm">
+                      <span>{addon.title}</span>
+                      <span>+${addon.price}</span>
                     </div>
                   );
                 })}
-                {selectedAddons.length > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span>Custom Addons ({selectedAddons.length})</span>
-                    <span>${selectedAddons.length * 25}</span>
-                  </div>
-                )}
                 <div className="border-t pt-2">
                   <div className="flex justify-between font-semibold">
                     <span>Total</span>

@@ -93,30 +93,62 @@ const MyQuotes = () => {
       console.log('Quotes with images:', quotesWithImages);
       console.log('First quote background_image:', quotesWithImages[0]?.background_image);
       
-      // Load favorited quotes with background images
+      // Load favorited quotes
       const { data: favorites } = await supabase
         .from('favorited_quotes')
-        .select(`
-          *,
-          quotes(background_image)
-        `)
+        .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false});
 
-      // Load liked/loved quotes with background images  
+      // Load liked/loved quotes
       const { data: loved } = await supabase
         .from('liked_quotes')
-        .select(`
-          *,
-          quotes(background_image)
-        `)
+        .select('*')
         .eq('user_id', user.id)
-        .eq('interaction_type', 'love')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false});
 
+      // Get real background images for favorites
+      const favoritesWithImages = [];
+      if (favorites) {
+        for (const fav of favorites) {
+          const { data: originalQuote } = await supabase
+            .from('quotes')
+            .select('background_image')
+            .eq('id', fav.quote_id)
+            .single();
+          
+          favoritesWithImages.push({
+            ...fav,
+            real_background_image: originalQuote?.background_image
+          });
+        }
+      }
+
+      // Get real background images for loved quotes
+      const lovedWithImages = [];
+      if (loved) {
+        for (const love of loved) {
+          const { data: originalQuote } = await supabase
+            .from('quotes')
+            .select('background_image')
+            .eq('id', love.quote_id)
+            .single();
+          
+          lovedWithImages.push({
+            ...love,
+            real_background_image: originalQuote?.background_image
+          });
+        }
+      }
+
+      console.log('DEBUG - Final data being set:');
+      console.log('User quotes:', quotesWithImages.length);
+      console.log('Favorites with images:', favoritesWithImages.length, favoritesWithImages);
+      console.log('Loved with images:', lovedWithImages.length, lovedWithImages);
+      
       setUserQuotes(quotesWithImages);
-      setFavoriteQuotes(favorites || []);
-      setLovedQuotes(loved || []);
+      setFavoriteQuotes(favoritesWithImages);
+      setLovedQuotes(lovedWithImages);
     } catch (error) {
       console.error('Error loading user data:', error);
     } finally {
@@ -187,7 +219,7 @@ const MyQuotes = () => {
   const defaultShelves = [
     { id: "all", name: "All", count: userQuotes.length + favoriteQuotes.length + lovedQuotes.length },
     { id: "posted", name: "Posted Quotes", count: userQuotes.length },
-    { id: "favorites", name: "Saved for Later", count: favoriteQuotes.length },
+    { id: "favorites", name: "Favorites", count: favoriteQuotes.length },
     { id: "loved", name: "Loved Quotes", count: lovedQuotes.length }
   ];
 
@@ -427,7 +459,7 @@ const MyQuotes = () => {
                             quote={quote.quote_content}
                             author={quote.quote_author}
                             category={quote.quote_category}
-                            backgroundImage={quote.quotes?.background_image}
+                            backgroundImage={quote.real_background_image || quote.background_image}
                             className={viewMode === 'grid' ? "h-full" : "h-32"}
                           />
                         ))}
@@ -438,7 +470,7 @@ const MyQuotes = () => {
                             quote={quote.quote_content}
                             author={quote.quote_author}
                             category={quote.quote_category}
-                            backgroundImage={quote.quotes?.background_image}
+                            backgroundImage={quote.real_background_image || quote.background_image}
                             className={viewMode === 'grid' ? "h-full" : "h-32"}
                           />
                         ))}
@@ -475,7 +507,7 @@ const MyQuotes = () => {
                             quote={quote.quote_content}
                             author={quote.quote_author}
                             category={quote.quote_category}
-                            backgroundImage={quote.quotes?.background_image}
+                            backgroundImage={quote.real_background_image || quote.background_image}
                             className={viewMode === 'grid' ? "h-full" : "h-32"}
                           />
                         ))}
@@ -492,7 +524,7 @@ const MyQuotes = () => {
                             quote={quote.quote_content}
                             author={quote.quote_author}
                             category={quote.quote_category}
-                            backgroundImage={quote.quotes?.background_image}
+                            backgroundImage={quote.real_background_image || quote.background_image}
                             className={viewMode === 'grid' ? "h-full" : "h-32"}
                           />
                         ))}
@@ -548,7 +580,7 @@ const MyQuotes = () => {
                           quote={quote.quote_content}
                           author={quote.quote_author}
                           category={quote.quote_category}
-                          backgroundImage={quote.quotes?.background_image}
+                          backgroundImage={quote.background_image}
                           className={viewMode === 'grid' ? "h-full" : "h-32"}
                         />
                       ))}
@@ -559,7 +591,7 @@ const MyQuotes = () => {
                           quote={quote.quote_content}
                           author={quote.quote_author}
                           category={quote.quote_category}
-                          backgroundImage={quote.quotes?.background_image}
+                          backgroundImage={quote.background_image}
                           className={viewMode === 'grid' ? "h-full" : "h-32"}
                         />
                       ))}
@@ -606,17 +638,24 @@ const MyQuotes = () => {
                       ? "grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 mb-8" 
                       : "space-y-4 mb-8"
                     }>
-                      {favoriteQuotes.map((quote, index) => (
-                        <QuoteCard
-                          key={quote.id}
-                          id={quote.quote_id}
-                          quote={quote.quote_content}
-                          author={quote.quote_author}
-                          category={quote.quote_category}
-                          backgroundImage={quote.quotes?.background_image}
-                          className={viewMode === 'grid' ? "h-full" : "h-32"}
-                        />
-                      ))}
+                      {favoriteQuotes.map((quote, index) => {
+                        console.log(`DEBUG - Rendering favorite quote ${index}:`, {
+                          quote_id: quote.quote_id,
+                          background_image: quote.background_image,
+                          fallback_will_be_used: !quote.background_image
+                        });
+                        return (
+                          <QuoteCard
+                            key={quote.id}
+                            id={quote.quote_id}
+                            quote={quote.quote_content}
+                            author={quote.quote_author}
+                            category={quote.quote_category}
+                            backgroundImage={quote.real_background_image || quote.background_image}
+                            className={viewMode === 'grid' ? "h-full" : "h-32"}
+                          />
+                        );
+                      })}
                     </div>
                   )}
                 </TabsContent>
@@ -632,17 +671,24 @@ const MyQuotes = () => {
                       ? "grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 mb-8" 
                       : "space-y-4 mb-8"
                     }>
-                      {lovedQuotes.map((quote, index) => (
-                        <QuoteCard
-                          key={quote.id}
-                          id={quote.quote_id}
-                          quote={quote.quote_content}
-                          author={quote.quote_author}
-                          category={quote.quote_category}
-                          backgroundImage={quote.quotes?.background_image}
-                          className={viewMode === 'grid' ? "h-full" : "h-32"}
-                        />
-                      ))}
+                      {lovedQuotes.map((quote, index) => {
+                        console.log(`DEBUG - Rendering loved quote ${index}:`, {
+                          quote_id: quote.quote_id,
+                          background_image: quote.background_image,
+                          fallback_will_be_used: !quote.background_image
+                        });
+                        return (
+                          <QuoteCard
+                            key={quote.id}
+                            id={quote.quote_id}
+                            quote={quote.quote_content}
+                            author={quote.quote_author}
+                            category={quote.quote_category}
+                            backgroundImage={quote.real_background_image || quote.background_image}
+                            className={viewMode === 'grid' ? "h-full" : "h-32"}
+                          />
+                        );
+                      })}
                     </div>
                   )}
                   </TabsContent>

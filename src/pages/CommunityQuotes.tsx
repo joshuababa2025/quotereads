@@ -233,6 +233,18 @@ const CommunityQuotes = () => {
           ...prev,
           [quote.id]: (prev[quote.id] || 0) + 1
         }));
+
+        // Create notification for quote owner
+        if (quote.user_id && quote.user_id !== user.id) {
+          await supabase.rpc('create_notification', {
+            p_user_id: quote.user_id,
+            p_type: 'like',
+            p_title: 'Someone liked your quote!',
+            p_message: `Someone liked your quote: "${quote.content.substring(0, 50)}..."`,
+            p_quote_id: quote.id,
+            p_actor_user_id: user.id
+          });
+        }
       }
       
       toggleLike(quote.id);
@@ -288,6 +300,18 @@ const CommunityQuotes = () => {
             quote_author: quote.author,
             quote_category: quote.category
           });
+        
+        // Create notification for quote owner
+        if (quote.user_id && quote.user_id !== user.id) {
+          await supabase.rpc('create_notification', {
+            p_user_id: quote.user_id,
+            p_type: 'favorite',
+            p_title: 'Someone favorited your quote!',
+            p_message: `Someone added your quote to favorites: "${quote.content.substring(0, 50)}..."`,
+            p_quote_id: quote.id,
+            p_actor_user_id: user.id
+          });
+        }
         
         toast({
           title: "Added to favorites",
@@ -538,12 +562,12 @@ const CommunityQuotes = () => {
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 gap-1 text-sm">
+                <div className="grid grid-cols-2 gap-1 text-sm max-h-96 overflow-y-auto">
                   {filteredTags.map(({ tag, count }) => (
                     <button
                       key={tag}
                       onClick={() => handleTagClick(tag)}
-                      className={`text-left p-2 rounded hover:bg-muted transition-colors ${
+                      className={`text-left p-2 rounded hover:bg-muted transition-colors text-xs ${
                         selectedTag === tag ? "bg-primary text-primary-foreground" : "text-primary"
                       }`}
                     >
@@ -551,7 +575,7 @@ const CommunityQuotes = () => {
                     </button>
                   ))}
                   {filteredTags.length === 0 && (
-                    <p className="text-sm text-muted-foreground p-2">No tags available</p>
+                    <p className="text-sm text-muted-foreground p-2 col-span-2">No tags available</p>
                   )}
                 </div>
               </CardContent>

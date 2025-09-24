@@ -65,6 +65,8 @@ const BlogPost = () => {
         .single();
       
       if (!error && data) {
+        console.log('Blog post fetched:', data.title);
+        console.log('Featured image URL:', data.featured_image);
         setBlogPost(data);
         setLikes(data.views || 0);
         // Increment view count
@@ -203,18 +205,26 @@ const BlogPost = () => {
               </div>
 
               {/* Featured Image */}
-              <div className="aspect-video bg-muted rounded-lg mb-8 overflow-hidden">
-                {blogPost.featured_image ? (
-                  <img 
-                    src={blogPost.featured_image} 
-                    alt={blogPost.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
-                    <BookOpen className="h-16 w-16 text-muted-foreground/50" />
-                  </div>
-                )}
+              <div className="aspect-video bg-muted rounded-lg mb-8 overflow-hidden relative">
+                <img 
+                  src={blogPost.featured_image || ''} 
+                  alt={blogPost.title}
+                  className="w-full h-full object-cover"
+                  onLoad={(e) => {
+                    console.log('Image loaded successfully:', blogPost.featured_image);
+                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'none';
+                  }}
+                  onError={(e) => {
+                    console.error('Image failed to load:', blogPost.featured_image, e);
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
+                  <BookOpen className="h-16 w-16 text-muted-foreground/50" />
+                </div>
               </div>
 
               {/* Article Content */}

@@ -9,16 +9,67 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useCart } from "@/contexts/CartContext";
 import { PreOrderSummary } from "@/components/PreOrderSummary";
 import { PaymentButton } from "@/components/PaymentButton";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Checkout = () => {
   const { state } = useCart();
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+  const [giveawayOrder, setGiveawayOrder] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  const isGiveaway = searchParams.get('type') === 'giveaway';
+  const orderId = searchParams.get('orderId');
+  const amount = searchParams.get('amount');
+  
+  useEffect(() => {
+    if (isGiveaway && orderId) {
+      fetchGiveawayOrder();
+    }
+  }, [isGiveaway, orderId]);
+  
+  const fetchGiveawayOrder = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('giveaway_purchases')
+        .select(`
+          *,
+          giveaway_packages (
+            title,
+            description,
+            category,
+            original_price,
+            discount_price,
+            image_url,
+            features
+          )
+        `)
+        .eq('id', orderId)
+        .single();
+        
+      if (error) throw error;
+      setGiveawayOrder(data);
+    } catch (error) {
+      console.error('Error fetching giveaway order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load order details.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const preOrderItems = state.items.filter(item => item.isPreOrder);
   const regularItems = state.items.filter(item => !item.isPreOrder);
   
-  const subtotal = state.total;
-  const shipping = state.items.length > 0 ? 4.99 : 0;
+  const subtotal = isGiveaway ? parseFloat(amount || '0') : state.total;
+  const shipping = (isGiveaway || state.items.length > 0) ? 4.99 : 0;
   const total = subtotal + shipping;
 
   return (
@@ -26,59 +77,102 @@ const Checkout = () => {
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center text-foreground mb-8">Checkout</h1>
+        <h1 className="text-3xl font-bold text-center text-foreground mb-8">
+          {isGiveaway ? 'Giveaway Checkout' : 'Checkout'}
+        </h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {/* Order Summary */}
           <div className="space-y-6">
-            {/* Pre-Order Items */}
-            {preOrderItems.length > 0 && (
-              <PreOrderSummary items={preOrderItems} />
-            )}
-            
-            {/* Regular Items */}
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {preOrderItems.length > 0 ? 'Regular Items' : 'Your Order'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {state.items.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>Your cart is empty</p>
-                    <Link to="/shop">
-                      <Button className="mt-4">Continue Shopping</Button>
-                    </Link>
-                  </div>
-                ) : regularItems.length === 0 && preOrderItems.length > 0 ? (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <p>No regular items in cart</p>
-                  </div>
-                ) : (
-                  regularItems.map((item) => (
-                    <div key={item.id} className="flex gap-4 py-4 border-b last:border-b-0">
-                      <div className="w-16 h-20 bg-muted rounded overflow-hidden flex-shrink-0">
-                        <img 
-                          src={item.image} 
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-foreground">{item.title}</h4>
-                        <p className="text-sm text-muted-foreground">{item.author}</p>
-                        <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="font-semibold text-primary">${(item.price * item.quantity).toFixed(2)}</span>
-                        </div>
+            {/* Giveaway Order */}
+            {isGiveaway && giveawayOrder ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Giveaway Package</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-4 py-4">
+                    <div className="w-16 h-20 bg-muted rounded overflow-hidden flex-shrink-0">
+                      <img 
+                        src={giveawayOrder.giveaway_packages.image_url || 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=500'} 
+                        alt={giveawayOrder.giveaway_packages.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-foreground">{giveawayOrder.giveaway_packages.title}</h4>
+                      <p className="text-sm text-muted-foreground">{giveawayOrder.giveaway_packages.description}</p>
+                      <p className="text-sm text-muted-foreground capitalize">Category: {giveawayOrder.giveaway_packages.category}</p>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="font-semibold text-primary">${giveawayOrder.total_amount}</span>
                       </div>
                     </div>
-                  ))
+                  </div>
+                </CardContent>
+              </Card>
+            ) : isGiveaway && loading ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p>Loading order details...</p>
+                </CardContent>
+              </Card>
+            ) : !isGiveaway ? (
+              <>
+                {/* Pre-Order Items */}
+                {preOrderItems.length > 0 && (
+                  <PreOrderSummary items={preOrderItems} />
                 )}
                 
-                {state.items.length > 0 && (
-                  <div className="space-y-2 pt-4">
+                {/* Regular Items */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      {preOrderItems.length > 0 ? 'Regular Items' : 'Your Order'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {state.items.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>Your cart is empty</p>
+                        <Link to="/shop">
+                          <Button className="mt-4">Continue Shopping</Button>
+                        </Link>
+                      </div>
+                    ) : regularItems.length === 0 && preOrderItems.length > 0 ? (
+                      <div className="text-center py-4 text-muted-foreground">
+                        <p>No regular items in cart</p>
+                      </div>
+                    ) : (
+                      regularItems.map((item) => (
+                        <div key={item.id} className="flex gap-4 py-4 border-b last:border-b-0">
+                          <div className="w-16 h-20 bg-muted rounded overflow-hidden flex-shrink-0">
+                            <img 
+                              src={item.image} 
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-foreground">{item.title}</h4>
+                            <p className="text-sm text-muted-foreground">{item.author}</p>
+                            <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
+                            <div className="flex justify-between items-center mt-2">
+                              <span className="font-semibold text-primary">${(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            ) : null}
+                
+            {(state.items.length > 0 || isGiveaway) && (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Subtotal:</span>
                       <span className="font-medium">${subtotal.toFixed(2)}</span>
@@ -92,6 +186,11 @@ const Checkout = () => {
                       <span className="text-primary">${total.toFixed(2)}</span>
                     </div>
                     <div className="text-xs text-muted-foreground space-y-1">
+                      {isGiveaway && (
+                        <p className="text-green-600 dark:text-green-400 font-medium">
+                          🎁 Giveaway package - Making a difference in the community!
+                        </p>
+                      )}
                       {preOrderItems.length > 0 && (
                         <p className="text-orange-600 dark:text-orange-400 font-medium">
                           ⚡ Pre-orders will be charged immediately and shipped on release date.
@@ -105,9 +204,9 @@ const Checkout = () => {
                       <p>Taxes may apply at final confirmation</p>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Billing Information */}
@@ -221,16 +320,18 @@ const Checkout = () => {
               {/* Action Buttons */}
               <div className="space-y-3 pt-4">
                 <PaymentButton className="w-full" size="lg">
-                  {preOrderItems.length > 0 && regularItems.length > 0 
+                  {isGiveaway 
+                    ? 'Complete Giveaway Payment'
+                    : preOrderItems.length > 0 && regularItems.length > 0 
                     ? 'Complete Order & Pre-Orders'
                     : preOrderItems.length > 0 
                     ? 'Complete Pre-Orders'
                     : 'Place Order'
                   }
                 </PaymentButton>
-                <Link to="/cart">
+                <Link to={isGiveaway ? '/giveaway' : '/cart'}>
                   <Button variant="outline" className="w-full">
-                    Return to Cart
+                    {isGiveaway ? 'Return to Giveaway' : 'Return to Cart'}
                   </Button>
                 </Link>
               </div>
