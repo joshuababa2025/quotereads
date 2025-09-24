@@ -171,14 +171,16 @@ export const useRealtimeComments = (quoteId: string) => {
           .single();
 
         if (quote?.user_id && quote.user_id !== user.id) {
-          await supabase.rpc('create_notification', {
-            p_user_id: quote.user_id,
-            p_type: 'comment',
-            p_title: 'New comment',
-            p_message: 'Someone commented on your quote',
-            p_quote_id: quoteId,
-            p_actor_user_id: user.id
-          });
+          await (supabase as any)
+            .from('notifications')
+            .insert({
+              user_id: quote.user_id,
+              type: 'comment',
+              title: 'New comment',
+              message: 'Someone commented on your quote',
+              quote_id: quoteId,
+              actor_user_id: user.id
+            });
         }
       } catch (e) {
         console.error('Error creating comment notification:', e);
@@ -225,14 +227,16 @@ export const useRealtimeComments = (quoteId: string) => {
           .single();
 
         if (quote?.user_id && quote.user_id !== user.id) {
-          await supabase.rpc('create_notification', {
-            p_user_id: quote.user_id,
-            p_type: 'comment',
-            p_title: 'New reply',
-            p_message: 'Someone replied on your quote',
-            p_quote_id: quoteId,
-            p_actor_user_id: user.id
-          });
+          await (supabase as any)
+            .from('notifications')
+            .insert({
+              user_id: quote.user_id,
+              type: 'comment',
+              title: 'New reply',
+              message: 'Someone replied on your quote',
+              quote_id: quoteId,
+              actor_user_id: user.id
+            });
         }
       } catch (e) {
         console.error('Error creating reply notification:', e);

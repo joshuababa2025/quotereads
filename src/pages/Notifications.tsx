@@ -199,10 +199,6 @@ export const Notifications = () => {
               <Bell className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <h2 className="text-xl font-semibold mb-2">No notifications yet</h2>
               <p className="text-muted-foreground">When you receive notifications, they'll appear here.</p>
-              <div className="mt-4 text-xs text-muted-foreground">
-                <p>DEBUG - User ID: {user?.id}</p>
-                <p>DEBUG - Notifications count: {notifications.length}</p>
-              </div>
             </div>
           ) : (
             <div className="space-y-4">
