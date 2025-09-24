@@ -79,15 +79,29 @@ export const QuoteInteractionProvider: React.FC<{ children: ReactNode }> = ({ ch
 
         if (quote?.user_id && quote.user_id !== user.id) {
           console.log('DEBUG - Creating like notification...');
-          const result = await supabase.rpc('create_notification', {
-            p_user_id: quote.user_id,
-            p_type: 'like',
-            p_title: 'Someone liked your quote!',
-            p_message: `Someone liked your quote: "${quoteData?.content?.substring(0, 50)}..."`,
-            p_quote_id: quoteId,
-            p_actor_user_id: user.id
-          });
-          console.log('DEBUG - Like notification result:', result);
+          try {
+            const { data: actorProfile } = await supabase
+              .from('profiles')
+              .select('full_name, username')
+              .eq('user_id', user.id)
+              .single();
+            
+            const actorName = actorProfile?.full_name || actorProfile?.username || 'Someone';
+            
+            const result = await supabase
+              .from('notifications')
+              .insert({
+                user_id: quote.user_id,
+                type: 'like',
+                title: `${actorName} liked your quote!`,
+                message: `${actorName} liked your quote: "${quoteData?.content?.substring(0, 50)}..."`,
+                quote_id: quoteId,
+                actor_user_id: user.id
+              });
+            console.log('DEBUG - Like notification result:', result);
+          } catch (error) {
+            console.error('DEBUG - Error creating like notification:', error);
+          }
         }
       } else {
         // Remove like from database
@@ -164,15 +178,29 @@ export const QuoteInteractionProvider: React.FC<{ children: ReactNode }> = ({ ch
 
         if (quote?.user_id && quote.user_id !== user.id) {
           console.log('DEBUG - Creating favorite notification...');
-          const result = await supabase.rpc('create_notification', {
-            p_user_id: quote.user_id,
-            p_type: 'favorite',
-            p_title: 'Someone favorited your quote!',
-            p_message: `Someone added your quote to favorites: "${quoteData?.content?.substring(0, 50)}..."`,
-            p_quote_id: quoteId,
-            p_actor_user_id: user.id
-          });
-          console.log('DEBUG - Favorite notification result:', result);
+          try {
+            const { data: actorProfile } = await supabase
+              .from('profiles')
+              .select('full_name, username')
+              .eq('user_id', user.id)
+              .single();
+            
+            const actorName = actorProfile?.full_name || actorProfile?.username || 'Someone';
+            
+            const result = await supabase
+              .from('notifications')
+              .insert({
+                user_id: quote.user_id,
+                type: 'favorite',
+                title: `${actorName} favorited your quote!`,
+                message: `${actorName} added your quote to favorites: "${quoteData?.content?.substring(0, 50)}..."`,
+                quote_id: quoteId,
+                actor_user_id: user.id
+              });
+            console.log('DEBUG - Favorite notification result:', result);
+          } catch (error) {
+            console.error('DEBUG - Error creating favorite notification:', error);
+          }
         }
       } else {
         // Remove favorite from database

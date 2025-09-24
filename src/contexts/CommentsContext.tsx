@@ -147,14 +147,28 @@ function commentsReducer(state: CommentsState, action: CommentsAction): Comments
               .single();
 
             if (quote?.user_id && quote.user_id !== user.id) {
-              await supabase.rpc('create_notification', {
-                p_user_id: quote.user_id,
-                p_type: 'comment',
-                p_title: 'Someone commented on your quote!',
-                p_message: `${action.comment.username} commented: "${action.comment.content.substring(0, 50)}..."`,
-                p_quote_id: action.quoteId,
-                p_actor_user_id: user.id
-              });
+              try {
+                const { data: actorProfile } = await supabase
+                  .from('profiles')
+                  .select('full_name, username')
+                  .eq('user_id', user.id)
+                  .single();
+                
+                const actorName = actorProfile?.full_name || actorProfile?.username || action.comment.username;
+                
+                await supabase
+                  .from('notifications')
+                  .insert({
+                    user_id: quote.user_id,
+                    type: 'comment',
+                    title: `${actorName} commented on your quote!`,
+                    message: `${actorName} commented: "${action.comment.content.substring(0, 50)}..."`,
+                    quote_id: action.quoteId,
+                    actor_user_id: user.id
+                  });
+              } catch (notificationError) {
+                console.error('Error creating comment notification:', notificationError);
+              }
             }
           }
         } catch (error) {
