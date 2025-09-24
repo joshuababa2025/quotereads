@@ -13,14 +13,14 @@ export const Footer = () => {
 
   const loadFooterData = async () => {
     // Load social media links
-    const { data: links } = await supabase
+    const { data: links } = await (supabase as any)
       .from('social_media_links')
       .select('*')
       .eq('is_active', true)
       .order('sort_order');
     
     // Load terms and conditions
-    const { data: settings } = await supabase
+    const { data: settings } = await (supabase as any)
       .from('footer_settings')
       .select('setting_value')
       .eq('setting_key', 'terms_and_conditions')

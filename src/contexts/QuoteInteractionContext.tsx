@@ -50,16 +50,15 @@ export const QuoteInteractionProvider: React.FC<{ children: ReactNode }> = ({ ch
 
       if (newLikedState) {
         // Add like to database - use current background image if provided, otherwise database value
-        await supabase
+        await (supabase as any)
           .from('liked_quotes')
-          .insert({
+          .insert([{
             user_id: user.id,
             quote_id: quoteId,
             quote_content: quoteData?.content,
             quote_author: quoteData?.author,
-            quote_category: quoteData?.category,
-            background_image: currentBackgroundImage || quoteData?.background_image
-          });
+            quote_category: quoteData?.category
+          }]);
 
         // Get quote owner and create notification
         console.log('DEBUG - Fetching quote owner for quote ID:', quoteId);

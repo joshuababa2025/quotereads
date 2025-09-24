@@ -31,12 +31,12 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     try {
       const [packages, addons, donations, tasks, campaigns, completions] = await Promise.all([
-        supabase.from('giveaway_packages').select('id', { count: 'exact', head: true }),
-        supabase.from('giveaway_addons').select('id', { count: 'exact', head: true }),
-        supabase.from('donation_requests').select('id', { count: 'exact', head: true }),
-        supabase.from('earn_money_tasks').select('id', { count: 'exact', head: true }),
-        supabase.from('campaigns').select('id', { count: 'exact', head: true }),
-        supabase.from('user_task_completions').select('id', { count: 'exact', head: true })
+        (supabase as any).from('giveaway_packages').select('id', { count: 'exact', head: true }),
+        (supabase as any).from('giveaway_addons').select('id', { count: 'exact', head: true }),
+        (supabase as any).from('donation_requests').select('id', { count: 'exact', head: true }),
+        (supabase as any).from('earn_money_tasks').select('id', { count: 'exact', head: true }),
+        (supabase as any).from('campaigns').select('id', { count: 'exact', head: true }),
+        (supabase as any).from('user_task_completions').select('id', { count: 'exact', head: true })
       ]);
 
       setStats({
@@ -55,8 +55,8 @@ const AdminDashboard = () => {
   const fetchRecentData = async () => {
     try {
       const [donations, tasks] = await Promise.all([
-        supabase.from('donation_requests').select('*').order('created_at', { ascending: false }).limit(5),
-        supabase.from('user_task_completions').select('*, earn_money_tasks(name)').order('completed_at', { ascending: false }).limit(5)
+        (supabase as any).from('donation_requests').select('*').order('created_at', { ascending: false }).limit(5),
+        (supabase as any).from('user_task_completions').select('*, earn_money_tasks(name)').order('completed_at', { ascending: false }).limit(5)
       ]);
 
       setRecentDonations(donations.data || []);

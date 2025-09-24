@@ -162,6 +162,28 @@ export const useRealtimeComments = (quoteId: string) => {
 
       if (error) throw error;
 
+      // Create notification for quote owner (if not self)
+      try {
+        const { data: quote } = await (supabase as any)
+          .from('quotes')
+          .select('user_id')
+          .eq('id', quoteId)
+          .single();
+
+        if (quote?.user_id && quote.user_id !== user.id) {
+          await supabase.rpc('create_notification', {
+            p_user_id: quote.user_id,
+            p_type: 'comment',
+            p_title: 'New comment',
+            p_message: 'Someone commented on your quote',
+            p_quote_id: quoteId,
+            p_actor_user_id: user.id
+          });
+        }
+      } catch (e) {
+        console.error('Error creating comment notification:', e);
+      }
+
       toast({
         title: 'Success',
         description: 'Comment added successfully'
@@ -193,6 +215,28 @@ export const useRealtimeComments = (quoteId: string) => {
         .single();
 
       if (error) throw error;
+
+      // Create notification for quote owner (if not self)
+      try {
+        const { data: quote } = await (supabase as any)
+          .from('quotes')
+          .select('user_id')
+          .eq('id', quoteId)
+          .single();
+
+        if (quote?.user_id && quote.user_id !== user.id) {
+          await supabase.rpc('create_notification', {
+            p_user_id: quote.user_id,
+            p_type: 'comment',
+            p_title: 'New reply',
+            p_message: 'Someone replied on your quote',
+            p_quote_id: quoteId,
+            p_actor_user_id: user.id
+          });
+        }
+      } catch (e) {
+        console.error('Error creating reply notification:', e);
+      }
 
       toast({
         title: 'Success',

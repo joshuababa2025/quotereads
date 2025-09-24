@@ -51,7 +51,7 @@ export const PaymentButton = ({ className, size = "default", children }: Payment
 
       if (isGiveaway) {
         // Fetch giveaway order details
-        const { data: giveawayOrder, error: fetchError } = await supabase
+        const { data: giveawayOrder, error: fetchError } = await (supabase as any)
           .from('giveaway_purchases')
           .select(`
             *,

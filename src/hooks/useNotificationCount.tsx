@@ -23,14 +23,14 @@ export const useNotificationCount = () => {
 
     try {
       // Count unread notifications
-      const { count: notifCount } = await supabase
+      const { count: notifCount } = await (supabase as any)
         .from('notifications')
         .select('*', { count: 'exact' })
         .eq('user_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
 
       // Count unread messages
-      const { count: msgCount } = await supabase
+      const { count: msgCount } = await (supabase as any)
         .from('messages')
         .select('*', { count: 'exact' })
         .eq('recipient_id', user.id)

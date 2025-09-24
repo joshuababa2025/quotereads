@@ -31,13 +31,13 @@ const AdminFooter = () => {
   const loadFooterData = async () => {
     try {
       // Load social media links
-      const { data: links } = await supabase
+      const { data: links } = await (supabase as any)
         .from('social_media_links')
         .select('*')
         .order('sort_order');
       
       // Load terms and conditions
-      const { data: settings } = await supabase
+      const { data: settings } = await (supabase as any)
         .from('footer_settings')
         .select('setting_value')
         .eq('setting_key', 'terms_and_conditions')
@@ -53,7 +53,7 @@ const AdminFooter = () => {
   const updateTermsAndConditions = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('footer_settings')
         .upsert({
           setting_key: 'terms_and_conditions',
@@ -91,7 +91,7 @@ const AdminFooter = () => {
 
     try {
       setLoading(true);
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('social_media_links')
         .insert({
           ...newLink,
@@ -121,7 +121,7 @@ const AdminFooter = () => {
 
   const deleteSocialLink = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('social_media_links')
         .delete()
         .eq('id', id);
@@ -146,7 +146,7 @@ const AdminFooter = () => {
 
   const toggleLinkStatus = async (id: string, isActive: boolean) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('social_media_links')
         .update({ is_active: isActive })
         .eq('id', id);

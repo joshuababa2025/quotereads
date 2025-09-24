@@ -16,17 +16,17 @@ export const useNotifications = () => {
 
     try {
       // Fetch unread notifications count
-      const { count: notificationCount, error: notificationError } = await supabase
+      const { count: notificationCount, error: notificationError } = await (supabase as any)
         .from('notifications')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
 
       if (notificationError) throw notificationError;
       setUnreadNotifications(notificationCount || 0);
 
       // Fetch unread messages count
-      const { count: messageCount, error: messageError } = await supabase
+      const { count: messageCount, error: messageError } = await (supabase as any)
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('recipient_id', user.id)
