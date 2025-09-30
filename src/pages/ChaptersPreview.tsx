@@ -169,16 +169,16 @@ const ChaptersPreview = () => {
       <Navigation />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">Chapters Preview</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <div className="text-center mb-8 lg:mb-12">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 lg:mb-4">Chapters Preview</h1>
+          <p className="text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Insights, reflections, and stories behind the words that move us.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 lg:space-y-8">
             {loading ? (
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -213,9 +213,9 @@ const ChaptersPreview = () => {
                       <BookOpen className="h-16 w-16 text-muted-foreground/50" />
                     </div>
                   </div>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="secondary" className="text-xs">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+                      <Badge variant="secondary" className="text-xs w-fit">
                         {chapter.category}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
@@ -223,27 +223,28 @@ const ChaptersPreview = () => {
                       </span>
                     </div>
                     <h2 
-                      className="text-2xl font-bold text-foreground mb-3 hover:text-primary transition-colors cursor-pointer"
+                      className="text-xl sm:text-2xl font-bold text-foreground mb-3 hover:text-primary transition-colors cursor-pointer"
                       onClick={() => handleChapterClick(chapter.id)}
                     >
                       {chapter.title}
                     </h2>
-                    <p className="text-muted-foreground mb-4 leading-relaxed">
+                    <p className="text-muted-foreground mb-4 leading-relaxed text-sm sm:text-base">
                       {chapter.description}
                     </p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <Button 
                         variant="ghost" 
-                        className="text-primary hover:text-primary/80 p-0"
+                        className="text-primary hover:text-primary/80 p-0 w-fit"
                         onClick={() => handleChapterClick(chapter.id)}
                       >
                         Read more →
                       </Button>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-between sm:justify-end gap-3">
                         {chapter.buy_link && (
                           <Button 
                             size="sm"
                             onClick={() => window.open(chapter.buy_link, '_blank')}
+                            className="text-xs sm:text-sm"
                           >
                             Buy Now
                           </Button>
@@ -262,30 +263,35 @@ const ChaptersPreview = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 pt-8">
+              <div className="flex justify-center items-center flex-wrap gap-2 pt-6 lg:pt-8">
                 <Button 
                   variant="outline" 
                   size="sm"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="text-xs sm:text-sm"
                 >
                   Previous
                 </Button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <Button 
-                    key={page}
-                    variant={currentPage === page ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                ))}
+                <div className="flex gap-1 overflow-x-auto max-w-full">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <Button 
+                      key={page}
+                      variant={currentPage === page ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className="text-xs sm:text-sm min-w-[32px]"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
                 <Button 
                   variant="outline" 
                   size="sm"
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="text-xs sm:text-sm"
                 >
                   Next
                 </Button>
@@ -294,16 +300,16 @@ const ChaptersPreview = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-6">
             {/* Explore Topics */}
             <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Explore Topics</h3>
+              <CardContent className="p-4 lg:p-6">
+                <h3 className="text-base lg:text-lg font-semibold text-foreground mb-3 lg:mb-4">Explore Topics</h3>
                 <div className="flex flex-wrap gap-2">
                   {topics.map((topic) => (
                     <Badge 
                       key={topic.id} 
-                      className={`${topic.color_class} cursor-pointer hover:opacity-80 transition-opacity`}
+                      className={`${topic.color_class} cursor-pointer hover:opacity-80 transition-opacity text-xs`}
                       onClick={() => navigate(topic.category_path)}
                     >
                       {topic.name}
@@ -315,8 +321,8 @@ const ChaptersPreview = () => {
 
             {/* Most Read This Week */}
             <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Most Read This Week</h3>
+              <CardContent className="p-4 lg:p-6">
+                <h3 className="text-base lg:text-lg font-semibold text-foreground mb-3 lg:mb-4">Most Read This Week</h3>
                 <div className="space-y-3">
                   {mostRead.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No popular chapters this week</p>
@@ -327,8 +333,8 @@ const ChaptersPreview = () => {
                         className="text-sm hover:text-primary cursor-pointer transition-colors"
                         onClick={() => handleChapterClick(item.chapter_id)}
                       >
-                        <span className="text-muted-foreground">by {item.author}</span>
-                        <p className="font-medium">{item.title}</p>
+                        <span className="text-muted-foreground text-xs">by {item.author}</span>
+                        <p className="font-medium text-sm">{item.title}</p>
                       </div>
                     ))
                   )}
@@ -346,14 +352,14 @@ const ChaptersPreview = () => {
               }}
             >
               <div className="absolute inset-0 bg-black/50"></div>
-              <CardContent className="relative z-10 p-6">
-                <h3 className="text-lg font-semibold mb-4">Quote of the Day</h3>
+              <CardContent className="relative z-10 p-4 lg:p-6">
+                <h3 className="text-base lg:text-lg font-semibold mb-3 lg:mb-4">Quote of the Day</h3>
                 {quoteOfTheDay && (
                   <>
-                    <blockquote className="text-lg font-medium mb-2 drop-shadow-lg">
+                    <blockquote className="text-sm lg:text-lg font-medium mb-2 drop-shadow-lg leading-relaxed">
                       "{quoteOfTheDay.content}"
                     </blockquote>
-                    <cite className="text-sm opacity-90 drop-shadow-md">- {quoteOfTheDay.author}</cite>
+                    <cite className="text-xs lg:text-sm opacity-90 drop-shadow-md">- {quoteOfTheDay.author}</cite>
                   </>
                 )}
               </CardContent>
@@ -361,14 +367,14 @@ const ChaptersPreview = () => {
 
             {/* Share Your Story */}
             <Card>
-              <CardContent className="p-6 text-center">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">Share Your Story</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+              <CardContent className="p-4 lg:p-6 text-center">
+                <BookOpen className="h-10 w-10 lg:h-12 lg:w-12 text-muted-foreground mx-auto mb-3 lg:mb-4" />
+                <h3 className="text-base lg:text-lg font-semibold text-foreground mb-2">Share Your Story</h3>
+                <p className="text-xs lg:text-sm text-muted-foreground mb-3 lg:mb-4">
                   Want to share your quote journey or personal reflections?
                 </p>
                 <ShareStoryDialog>
-                  <Button className="w-full">Submit a Post</Button>
+                  <Button className="w-full text-sm">Submit a Post</Button>
                 </ShareStoryDialog>
               </CardContent>
             </Card>

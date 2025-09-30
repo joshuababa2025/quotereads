@@ -110,18 +110,18 @@ const Shop = () => {
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-4">Shop</h1>
-          <p className="text-muted-foreground mb-6">
+        <div className="mb-6 lg:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 lg:mb-4">Shop</h1>
+          <p className="text-muted-foreground mb-4 lg:mb-6 text-sm sm:text-base">
             Discover books, merchandise, and more from your favorite authors
           </p>
           
           {/* Search Bar */}
-          <div className="relative max-w-md">
+          <div className="relative max-w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input 
               placeholder="Search products..." 
-              className="pl-10"
+              className="pl-10 text-sm sm:text-base"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -142,7 +142,7 @@ const Shop = () => {
           />
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Filters Sidebar - Desktop only */}
           <div className="hidden lg:block w-80 flex-shrink-0 space-y-6">
             <ShopFilters
@@ -208,12 +208,12 @@ const Shop = () => {
           <div className="flex-1">
             {/* Products Grid */}
             {loading ? (
-              <div className="text-center py-12">
+              <div className="text-center py-8 lg:py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Loading products...</p>
+                <p className="text-muted-foreground text-sm sm:text-base">Loading products...</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 lg:mb-8">
                 {filteredProducts.length > 0 ? (
                   filteredProducts.map((product) => (
                     <ProductCard 
@@ -222,12 +222,12 @@ const Shop = () => {
                     />
                   ))
                 ) : (
-                  <div className="col-span-full text-center py-12">
-                    <p className="text-muted-foreground">No products found matching your criteria.</p>
+                  <div className="col-span-full text-center py-8 lg:py-12">
+                    <p className="text-muted-foreground text-sm sm:text-base">No products found matching your criteria.</p>
                     <Button 
                       onClick={clearFilters}
                       variant="outline"
-                      className="mt-4"
+                      className="mt-4 text-sm sm:text-base"
                     >
                       Clear Filters
                     </Button>

@@ -33,11 +33,11 @@ const Index = () => {
       <Navigation />
 
       {/* Main Content */}
-      <div className="flex flex-col lg:flex-row gap-8 container mx-auto px-4 py-8">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 container mx-auto px-4 py-6 lg:py-8">
         {/* Main Content Area */}
         <main className="flex-1">
           {/* Hero Section */}
-          <div className="mb-8">
+          <div className="mb-6 lg:mb-8">
             <HeroSection />
           </div>
 
@@ -55,7 +55,7 @@ const Index = () => {
         </main>
 
         {/* Sidebar */}
-        <aside className="lg:w-80 space-y-6">
+        <aside className="lg:w-80 space-y-4 lg:space-y-6">
           <div className={`transition-opacity duration-300 ${isPopupOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             <SignUpSidebar />
           </div>

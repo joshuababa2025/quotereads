@@ -290,26 +290,26 @@ const Blog = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
+      <div className="container mx-auto px-4 py-6 lg:py-8">
+        <div className="text-center mb-8 lg:mb-12">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 lg:mb-4">
             Our Blog
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Discover insights, stories, and inspiration from our community of quote lovers and literary enthusiasts.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-3">
             {loading ? (
-              <div className="text-center py-12">
+              <div className="text-center py-8 lg:py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Loading blog posts...</p>
+                <p className="text-muted-foreground text-sm sm:text-base">Loading blog posts...</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                 {blogPosts.length > 0 ? blogPosts.map((post) => (
                   <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow group">
                     <div className="h-48 bg-muted overflow-hidden relative">
@@ -332,7 +332,7 @@ const Blog = () => {
                       </div>
                     </div>
                     
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 sm:p-6">
                       <div className="flex items-center gap-2 mb-3">
                         <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium">
                           {post.category}
@@ -340,7 +340,7 @@ const Blog = () => {
                       </div>
                       
                       <Link to={`/blog/${post.id}`}>
-                        <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer">
+                        <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer">
                           {post.title}
                         </h3>
                       </Link>
@@ -349,28 +349,31 @@ const Blog = () => {
                         {post.content.substring(0, 150)}...
                       </p>
                       
-                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-                        <div className="flex items-center gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground mb-4">
+                        <div className="flex items-center gap-3 sm:gap-4">
                           <div className="flex items-center gap-1">
                             <User className="h-3 w-3" />
-                            <span>{post.author}</span>
+                            <span className="truncate">{post.author}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            <span>{formatDate(post.published_at)}</span>
+                            <span className="hidden sm:inline">{formatDate(post.published_at)}</span>
+                            <span className="sm:hidden">{new Date(post.published_at).toLocaleDateString()}</span>
                           </div>
                         </div>
-                        <span>{calculateReadTime(post.content)}</span>
+                        <span className="text-right">{calculateReadTime(post.content)}</span>
                       </div>
                       
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
+                      <div className="flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground mb-4">
                         <div className="flex items-center gap-1">
                           <MessageCircle className="h-3 w-3" />
-                          <span>{post.comments} comments</span>
+                          <span>{post.comments}</span>
+                          <span className="hidden sm:inline">comments</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Heart className="h-3 w-3" />
-                          <span>{post.views} views</span>
+                          <span>{post.views}</span>
+                          <span className="hidden sm:inline">views</span>
                         </div>
                       </div>
                       
@@ -383,32 +386,32 @@ const Blog = () => {
                     </CardContent>
                   </Card>
                 )) : (
-                  <div className="col-span-full text-center py-12">
-                    <p className="text-muted-foreground">No blog posts available yet.</p>
+                  <div className="col-span-full text-center py-8 lg:py-12">
+                    <p className="text-muted-foreground text-sm sm:text-base">No blog posts available yet.</p>
                   </div>
                 )}
               </div>
             )}
             
-            <div className="text-center mt-12">
-              <Button size="lg" variant="outline">
+            <div className="text-center mt-8 lg:mt-12">
+              <Button size="lg" variant="outline" className="text-sm sm:text-base">
                 Load More Posts
               </Button>
             </div>
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-4 lg:space-y-6">
             {/* Advertisements */}
             {advertisements.map((ad) => (
               <AdCard key={ad.id} ad={ad} onAdClick={handleAdClick} onAdView={handleAdView} />
             ))}
             {advertisements.length === 0 && (
               <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-                <CardContent className="p-6 text-center">
-                  <h4 className="font-semibold mb-4">Advertisement</h4>
-                  <div className="bg-muted rounded-lg h-40 flex items-center justify-center mb-4">
-                    <span className="text-muted-foreground">Ad Space</span>
+                <CardContent className="p-4 lg:p-6 text-center">
+                  <h4 className="font-semibold mb-3 lg:mb-4 text-sm lg:text-base">Advertisement</h4>
+                  <div className="bg-muted rounded-lg h-32 lg:h-40 flex items-center justify-center mb-3 lg:mb-4">
+                    <span className="text-muted-foreground text-sm">Ad Space</span>
                   </div>
                   <p className="text-xs text-muted-foreground">Sponsored content</p>
                 </CardContent>
@@ -420,13 +423,13 @@ const Blog = () => {
 
             {/* Popular Categories */}
             <Card>
-              <CardContent className="p-6">
-                <h4 className="font-semibold mb-4">Popular Categories</h4>
+              <CardContent className="p-4 lg:p-6">
+                <h4 className="font-semibold mb-3 lg:mb-4 text-sm lg:text-base">Popular Categories</h4>
                 <div className="space-y-2">
                   {Object.entries(categories).map(([category, count]) => (
                     <div key={category} className="flex justify-between items-center">
-                      <span className="text-sm">{category}</span>
-                      <Badge variant="secondary">{count}</Badge>
+                      <span className="text-sm truncate">{category}</span>
+                      <Badge variant="secondary" className="text-xs">{count}</Badge>
                     </div>
                   ))}
                   {Object.keys(categories).length === 0 && (
@@ -438,9 +441,9 @@ const Blog = () => {
 
             {/* Newsletter Signup */}
             <Card>
-              <CardContent className="p-6">
-                <h4 className="font-semibold mb-2">Stay Updated</h4>
-                <p className="text-sm text-muted-foreground mb-4">
+              <CardContent className="p-4 lg:p-6">
+                <h4 className="font-semibold mb-2 text-sm lg:text-base">Stay Updated</h4>
+                <p className="text-xs lg:text-sm text-muted-foreground mb-3 lg:mb-4">
                   Get the latest blog posts and quote insights delivered to your inbox.
                 </p>
                 <form onSubmit={handleNewsletterSubscribe} className="space-y-2">
@@ -455,7 +458,7 @@ const Blog = () => {
                   <Button 
                     type="submit" 
                     size="sm" 
-                    className="w-full" 
+                    className="w-full text-sm" 
                     disabled={subscribing}
                   >
                     {subscribing ? 'Subscribing...' : 'Subscribe'}
@@ -466,16 +469,16 @@ const Blog = () => {
 
             {/* Popular Authors */}
             <Card>
-              <CardContent className="p-6">
-                <h4 className="font-semibold mb-4">Popular Authors</h4>
+              <CardContent className="p-4 lg:p-6">
+                <h4 className="font-semibold mb-3 lg:mb-4 text-sm lg:text-base">Popular Authors</h4>
                 <div className="space-y-3">
                   {popularAuthors.length > 0 ? popularAuthors.map((author) => (
                     <div key={author.author} className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-xs font-semibold">{author.initials}</span>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium">{author.author}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{author.author}</p>
                         <p className="text-xs text-muted-foreground">{author.post_count} posts</p>
                       </div>
                     </div>

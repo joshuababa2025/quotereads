@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ShareDialog } from "@/components/ShareDialog";
 import { ProfileTabsContent } from "@/components/ProfileTabsContent";
 import { RankingBadge } from "@/components/RankingBadge";
-import { UserPlus, Users, Calendar, MapPin, Edit, Share, Mail, Trophy, Star } from "lucide-react";
+import { UserPlus, Users, Calendar, MapPin, Edit, Share, Mail, Trophy, Star, DollarSign } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRanking } from "@/hooks/useRanking";
@@ -610,10 +610,11 @@ export default function Profile() {
 
           {/* Profile Content */}
           <Tabs defaultValue="quotes" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="quotes">Quotes</TabsTrigger>
               <TabsTrigger value="favorites">Favorites</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
+              {isCurrentUser && <TabsTrigger value="earnings">Earnings</TabsTrigger>}
               <TabsTrigger value="about">About</TabsTrigger>
             </TabsList>
             
@@ -641,6 +642,32 @@ export default function Profile() {
                 isCurrentUser={isCurrentUser}
               />
             </TabsContent>
+            
+            {isCurrentUser && (
+              <TabsContent value="earnings" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <DollarSign className="w-5 h-5" />
+                      My Earnings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center mb-4">
+                      <Button 
+                        onClick={() => navigate('/earnings')}
+                        className="w-full"
+                      >
+                        View Full Earnings Dashboard
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground text-center">
+                      Track your earnings from completed tasks, view transaction history, and manage your balance.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
             
             <TabsContent value="about" className="space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

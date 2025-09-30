@@ -90,12 +90,12 @@ export const Navigation = () => {
   };
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-3 lg:py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <Link to="/">
-              <h1 className="text-2xl font-bold text-foreground hover:text-primary transition-colors">ANEWPORTALS</h1>
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground hover:text-primary transition-colors">ANEWPORTALS</h1>
             </Link>
           </div>
 
@@ -118,7 +118,19 @@ export const Navigation = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Link to="/giveaway" className="text-foreground hover:text-primary transition-colors font-medium">Giveaway</Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center text-foreground hover:text-primary transition-colors font-medium">
+                Giveaway <ChevronDown className="ml-1 h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-background border-border">
+                <DropdownMenuItem asChild>
+                  <Link to="/giveaway" className="w-full">Giveaway</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/earn-money-online" className="w-full">Earn</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center text-foreground hover:text-primary transition-colors font-medium">
                 Community <ChevronDown className="ml-1 h-4 w-4" />
@@ -147,6 +159,19 @@ export const Navigation = () => {
             </SheetTrigger>
             <SheetContent side="left" className="w-80">
               <div className="flex flex-col space-y-4 mt-8">
+                {/* Mobile Search */}
+                <div className="relative mb-4" ref={searchRef}>
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input 
+                    type="search" 
+                    placeholder="Search quotes, authors..." 
+                    className="pl-10 bg-muted/50 border-border text-sm"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    onFocus={handleSearchFocus}
+                  />
+                </div>
+                
                 <Link 
                   to="/" 
                   className="text-foreground hover:text-primary transition-colors font-medium py-2 px-4 rounded-md hover:bg-muted"
@@ -180,13 +205,23 @@ export const Navigation = () => {
                   </Link>
                 </div>
                 
-                <Link 
-                  to="/giveaway" 
-                  className="text-foreground hover:text-primary transition-colors font-medium py-2 px-4 rounded-md hover:bg-muted"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Giveaway
-                </Link>
+                <div className="space-y-2">
+                  <div className="text-foreground font-medium py-2 px-4">Giveaway</div>
+                  <Link 
+                    to="/giveaway" 
+                    className="text-muted-foreground hover:text-primary transition-colors py-2 px-8 rounded-md hover:bg-muted block"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Giveaway
+                  </Link>
+                  <Link 
+                    to="/earn-money-online" 
+                    className="text-muted-foreground hover:text-primary transition-colors py-2 px-8 rounded-md hover:bg-muted block"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Earn
+                  </Link>
+                </div>
                 
                 <div className="space-y-2">
                   <div className="text-foreground font-medium py-2 px-4">Community</div>
@@ -220,18 +255,40 @@ export const Navigation = () => {
                 >
                   Shop
                 </Link>
+                
+                {/* Mobile Auth Button */}
+                <div className="pt-4 border-t">
+                  {user ? (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        handleSignOut();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full"
+                    >
+                      Sign Out
+                    </Button>
+                  ) : (
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full">
+                        Sign In
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </div>
             </SheetContent>
           </Sheet>
 
           {/* Search and Actions */}
-          <div className="flex items-center space-x-4">
-            <div className="relative hidden sm:block" ref={searchRef}>
+          <div className="flex items-center space-x-2 lg:space-x-4">
+            <div className="relative hidden md:block" ref={searchRef}>
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input 
                 type="search" 
                 placeholder="Search quotes, authors..." 
-                className="pl-10 w-64 bg-muted/50 border-border"
+                className="pl-10 w-48 lg:w-64 bg-muted/50 border-border text-sm"
                 value={searchQuery}
                 onChange={handleSearchChange}
                 onFocus={handleSearchFocus}
@@ -243,7 +300,7 @@ export const Navigation = () => {
               />
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 lg:space-x-2">
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -291,12 +348,12 @@ export const Navigation = () => {
             </div>
 
             {user ? (
-              <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden sm:inline-flex">
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden lg:inline-flex text-sm">
                 Sign Out
               </Button>
             ) : (
               <Link to="/auth">
-                <Button variant="outline" size="sm" className="hidden sm:inline-flex">
+                <Button variant="outline" size="sm" className="hidden lg:inline-flex text-sm">
                   Sign In
                 </Button>
               </Link>

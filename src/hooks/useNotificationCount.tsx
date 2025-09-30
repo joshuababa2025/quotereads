@@ -22,19 +22,22 @@ export const useNotificationCount = () => {
     if (!user) return;
 
     try {
+      console.log('🔄 Fetching notification counts for user:', user.id);
       // Count unread notifications
       const { count: notifCount } = await supabase
         .from('notifications')
         .select('*', { count: 'exact' })
         .eq('user_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
+      
+      console.log('📊 Unread notification count:', notifCount);
 
       // Count unread messages
       const { count: msgCount } = await supabase
         .from('messages')
         .select('*', { count: 'exact' })
         .eq('recipient_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
 
       setNotificationCount(notifCount || 0);
       setMessageCount(msgCount || 0);

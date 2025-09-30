@@ -20,7 +20,7 @@ export const useNotifications = () => {
         .from('notifications')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
 
       if (notificationError) throw notificationError;
       setUnreadNotifications(notificationCount || 0);
@@ -30,7 +30,7 @@ export const useNotifications = () => {
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('recipient_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
 
       if (messageError) throw messageError;
       setUnreadMessages(messageCount || 0);

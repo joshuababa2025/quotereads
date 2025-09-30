@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { User, Users, MessageSquare, Gift, Quote, Settings, HelpCircle, LogOut } from "lucide-react";
+import { User, Users, MessageSquare, Gift, Quote, Settings, HelpCircle, LogOut, DollarSign } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -40,6 +40,7 @@ export const ProfileDropdown = ({ isOpen, onClose }: ProfileDropdownProps) => {
 
   const menuItems = [
     { icon: User, label: "Profile", href: "/profile" },
+    { icon: DollarSign, label: "My Earnings", href: "/earnings" },
     { icon: Users, label: "Groups", href: "/groups" },
     { icon: MessageSquare, label: "Comments", href: "/comments" },
     { icon: Gift, label: "My Giveaways", href: "/my-giveaways" },

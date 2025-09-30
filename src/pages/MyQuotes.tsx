@@ -255,10 +255,10 @@ const MyQuotes = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <main className="container mx-auto px-4 py-6 lg:py-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar */}
-          <div className="w-full lg:w-64 space-y-6 order-2 lg:order-1">
+          <div className="w-full lg:w-64 space-y-4 lg:space-y-6 order-2 lg:order-1">
             {/* Add Quotes - Moved to top */}
             <Card>
               <CardHeader>
@@ -374,39 +374,39 @@ const MyQuotes = () => {
           {/* Main Content */}
           <div className="flex-1 order-1 lg:order-2">
             {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-foreground mb-6">My Quotes</h1>
+            <div className="mb-6 lg:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 lg:mb-6">My Quotes</h1>
               
               {/* Action Bar */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+              <div className="flex flex-col gap-4 mb-4 lg:mb-6">
                 <div className="flex flex-wrap items-center gap-2">
                   <Link to="/my-quotes/batch-edit">
-                    <Button variant="default" size="sm" className="bg-teal-600 hover:bg-teal-700 text-white">
+                    <Button variant="default" size="sm" className="bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm">
                       Batch Edit
                     </Button>
                   </Link>
                   <Link to="/my-quotes/settings">
-                    <Button variant="outline" size="sm">
-                      <Settings className="w-4 h-4 mr-1" />
-                      Settings
+                    <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+                      <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <span className="hidden sm:inline">Settings</span>
                     </Button>
                   </Link>
                   <Link to="/my-quotes/stats">
-                    <Button variant="outline" size="sm">
-                      <BarChart3 className="w-4 h-4 mr-1" />
-                      Stats
+                    <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+                      <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <span className="hidden sm:inline">Stats</span>
                     </Button>
                   </Link>
                   <Link to="/my-quotes/print">
-                    <Button variant="outline" size="sm">
-                      <Printer className="w-4 h-4 mr-1" />
-                      Print
+                    <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+                      <Printer className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <span className="hidden sm:inline">Print</span>
                     </Button>
                   </Link>
                 </div>
                 
                 {/* View Toggle */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 justify-end">
                   <Button
                     variant={viewMode === 'grid' ? 'default' : 'outline'}
                     size="sm"
@@ -547,11 +547,11 @@ const MyQuotes = () => {
                 </div>
               ) : (
                 <Tabs defaultValue="all" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 mb-6">
-                    <TabsTrigger value="all">All Quotes ({userQuotes.length + favoriteQuotes.length + lovedQuotes.length})</TabsTrigger>
-                    <TabsTrigger value="posted">Posted ({userQuotes.length})</TabsTrigger>
-                    <TabsTrigger value="favorites">Favorites ({favoriteQuotes.length})</TabsTrigger>
-                    <TabsTrigger value="loved">Loved ({lovedQuotes.length})</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-4 lg:mb-6">
+                    <TabsTrigger value="all" className="text-xs sm:text-sm">All ({userQuotes.length + favoriteQuotes.length + lovedQuotes.length})</TabsTrigger>
+                    <TabsTrigger value="posted" className="text-xs sm:text-sm">Posted ({userQuotes.length})</TabsTrigger>
+                    <TabsTrigger value="favorites" className="text-xs sm:text-sm">Favorites ({favoriteQuotes.length})</TabsTrigger>
+                    <TabsTrigger value="loved" className="text-xs sm:text-sm">Loved ({lovedQuotes.length})</TabsTrigger>
                   </TabsList>
                 
                   <TabsContent value="all" className="mt-6">

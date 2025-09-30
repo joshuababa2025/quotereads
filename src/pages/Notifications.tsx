@@ -105,13 +105,18 @@ export const Notifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
+      console.log('🔄 Marking notification as read:', notificationId);
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
         .eq('id', notificationId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error updating notification:', error);
+        throw error;
+      }
 
+      console.log('✅ Notification marked as read successfully');
       setNotifications(prev => 
         prev.map(notif => 
           notif.id === notificationId ? { ...notif, is_read: true } : notif

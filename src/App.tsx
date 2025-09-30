@@ -66,6 +66,7 @@ const AdminBooks = lazy(() => import("./pages/AdminBooks"));
 const AdminFooter = lazy(() => import("./pages/AdminFooter"));
 const SupportDonation = lazy(() => import("./pages/SupportDonation"));
 const EarnMoneyOnline = lazy(() => import("./pages/EarnMoneyOnline"));
+const UserEarnings = lazy(() => import("./pages/UserEarnings"));
 
 // Simple inline 404 component to avoid import issues
 const NotFound = () => (
@@ -159,6 +160,7 @@ const App = () => (
                         <Route path="/admin/footer" element={<AdminFooter />} />
                         <Route path="/support-donation" element={<SupportDonation />} />
                         <Route path="/earn-money-online" element={<EarnMoneyOnline />} />
+                        <Route path="/earnings" element={<UserEarnings />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </Suspense>

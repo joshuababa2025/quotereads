@@ -97,9 +97,9 @@ const CommunityQuotes = () => {
         
         setHasMore(quotesData.length === QUOTES_PER_PAGE);
         
-        // Fetch like counts for each quote
+        // Fetch like counts from liked_quotes table
         const { data: likesData, error: likesError } = await supabase
-          .from('quote_likes')
+          .from('liked_quotes')
           .select('quote_id')
           .in('quote_id', quotesData.map(q => q.id));
         
@@ -199,63 +199,8 @@ const CommunityQuotes = () => {
       return;
     }
 
-    try {
-      // Check if user already liked this quote
-      const { data: existingLike } = await supabase
-        .from('quote_likes')
-        .select('id')
-        .eq('quote_id', quote.id)
-        .eq('user_id', user.id)
-        .single();
-
-      if (existingLike) {
-        // Unlike - remove like
-        await supabase
-          .from('quote_likes')
-          .delete()
-          .eq('quote_id', quote.id)
-          .eq('user_id', user.id);
-        
-        setQuoteLikes(prev => ({
-          ...prev,
-          [quote.id]: Math.max(0, (prev[quote.id] || 0) - 1)
-        }));
-      } else {
-        // Like - add like
-        await supabase
-          .from('quote_likes')
-          .insert({
-            quote_id: quote.id,
-            user_id: user.id
-          });
-        
-        setQuoteLikes(prev => ({
-          ...prev,
-          [quote.id]: (prev[quote.id] || 0) + 1
-        }));
-
-        // Create notification for quote owner
-        if (quote.user_id && quote.user_id !== user.id) {
-          await supabase.rpc('create_notification', {
-            p_user_id: quote.user_id,
-            p_type: 'like',
-            p_title: 'Someone liked your quote!',
-            p_message: `Someone liked your quote: "${quote.content.substring(0, 50)}..."`,
-            p_quote_id: quote.id,
-            p_actor_user_id: user.id
-          });
-        }
-      }
-      
-      toggleLike(quote.id);
-    } catch (error) {
-      console.error('Error handling like:', error);
-      toast({
-        title: "Error updating like",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    }
+    // Use QuoteInteractionContext instead of separate system
+    toggleLike(quote.id, quote.background_image);
   };
 
   const handleFavorite = async (quote: CommunityQuote) => {
@@ -268,66 +213,8 @@ const CommunityQuotes = () => {
       return;
     }
 
-    try {
-      // Check if user already favorited this quote
-      const { data: existingFavorite } = await supabase
-        .from('favorited_quotes')
-        .select('id')
-        .eq('quote_id', quote.id)
-        .eq('user_id', user.id)
-        .single();
-
-      if (existingFavorite) {
-        // Remove from favorites
-        await supabase
-          .from('favorited_quotes')
-          .delete()
-          .eq('quote_id', quote.id)
-          .eq('user_id', user.id);
-        
-        toast({
-          title: "Removed from favorites",
-          description: "Quote removed from your favorites",
-        });
-      } else {
-        // Add to favorites
-        await supabase
-          .from('favorited_quotes')
-          .insert({
-            quote_id: quote.id,
-            user_id: user.id,
-            quote_content: quote.content,
-            quote_author: quote.author,
-            quote_category: quote.category
-          });
-        
-        // Create notification for quote owner
-        if (quote.user_id && quote.user_id !== user.id) {
-          await supabase.rpc('create_notification', {
-            p_user_id: quote.user_id,
-            p_type: 'favorite',
-            p_title: 'Someone favorited your quote!',
-            p_message: `Someone added your quote to favorites: "${quote.content.substring(0, 50)}..."`,
-            p_quote_id: quote.id,
-            p_actor_user_id: user.id
-          });
-        }
-        
-        toast({
-          title: "Added to favorites",
-          description: "Quote saved to your favorites",
-        });
-      }
-      
-      toggleFavorite(quote.id);
-    } catch (error) {
-      console.error('Error handling favorite:', error);
-      toast({
-        title: "Error updating favorite",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    }
+    // Use QuoteInteractionContext instead of separate system
+    toggleFavorite(quote.id, quote.background_image);
   };
 
   const handleShare = async (quote: CommunityQuote) => {
@@ -372,36 +259,36 @@ const CommunityQuotes = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="container mx-auto px-4 py-6 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <h1 className="text-3xl font-bold text-foreground">Community Quotes</h1>
+            <div className="mb-6 lg:mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Community Quotes</h1>
                 <AddQuoteDialog>
-                  <Button>
+                  <Button className="w-full sm:w-auto">
                     <Plus className="w-4 h-4 mr-2" />
                     Add Quote
                   </Button>
                 </AddQuoteDialog>
               </div>
 
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-4 mb-4 lg:mb-6">
                 <Input 
                   placeholder="Find quotes by keyword, author" 
-                  className="flex-1"
+                  className="flex-1 text-sm sm:text-base"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
               {/* Tab Navigation */}
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4 lg:mb-6">
                 <TabsList className="grid w-full grid-cols-3 bg-transparent p-0 h-auto gap-1">
-                  <TabsTrigger value="popular" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Popular</TabsTrigger>
-                  <TabsTrigger value="recent" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Recent</TabsTrigger>
-                  <TabsTrigger value="friends" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Friends</TabsTrigger>
+                  <TabsTrigger value="popular" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none text-sm sm:text-base">Popular</TabsTrigger>
+                  <TabsTrigger value="recent" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none text-sm sm:text-base">Recent</TabsTrigger>
+                  <TabsTrigger value="friends" className="bg-transparent border-0 shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none text-sm sm:text-base">Friends</TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -428,26 +315,26 @@ const CommunityQuotes = () => {
                 <p className="text-muted-foreground">Loading quotes...</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4 lg:space-y-6">
                 {filteredQuotes.map((quote) => {
                   const interaction = getInteraction(quote.id);
                   
                   return (
-                    <Card key={quote.id} className="p-6 hover:shadow-lg transition-shadow">
+                    <Card key={quote.id} className="p-4 sm:p-6 hover:shadow-lg transition-shadow">
                       <CardContent className="p-0">
-                        <div className="flex gap-4">
-                          <Avatar className="w-12 h-12">
+                        <div className="flex gap-3 sm:gap-4">
+                          <Avatar className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
                             <AvatarImage src="/lovable-uploads/9d58d4ed-24f5-4c0b-8162-e3462157af1e.png" />
-                            <AvatarFallback>{quote.author.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                            <AvatarFallback className="text-xs sm:text-sm">{quote.author.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                           </Avatar>
                           
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <div 
-                              className="mb-4 cursor-pointer"
+                              className="mb-3 sm:mb-4 cursor-pointer"
                               onClick={() => handleDiscuss(quote)}
                             >
                               <div 
-                                className="rounded-lg p-4 text-white relative overflow-hidden"
+                                className="rounded-lg p-3 sm:p-4 text-white relative overflow-hidden"
                                 style={quote.background_image ? {
                                   backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url("${quote.background_image}")`,
                                   backgroundSize: 'cover',
@@ -456,16 +343,16 @@ const CommunityQuotes = () => {
                                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
                                 }}
                               >
-                                <blockquote className="text-lg font-medium leading-relaxed">
+                                <blockquote className="text-sm sm:text-lg font-medium leading-relaxed">
                                   "{quote.content}"
                                 </blockquote>
                               </div>
                             </div>
-                            <p className="text-muted-foreground mb-3">
+                            <p className="text-muted-foreground mb-3 text-sm sm:text-base">
                               — {quote.author}
                             </p>
                             
-                            <div className="flex flex-wrap gap-1 mb-4">
+                            <div className="flex flex-wrap gap-1 mb-3 sm:mb-4">
                               <Badge 
                                 variant="secondary" 
                                 className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
@@ -485,37 +372,37 @@ const CommunityQuotes = () => {
                               ))}
                             </div>
                             
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                              <div className="flex items-center gap-4 text-xs sm:text-sm text-muted-foreground">
                                 <span>{quoteLikes[quote.id] || 0} likes</span>
                                 <span>0 comments</span>
                               </div>
-                              <div className="flex gap-2">
-                                <Button variant="outline" size="sm" onClick={() => handleShare(quote)}>
-                                  <Share2 className="w-4 h-4 mr-1" />
-                                  Share
+                              <div className="flex flex-wrap gap-2">
+                                <Button variant="outline" size="sm" onClick={() => handleShare(quote)} className="text-xs sm:text-sm">
+                                  <Share2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                  <span className="hidden sm:inline">Share</span>
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => handleDiscuss(quote)}>
-                                  <MessageCircle className="w-4 h-4 mr-1" />
-                                  Comment
+                                <Button variant="outline" size="sm" onClick={() => handleDiscuss(quote)} className="text-xs sm:text-sm">
+                                  <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                  <span className="hidden sm:inline">Comment</span>
                                 </Button>
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
                                   onClick={() => handleFavorite(quote)}
-                                  className={interaction.isFavorited ? "text-yellow-600" : ""}
+                                  className={`text-xs sm:text-sm ${interaction.isFavorited ? "text-yellow-600" : ""}`}
                                 >
-                                  <BookmarkPlus className="w-4 h-4 mr-1" />
-                                  {interaction.isFavorited ? "Favorited" : "Favorite"}
+                                  <BookmarkPlus className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                  <span className="hidden sm:inline">{interaction.isFavorited ? "Favorited" : "Favorite"}</span>
                                 </Button>
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
                                   onClick={() => handleLike(quote)}
-                                  className={interaction.isLiked ? "text-red-500" : ""}
+                                  className={`text-xs sm:text-sm ${interaction.isLiked ? "text-red-500" : ""}`}
                                 >
-                                  <Heart className={`w-4 h-4 mr-1 ${interaction.isLiked ? "fill-current" : ""}`} />
-                                  {interaction.isLiked ? "Liked" : "Like"}
+                                  <Heart className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 ${interaction.isLiked ? "fill-current" : ""}`} />
+                                  <span className="hidden sm:inline">{interaction.isLiked ? "Liked" : "Like"}</span>
                                 </Button>
                               </div>
                             </div>
@@ -550,19 +437,19 @@ const CommunityQuotes = () => {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-lg mb-4">BROWSE BY TAG</h3>
+              <CardContent className="p-4 lg:p-6">
+                <h3 className="font-semibold text-base lg:text-lg mb-3 lg:mb-4">BROWSE BY TAG</h3>
                 
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-3 lg:mb-4">
                   <Input 
                     placeholder="Search for a tag" 
-                    className="flex-1"
+                    className="flex-1 text-sm"
                     value={tagQuery}
                     onChange={(e) => setTagQuery(e.target.value)}
                   />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-1 text-sm max-h-96 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-1 text-sm max-h-80 lg:max-h-96 overflow-y-auto">
                   {filteredTags.map(({ tag, count }) => (
                     <button
                       key={tag}
