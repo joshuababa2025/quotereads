@@ -40,29 +40,18 @@ const NewGiveaway = () => {
 
   const fetchPackages = async () => {
     try {
-      console.log('Fetching giveaway packages...');
-      
       const { data, error, status } = await supabase
         .from('giveaway_packages')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      console.log('Supabase response:', { data, error, status });
-
       if (error) {
-        console.error('Supabase error:', error);
         throw error;
       }
       
-      console.log('Fetched packages:', data?.length || 0);
       setPackages(data || []);
-      
-      if (!data || data.length === 0) {
-        console.warn('No giveaway packages found in database');
-      }
     } catch (error) {
-      console.error('Error fetching packages:', error);
       toast({
         title: "Error",
         description: `Failed to load packages: ${error.message}`,
@@ -99,7 +88,6 @@ const NewGiveaway = () => {
         .single();
 
       if (error) {
-        console.error('Error creating order:', error);
         throw error;
       }
 
@@ -113,7 +101,6 @@ const NewGiveaway = () => {
         navigate(`/checkout?type=giveaway&orderId=${data.id}&amount=${selectedPackage.discount_price}`);
       }, 1500);
     } catch (error) {
-      console.error('Error processing order:', error);
       toast({
         title: "Order failed",
         description: "Failed to process your order. Please try again.",

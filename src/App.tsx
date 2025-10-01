@@ -1,3 +1,4 @@
+import '@/utils/silencer';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -67,6 +68,8 @@ const AdminFooter = lazy(() => import("./pages/AdminFooter"));
 const SupportDonation = lazy(() => import("./pages/SupportDonation"));
 const EarnMoneyOnline = lazy(() => import("./pages/EarnMoneyOnline"));
 const UserEarnings = lazy(() => import("./pages/UserEarnings"));
+const Support = lazy(() => import("./pages/Support"));
+const TicketChat = lazy(() => import("./pages/TicketChat"));
 
 // Simple inline 404 component to avoid import issues
 const NotFound = () => (
@@ -161,6 +164,8 @@ const App = () => (
                         <Route path="/support-donation" element={<SupportDonation />} />
                         <Route path="/earn-money-online" element={<EarnMoneyOnline />} />
                         <Route path="/earnings" element={<UserEarnings />} />
+                        <Route path="/support" element={<Support />} />
+                        <Route path="/support/ticket/:ticketId" element={<TicketChat />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </Suspense>

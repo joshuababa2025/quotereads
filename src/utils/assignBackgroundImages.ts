@@ -15,7 +15,6 @@ interface Quote {
  */
 export const assignBackgroundImages = async (quotes: Quote[]): Promise<Quote[]> => {
   const quotesWithoutImages = quotes.filter(quote => !quote.background_image);
-  console.log('Quotes without images:', quotesWithoutImages.length);
   
   if (quotesWithoutImages.length === 0) {
     return quotes;
@@ -30,24 +29,18 @@ export const assignBackgroundImages = async (quotes: Quote[]): Promise<Quote[]> 
     return acc;
   }, {} as Record<string, Quote[]>);
 
-  console.log('Categories needing images:', Object.keys(quotesByCategory));
-
   // Fetch random images for each category and assign them
   const updatedQuotes = [...quotes];
   
   for (const [category, categoryQuotes] of Object.entries(quotesByCategory)) {
     try {
-      console.log(`Fetching image for category: ${category}`);
       // Get random image for this category
       const { data: randomImage, error } = await supabase.rpc('get_random_category_image', {
         category_name: category
       });
 
-      console.log(`Image result for ${category}:`, randomImage, error);
-
       if (randomImage && randomImage.length > 0) {
         const imageUrl = randomImage[0].image_url;
-        console.log(`Assigning image ${imageUrl} to ${categoryQuotes.length} quotes`);
         
         // Assign DIFFERENT random images to each quote in this category
         for (const quote of categoryQuotes) {
@@ -75,10 +68,10 @@ export const assignBackgroundImages = async (quotes: Quote[]): Promise<Quote[]> 
           }
         }
       } else {
-        console.log(`No images found for category: ${category}`);
+        // No images found for category
       }
     } catch (error) {
-      console.error(`Error assigning background image for category ${category}:`, error);
+      // Error assigning background image
     }
   }
 
@@ -96,7 +89,6 @@ export const getRandomCategoryImage = async (category: string): Promise<string |
 
     return randomImage && randomImage.length > 0 ? randomImage[0].image_url : null;
   } catch (error) {
-    console.error(`Error getting random image for category ${category}:`, error);
     return null;
   }
 };

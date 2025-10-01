@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/logger';
 
 export const useNotifications = () => {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -25,17 +26,26 @@ export const useNotifications = () => {
       if (notificationError) throw notificationError;
       setUnreadNotifications(notificationCount || 0);
 
-      // Fetch unread messages count
-      const { count: messageCount, error: messageError } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('recipient_id', user.id)
-        .eq('is_read', false);
+      // Fetch unread messages count (handle if table doesn't exist)
+      try {
+        const { count: messageCount, error: messageError } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('recipient_id', user.id)
+          .eq('is_read', false);
 
-      if (messageError) throw messageError;
-      setUnreadMessages(messageCount || 0);
+        if (messageError) {
+          // Messages table not available
+          setUnreadMessages(0);
+        } else {
+          setUnreadMessages(messageCount || 0);
+        }
+      } catch (error) {
+        // Messages feature not available
+        setUnreadMessages(0);
+      }
     } catch (error) {
-      console.error('Error fetching unread counts:', error);
+      // Notification count error
     }
   };
 
@@ -77,7 +87,9 @@ export const useNotifications = () => {
 
     return () => {
       supabase.removeChannel(notificationsChannel);
-      supabase.removeChannel(messagesChannel);
+      if (messagesChannel) {
+        supabase.removeChannel(messagesChannel);
+      }
     };
   }, [user]);
 

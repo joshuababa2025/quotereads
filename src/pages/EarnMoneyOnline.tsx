@@ -491,8 +491,8 @@ const EarnMoneyOnline = () => {
                       <p className="text-sm text-muted-foreground">{task.description}</p>
                       
                       <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary">{task.category}</Badge>
-                        <Badge className={getDifficultyColor(task.difficulty)}>{task.difficulty}</Badge>
+                        <Badge className="bg-orange-500 text-white hover:bg-orange-600">{task.category}</Badge>
+                        <Badge className="bg-orange-500 text-white hover:bg-orange-600">{task.difficulty}</Badge>
                       </div>
                       
                       <div className="flex items-center justify-between text-sm">
@@ -506,11 +506,13 @@ const EarnMoneyOnline = () => {
                       </div>
                       
                       <Button 
-                        className="w-full" 
+                        className={`w-full ${
+                          isCompleted ? 'bg-orange-500 text-white hover:bg-orange-600' : ''
+                        }`}
                         onClick={() => handleTaskClick(task.id)}
                         disabled={isCompleted || isReviewing}
                         variant={
-                          isCompleted ? "secondary" : 
+                          isCompleted ? "default" : 
                           isReviewing ? "outline" : 
                           "default"
                         }
